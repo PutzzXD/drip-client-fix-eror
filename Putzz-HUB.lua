@@ -66,7 +66,7 @@ local antiDamageThread = nil
 local antiDamageHeartbeat = nil
 
 local spinEnabled = false
-local spinSpeed = 10
+local spinSpeed = 50
 local spinConnection = nil
 local spinDirection = 1
 
@@ -805,7 +805,7 @@ local function createPlayerCounter()
     enemyCountText.OutlineColor = Color3.fromRGB(0, 0, 0)
     enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 50)
     enemyCountText.Visible = false
-    enemyCountText.Text = "👥 ENEMIES: 0"
+    enemyCountText.Text = "⚠️PLAYER⚠️: 0"
 end
 
 local function updatePlayerCounter()
@@ -823,7 +823,7 @@ local function updatePlayerCounter()
         end
     end
     
-    enemyCountText.Text = "👥 ENEMIES: " .. count
+    enemyCountText.Text = "⚠️PLAYER⚠️: " .. count
     enemyCountText.Color = themeColor
     enemyCountText.Visible = playerCounterEnabled
     enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 50)
@@ -1137,7 +1137,7 @@ local function loadMainScript()
     glowBg.Size = UDim2.new(1.1, 0, 1.1, 0)
     glowBg.Position = UDim2.new(-0.05, 0, -0.05, 0)
     glowBg.BackgroundTransparency = 1
-    glowBg.Image = "rbxassetid://6014261993"
+    glowBg.Image = "rbxassetid://72495850369898"
     glowBg.ImageColor3 = themeColor
     glowBg.ImageTransparency = 0.7
     glowBg.ScaleType = Enum.ScaleType.Slice
@@ -1546,7 +1546,7 @@ local function loadMainScript()
     infoText.Size = UDim2.new(0.95, 0, 0, 120)
     infoText.Position = UDim2.new(0.025, 0, 0, 50)
     infoText.BackgroundTransparency = 1
-    infoText.Text = "DRIP CLIENT HP EDITION\n\nVERSI 7.5\n\nDEVELOPER: Putzzdev\n\nKONTAK: 088976255131"
+    infoText.Text = "DRIP CLIENT no root\n\nVERSI 7.5\n\nDEVELOPER: Putzzdev\n\nKONTAK: 088976255131"
     infoText.TextColor3 = Color3.fromRGB(255, 255, 255)
     infoText.Font = Enum.Font.Gotham
     infoText.TextSize = 14
