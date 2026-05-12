@@ -1132,17 +1132,14 @@ local function loadMainScript()
     mainCorner.Parent = mainFrame
     mainCorner.CornerRadius = UDim.new(0, 24)
     
-    local glowBg = Instance.new("ImageLabel")
-    glowBg.Parent = mainFrame
-    glowBg.Size = UDim2.new(1.1, 0, 1.1, 0)
-    glowBg.Position = UDim2.new(-0.05, 0, -0.05, 0)
-    glowBg.BackgroundTransparency = 1
-    glowBg.Image = "rbxassetid://72495850369898"
-    glowBg.ImageColor3 = themeColor
-    glowBg.ImageTransparency = 0.7
-    glowBg.ScaleType = Enum.ScaleType.Slice
-    glowBg.SliceCenter = Rect.new(10, 10, 118, 118)
-    glowBg.ZIndex = 0
+    local minimizeBtn = Instance.new("ImageButton")
+        minimizeBtn.Parent = Header
+        minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+        minimizeBtn.Position = UDim2.new(1, -35, 0, 15)
+        minimizeBtn.BackgroundTransparency = 1
+        minimizeBtn.Image = "rbxassetid://72495850369898"
+        minimizeBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        minimizeBtn.ZIndex = 10
     
     local premiumBorder = Instance.new("Frame")
     premiumBorder.Parent = mainFrame
