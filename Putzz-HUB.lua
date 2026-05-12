@@ -298,20 +298,20 @@ KeyHeader.Parent = KeyFrame
 KeyHeader.Size = UDim2.new(1, 0, 0, 80)
 KeyHeader.BackgroundTransparency = 1
 
-local KeyIcon = Instance.new("TextLabel")
+-- ========== LOGO IMAGE DI KEY SYSTEM (GANTI DENGAN rbxassetid) ==========
+local KeyIcon = Instance.new("ImageLabel")
 KeyIcon.Parent = KeyHeader
-KeyIcon.Size = UDim2.new(1, 0, 0.5, 0)
-KeyIcon.Position = UDim2.new(0, 0, 0, 10)
+KeyIcon.Size = UDim2.new(0, 70, 0, 70)
+KeyIcon.Position = UDim2.new(0.5, -35, 0, 10)
 KeyIcon.BackgroundTransparency = 1
-KeyIcon.Text = "🔐"
-KeyIcon.TextColor3 = themeColor
-KeyIcon.Font = Enum.Font.GothamBlack
-KeyIcon.TextSize = 45
+KeyIcon.Image = "rbxassetid://72495850369898"
+KeyIcon.ImageColor3 = themeColor
+KeyIcon.ScaleType = Enum.ScaleType.Fit
 
 local KeyTitle = Instance.new("TextLabel")
 KeyTitle.Parent = KeyHeader
 KeyTitle.Size = UDim2.new(1, 0, 0.5, 0)
-KeyTitle.Position = UDim2.new(0, 0, 0, 50)
+KeyTitle.Position = UDim2.new(0, 0, 0, 55)
 KeyTitle.BackgroundTransparency = 1
 KeyTitle.Text = "DRIP CLIENT AUTH"
 KeyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1132,15 +1132,6 @@ local function loadMainScript()
     mainCorner.Parent = mainFrame
     mainCorner.CornerRadius = UDim.new(0, 24)
     
-    local minimizeBtn = Instance.new("ImageButton")
-        minimizeBtn.Parent = Header
-        minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
-        minimizeBtn.Position = UDim2.new(1, -35, 0, 15)
-        minimizeBtn.BackgroundTransparency = 1
-        minimizeBtn.Image = "rbxassetid://72495850369898"
-        minimizeBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
-        minimizeBtn.ZIndex = 10
-    
     local premiumBorder = Instance.new("Frame")
     premiumBorder.Parent = mainFrame
     premiumBorder.Size = UDim2.new(1, 0, 1, 0)
@@ -1169,27 +1160,37 @@ local function loadMainScript()
     })
     headerGradient.Rotation = 90
     
+    -- ========== LOGO IMAGE DI MENU UTAMA (GANTI DENGAN rbxassetid) ==========
+    local logoImage = Instance.new("ImageLabel")
+    logoImage.Parent = header
+    logoImage.Size = UDim2.new(0, 45, 0, 45)
+    logoImage.Position = UDim2.new(0, 12, 0, 12)
+    logoImage.BackgroundTransparency = 1
+    logoImage.Image = "rbxassetid://72495850369898"
+    logoImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    logoImage.ScaleType = Enum.ScaleType.Fit
+    
     local title = Instance.new("TextLabel")
     title.Parent = header
-    title.Size = UDim2.new(1, 0, 0.6, 0)
-    title.Position = UDim2.new(0, 0, 0, 15)
+    title.Size = UDim2.new(1, -70, 0.6, 0)
+    title.Position = UDim2.new(0, 65, 0, 18)
     title.BackgroundTransparency = 1
     title.Text = "DRIP CLIENT"
     title.TextColor3 = Color3.fromRGB(255, 255, 255)
     title.Font = Enum.Font.GothamBlack
     title.TextSize = 26
-    title.TextXAlignment = Enum.TextXAlignment.Center
+    title.TextXAlignment = Enum.TextXAlignment.Left
     
     local subtitle = Instance.new("TextLabel")
     subtitle.Parent = header
-    subtitle.Size = UDim2.new(1, 0, 0.3, 0)
-    subtitle.Position = UDim2.new(0, 0, 0, 48)
+    subtitle.Size = UDim2.new(1, -70, 0.3, 0)
+    subtitle.Position = UDim2.new(0, 65, 0, 48)
     subtitle.BackgroundTransparency = 1
     subtitle.Text = "Drip VIP"
     subtitle.TextColor3 = boxColor
     subtitle.Font = Enum.Font.Gotham
     subtitle.TextSize = 11
-    subtitle.TextXAlignment = Enum.TextXAlignment.Center
+    subtitle.TextXAlignment = Enum.TextXAlignment.Left
     
     local tabBar = Instance.new("Frame")
     tabBar.Parent = mainFrame
