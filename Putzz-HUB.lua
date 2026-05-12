@@ -298,7 +298,7 @@ KeyHeader.Parent = KeyFrame
 KeyHeader.Size = UDim2.new(1, 0, 0, 80)
 KeyHeader.BackgroundTransparency = 1
 
--- ========== LOGO IMAGE DI KEY SYSTEM (GANTI DENGAN rbxassetid) ==========
+-- LOGO IMAGE DI KEY SYSTEM
 local KeyIcon = Instance.new("ImageLabel")
 KeyIcon.Parent = KeyHeader
 KeyIcon.Size = UDim2.new(0, 70, 0, 70)
@@ -481,17 +481,14 @@ local function startFlyMode()
     local char = plr.Character
     if not char then return end
     
-    -- Ambil torso (R6/R15 kompatibel)
     flyTorso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("HumanoidRootPart")
     if not flyTorso then return end
     
-    -- Reset variables
     ctrl = {f = 0, b = 0, l = 0, r = 0}
     lastctrl = {f = 0, b = 0, l = 0, r = 0}
     speed = 0
     maxspeed = 50
     
-    -- Disable animasi dan platform stand
     if char:FindFirstChildOfClass("Humanoid") then
         char.Humanoid.PlatformStand = true
     end
@@ -499,7 +496,6 @@ local function startFlyMode()
         char.Animate.Disabled = true
     end
     
-    -- Buat BodyGyro
     flyBodyGyro = flyTorso:FindFirstChild("FlyBG")
     if not flyBodyGyro then
         flyBodyGyro = Instance.new("BodyGyro")
@@ -509,7 +505,6 @@ local function startFlyMode()
         flyBodyGyro.Parent = flyTorso
     end
     
-    -- Buat BodyVelocity
     flyBodyVelocity = flyTorso:FindFirstChild("FlyBV")
     if not flyBodyVelocity then
         flyBodyVelocity = Instance.new("BodyVelocity")
@@ -533,13 +528,11 @@ local function startFlyMode()
         local bg = currentTorso:FindFirstChild("FlyBG")
         if not bv or not bg then return end
         
-        -- Update input WASD
         if UserInputService:IsKeyDown(Enum.KeyCode.W) then ctrl.f = 1 else ctrl.f = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.S) then ctrl.b = -1 else ctrl.b = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.A) then ctrl.l = -1 else ctrl.l = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.D) then ctrl.r = 1 else ctrl.r = 0 end
         
-        -- Hitung speed
         if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
             speed = speed + 0.5 + (speed / maxspeed)
             if speed > maxspeed then speed = maxspeed end
@@ -548,7 +541,6 @@ local function startFlyMode()
             if speed < 0 then speed = 0 end
         end
         
-        -- Terapkan velocity
         if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
             bv.Velocity = ((Camera.CFrame.LookVector * (ctrl.f + ctrl.b)) + 
                 ((Camera.CFrame * CFrame.new(ctrl.l + ctrl.r, (ctrl.f + ctrl.b) * 0.2, 0).p) - Camera.CFrame.p)) * speed
@@ -560,7 +552,6 @@ local function startFlyMode()
             bv.Velocity = Vector3.new(0, 0, 0)
         end
         
-        -- Update gyro
         bg.CFrame = Camera.CFrame * CFrame.Angles(-math.rad((ctrl.f + ctrl.b) * 50 * speed / maxspeed), 0, 0)
     end)
 end
@@ -1160,7 +1151,6 @@ local function loadMainScript()
     })
     headerGradient.Rotation = 90
     
-    -- ========== LOGO IMAGE DI MENU UTAMA (GANTI DENGAN rbxassetid) ==========
     local logoImage = Instance.new("ImageLabel")
     logoImage.Parent = header
     logoImage.Size = UDim2.new(0, 45, 0, 45)
@@ -1484,6 +1474,8 @@ local function loadMainScript()
         for _, content in pairs(contents) do
             content.ScrollBarImageColor3 = themeColor
         end
+        if KeyIcon then KeyIcon.ImageColor3 = themeColor end
+        if KeyBorder then KeyBorder.BorderColor3 = themeColor end
         for player, esp in pairs(ESPTable) do
             if esp and esp[4] then esp[4].Color = themeColor end
         end
@@ -1566,16 +1558,15 @@ local function loadMainScript()
     tabs[1].BackgroundTransparency = 0.2
     contents[1].Visible = true
     
-    local openBtn = Instance.new("TextButton")
+    -- ========== TOMBOL GESER (GANTI JADI IMAGE) ==========
+    local openBtn = Instance.new("ImageButton")
     openBtn.Parent = ScreenGui
-    openBtn.Size = UDim2.new(0, 120, 0, 45)
-    openBtn.Position = UDim2.new(0, 15, 0.5, -22.5)
-    openBtn.BackgroundColor3 = themeColor
-    openBtn.BackgroundTransparency = 0.2
-    openBtn.Text = "DRIP CLIENT"
-    openBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    openBtn.Font = Enum.Font.GothamBlack
-    openBtn.TextSize = 13
+    openBtn.Size = UDim2.new(0, 60, 0, 60)
+    openBtn.Position = UDim2.new(0, 15, 0.5, -30)
+    openBtn.BackgroundTransparency = 1
+    openBtn.Image = "rbxassetid://72495850369898"
+    openBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    openBtn.ScaleType = Enum.ScaleType.Fit
     openBtn.ZIndex = 10
     openBtn.Active = true
     openBtn.Draggable = true
@@ -1606,12 +1597,10 @@ local function loadMainScript()
     end)
     
     openBtn.MouseEnter:Connect(function()
-        TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 130, 0, 48)}):Play()
-        openBtn.BackgroundTransparency = 0
+        TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 70, 0, 70)}):Play()
     end)
     openBtn.MouseLeave:Connect(function()
-        TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 120, 0, 45)}):Play()
-        openBtn.BackgroundTransparency = 0.2
+        TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 60, 0, 60)}):Play()
     end)
     
     print("✅ DRIP CLIENT V7.5 - MENU BERHASIL DIMUAT!")
