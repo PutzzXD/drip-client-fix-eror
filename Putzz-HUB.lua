@@ -3,7 +3,7 @@
 -- Developer: Putzz XD
 
 -- ================== KEY SYSTEM CONFIG ==================
-local FIREBASE_URL = "https://keyweb-f8e96-default-rtdb.europe-west1.firebasedatabase.app/keys.json"
+local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
 local WEBSITE_URL = "https://putzzdevxit.github.io/KEY-GENERATOR-/"
 local SCRIPT_NAME = "DRIP CLIENT"
 
