@@ -4,7 +4,7 @@
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
-local WEBSITE_URL = "https://putzzdevxit.github.io/KEY-GENERATOR-/"
+local WEBSITE_URL = "https://putzzxd.github.io/Drip-Client-GET-KEY.-/"
 local SCRIPT_NAME = "DRIP CLIENT"
 
 local SAVE_FILE = "drip_key_data.txt"
