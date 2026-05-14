@@ -38,7 +38,7 @@ local enemyCountText = nil
 -- Movement HP (Fly) - AUTO FORWARD + SPEED ADJUST
 local flyEnabled = false
 local flyConnection = nil
-local flySpeed = 55           -- GANTI ANGKA INI UNTUK ATUR KECEPATAN TERBANG (30 = lambat, 100 = cepat)
+local flySpeed = 100           -- GANTI ANGKA INI UNTUK ATUR KECEPATAN TERBANG (30 = lambat, 100 = cepat)
 local flyAutoForward = true   -- true = maju terus, false = perlu tekan W
 local ctrl = {f = 0, b = 0, l = 0, r = 0}
 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
