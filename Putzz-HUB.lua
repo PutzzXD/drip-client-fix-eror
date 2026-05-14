@@ -1,6 +1,7 @@
--- ================== DRIP CLIENT V7.5 (HP EDITION + FLY FIX) ==================
--- Version: 7.5 (Khusus HP - Touch Control + Crosshair)
+-- ================== DRIP CLIENT V7.6 (FLY AUTO FORWARD + SPEED ADJUST) ==================
+-- Version: 7.6 (Khusus HP - Touch Control + Crosshair)
 -- Developer: Putzz XD
+-- FIX: Fly langsung maju otomatis, kecepatan atur di variable flySpeed
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -34,14 +35,15 @@ local SkeletonESP = {}
 local playerCounterEnabled = false
 local enemyCountText = nil
 
--- Movement HP (Fly) - Fix dari FlyGuiV3
+-- Movement HP (Fly) - AUTO FORWARD + SPEED ADJUST
 local flyEnabled = false
 local flyConnection = nil
-local flySpeed = 50
+local flySpeed = 55           -- GANTI ANGKA INI UNTUK ATUR KECEPATAN TERBANG (30 = lambat, 100 = cepat)
+local flyAutoForward = true   -- true = maju terus, false = perlu tekan W
 local ctrl = {f = 0, b = 0, l = 0, r = 0}
 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 local speed = 0
-local maxspeed = 50
+local maxspeed = flySpeed
 local flyBodyVelocity = nil
 local flyBodyGyro = nil
 local flyTorso = nil
@@ -475,7 +477,7 @@ WebsiteBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- ================== FUNGSI FLY (DARI FLYGUI V3 - WORKING) ==================
+-- ================== FUNGSI FLY (AUTO FORWARD + SPEED ADJUST) ==================
 local function startFlyMode()
     local plr = LocalPlayer
     local char = plr.Character
@@ -487,7 +489,7 @@ local function startFlyMode()
     ctrl = {f = 0, b = 0, l = 0, r = 0}
     lastctrl = {f = 0, b = 0, l = 0, r = 0}
     speed = 0
-    maxspeed = 50
+    maxspeed = flySpeed
     
     if char:FindFirstChildOfClass("Humanoid") then
         char.Humanoid.PlatformStand = true
@@ -528,31 +530,45 @@ local function startFlyMode()
         local bg = currentTorso:FindFirstChild("FlyBG")
         if not bv or not bg then return end
         
+        -- Input manual WASD
         if UserInputService:IsKeyDown(Enum.KeyCode.W) then ctrl.f = 1 else ctrl.f = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.S) then ctrl.b = -1 else ctrl.b = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.A) then ctrl.l = -1 else ctrl.l = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.D) then ctrl.r = 1 else ctrl.r = 0 end
         
-        if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+        -- Auto forward (maju terus tanpa perlu tekan W)
+        local forwardInput = 0
+        if flyAutoForward and ctrl.f == 0 and ctrl.b == 0 then
+            forwardInput = 1  -- MAJU TERUS
+        else
+            forwardInput = ctrl.f + ctrl.b
+        end
+        
+        -- Hitung kecepatan
+        if forwardInput ~= 0 or ctrl.l + ctrl.r ~= 0 then
             speed = speed + 0.5 + (speed / maxspeed)
-            if speed > maxspeed then speed = maxspeed end
-        elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+            if speed > flySpeed then speed = flySpeed end
+        elseif speed ~= 0 then
             speed = speed - 1
             if speed < 0 then speed = 0 end
         end
         
-        if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-            bv.Velocity = ((Camera.CFrame.LookVector * (ctrl.f + ctrl.b)) + 
-                ((Camera.CFrame * CFrame.new(ctrl.l + ctrl.r, (ctrl.f + ctrl.b) * 0.2, 0).p) - Camera.CFrame.p)) * speed
+        -- Terapkan velocity
+        if forwardInput ~= 0 or ctrl.l + ctrl.r ~= 0 then
+            local moveDirection = Vector3.new(ctrl.l + ctrl.r, 0, forwardInput)
+            local camCF = Camera.CFrame
+            local forward = camCF.LookVector * moveDirection.Z
+            local right = camCF.RightVector * moveDirection.X
+            bv.Velocity = (forward + right) * speed
             lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-        elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+        elseif speed ~= 0 then
             bv.Velocity = ((Camera.CFrame.LookVector * (lastctrl.f + lastctrl.b)) + 
                 ((Camera.CFrame * CFrame.new(lastctrl.l + lastctrl.r, (lastctrl.f + lastctrl.b) * 0.2, 0).p) - Camera.CFrame.p)) * speed
         else
             bv.Velocity = Vector3.new(0, 0, 0)
         end
         
-        bg.CFrame = Camera.CFrame * CFrame.Angles(-math.rad((ctrl.f + ctrl.b) * 50 * speed / maxspeed), 0, 0)
+        bg.CFrame = Camera.CFrame * CFrame.Angles(-math.rad((forwardInput) * 50 * speed / maxspeed), 0, 0)
     end)
 end
 
@@ -1374,7 +1390,7 @@ local function loadMainScript()
     end
     
     -- ===== TAB MAIN =====
-    createToggle(tabMain, "Fly", false, function(s)
+    createToggle(tabMain, "Fly (Auto Maju)", false, function(s)
         if s then 
             flyEnabled = true
             startFlyMode()
@@ -1536,7 +1552,7 @@ local function loadMainScript()
     infoText.Size = UDim2.new(0.95, 0, 0, 120)
     infoText.Position = UDim2.new(0.025, 0, 0, 50)
     infoText.BackgroundTransparency = 1
-    infoText.Text = "DRIP CLIENT no root\n\nVERSI 7.5\n\nDEVELOPER: Putzzdev\n\nKONTAK: 088976255131"
+    infoText.Text = "DRIP CLIENT V7.6\n\nNo root\n\nDEVELOPER: Putzzdev\n\nKONTAK: 088976255131"
     infoText.TextColor3 = Color3.fromRGB(255, 255, 255)
     infoText.Font = Enum.Font.Gotham
     infoText.TextSize = 14
@@ -1558,7 +1574,7 @@ local function loadMainScript()
     tabs[1].BackgroundTransparency = 0.2
     contents[1].Visible = true
     
-    -- ========== TOMBOL GESER (GANTI JADI IMAGE) ==========
+    -- ========== TOMBOL GESER (IMAGE) ==========
     local openBtn = Instance.new("ImageButton")
     openBtn.Parent = ScreenGui
     openBtn.Size = UDim2.new(0, 60, 0, 60)
@@ -1603,7 +1619,7 @@ local function loadMainScript()
         TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 60, 0, 60)}):Play()
     end)
     
-    print("✅ DRIP CLIENT V7.5 - MENU BERHASIL DIMUAT!")
+    print("✅ DRIP CLIENT V7.6 - MENU BERHASIL DIMUAT!")
 end
 
 -- ================== EVENT VERIFY BUTTON ==================
@@ -1654,4 +1670,4 @@ KeyTextBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("DRIP CLIENT V7.5")
+print("DRIP CLIENT V7.6 - FLY AUTO FORWARD + SPEED ADJUST")
