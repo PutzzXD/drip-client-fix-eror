@@ -1,7 +1,7 @@
--- ================== DRIP CLIENT V7.6 (FLY AUTO FORWARD + SPEED ADJUST) ==================
--- Version: 7.6 (Khusus HP - Touch Control + Crosshair)
+-- ================== DRIP CLIENT V7.7 (FINAL - NO ERROR) ==================
+-- Version: 7.7 (Khusus HP - Touch Control + Crosshair)
 -- Developer: Putzz XD
--- FIX: Fly langsung maju otomatis, kecepatan atur di variable flySpeed
+-- Perubahan: Warna kuning -> putih, tulisan PLAYER fokus merah, ESP Health gabung dengan ESP Box
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -26,7 +26,6 @@ local HttpService = game:GetService("HttpService")
 -- ESP
 local espEnabled = false
 local lineEnabled = false
-local healthEnabled = false
 local skeletonEnabled = false
 local ESPTable = {}
 local SkeletonESP = {}
@@ -38,8 +37,8 @@ local enemyCountText = nil
 -- Movement HP (Fly) - AUTO FORWARD + SPEED ADJUST
 local flyEnabled = false
 local flyConnection = nil
-local flySpeed = 300           -- GANTI ANGKA INI UNTUK ATUR KECEPATAN TERBANG (30 = lambat, 100 = cepat)
-local flyAutoForward = true   -- true = maju terus, false = perlu tekan W
+local flySpeed = 100
+local flyAutoForward = true
 local ctrl = {f = 0, b = 0, l = 0, r = 0}
 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 local speed = 0
@@ -78,11 +77,13 @@ local invisibleParts = {}
 local invisibleRootPart = nil
 local invisibleHumanoid = nil
 
--- Warna Tema
-local themeColor = Color3.fromRGB(156, 39, 176)
-local darkPurple = Color3.fromRGB(74, 20, 90)
-local boxColor = Color3.fromRGB(0, 255, 0)
-local skeletonColor = Color3.fromRGB(0, 255, 0)
+-- Warna Tema (UNGU + PUTIH + MERAH)
+local themeColor = Color3.fromRGB(255, 255, 255) -- PUTIH
+local darkPurple = Color3.fromRGB(74, 20, 90)   -- UNGU GELAP
+local boxColor = Color3.fromRGB(0, 255, 0)      -- HIJAU untuk box
+local skeletonColor = Color3.fromRGB(0, 255, 0) -- HIJAU untuk skeleton
+local healthBarColor = Color3.fromRGB(0, 255, 0) -- HIJAU untuk health bar
+local redColor = Color3.fromRGB(255, 0, 0)      -- MERAH untuk PLAYER counter
 local MAX_ESP_DISTANCE = 115
 
 -- ================== FUNGSI KEY SYSTEM ==================
@@ -530,21 +531,18 @@ local function startFlyMode()
         local bg = currentTorso:FindFirstChild("FlyBG")
         if not bv or not bg then return end
         
-        -- Input manual WASD
         if UserInputService:IsKeyDown(Enum.KeyCode.W) then ctrl.f = 1 else ctrl.f = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.S) then ctrl.b = -1 else ctrl.b = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.A) then ctrl.l = -1 else ctrl.l = 0 end
         if UserInputService:IsKeyDown(Enum.KeyCode.D) then ctrl.r = 1 else ctrl.r = 0 end
         
-        -- Auto forward (maju terus tanpa perlu tekan W)
         local forwardInput = 0
         if flyAutoForward and ctrl.f == 0 and ctrl.b == 0 then
-            forwardInput = 1  -- MAJU TERUS
+            forwardInput = 1
         else
             forwardInput = ctrl.f + ctrl.b
         end
         
-        -- Hitung kecepatan
         if forwardInput ~= 0 or ctrl.l + ctrl.r ~= 0 then
             speed = speed + 0.5 + (speed / maxspeed)
             if speed > flySpeed then speed = flySpeed end
@@ -553,7 +551,6 @@ local function startFlyMode()
             if speed < 0 then speed = 0 end
         end
         
-        -- Terapkan velocity
         if forwardInput ~= 0 or ctrl.l + ctrl.r ~= 0 then
             local moveDirection = Vector3.new(ctrl.l + ctrl.r, 0, forwardInput)
             local camCF = Camera.CFrame
@@ -805,14 +802,14 @@ local function createPlayerCounter()
     end
     
     enemyCountText = Drawing.new("Text")
-    enemyCountText.Size = 24
-    enemyCountText.Color = themeColor
+    enemyCountText.Size = 28
+    enemyCountText.Color = redColor
     enemyCountText.Center = true
     enemyCountText.Outline = true
     enemyCountText.OutlineColor = Color3.fromRGB(0, 0, 0)
     enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 50)
     enemyCountText.Visible = false
-    enemyCountText.Text = "⚠️PLAYER⚠️: 0"
+    enemyCountText.Text = "⚠️ PLAYER: 0 ⚠️"
 end
 
 local function updatePlayerCounter()
@@ -830,8 +827,8 @@ local function updatePlayerCounter()
         end
     end
     
-    enemyCountText.Text = "⚠️PLAYER⚠️: " .. count
-    enemyCountText.Color = themeColor
+    enemyCountText.Text = "⚠️ PLAYER: " .. count .. " ⚠️"
+    enemyCountText.Color = redColor
     enemyCountText.Visible = playerCounterEnabled
     enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 50)
 end
@@ -867,6 +864,7 @@ local function createESP(player)
     line.Color = themeColor
     line.Visible = false
     
+    -- HEALTH BAR (akan muncul saat ESP Box aktif)
     local healthBg = Drawing.new("Square")
     healthBg.Thickness = 1
     healthBg.Color = Color3.fromRGB(30, 30, 30)
@@ -981,37 +979,44 @@ RunService.RenderStepped:Connect(function()
                 local width = height / 2
                 
                 if espEnabled then
+                    -- ESP BOX
                     box.Size = Vector2.new(width, height)
                     box.Position = Vector2.new(pos.X - width/2, top.Y)
                     box.Visible = true
                     box.Color = boxColor
                     
+                    -- NAME
                     name.Position = Vector2.new(pos.X, top.Y - 18)
                     name.Text = player.Name
                     name.Visible = true
+                    
+                    -- DISTANCE
                     distText.Text = math.floor(distance) .. "m"
                     distText.Position = Vector2.new(pos.X, bottom.Y + 5)
                     distText.Visible = true
+                    
+                    -- HEALTH BAR (otomatis muncul di samping box)
+                    if humanoid then
+                        local healthPercent = humanoid.Health / humanoid.MaxHealth
+                        local barWidth = 6
+                        local barHeight = height * healthPercent
+                        local barX = pos.X + width/2 + 4
+                        local barY = bottom.Y - (height * healthPercent)
+                        healthBg.Size = Vector2.new(barWidth, height)
+                        healthBg.Position = Vector2.new(barX, bottom.Y - height)
+                        healthBg.Visible = true
+                        healthFg.Size = Vector2.new(barWidth, barHeight)
+                        healthFg.Position = Vector2.new(barX, barY)
+                        healthFg.Color = Color3.fromRGB(255 * (1 - healthPercent), 255 * healthPercent, 0)
+                        healthFg.Visible = true
+                    else
+                        healthBg.Visible = false
+                        healthFg.Visible = false
+                    end
                 else
                     box.Visible = false
                     name.Visible = false
                     distText.Visible = false
-                end
-                
-                if healthEnabled and humanoid then
-                    local healthPercent = humanoid.Health / humanoid.MaxHealth
-                    local barWidth = width * 0.8
-                    local barHeight = 4
-                    local barX = pos.X - barWidth / 2
-                    local barY = top.Y - 22
-                    healthBg.Size = Vector2.new(barWidth, barHeight)
-                    healthBg.Position = Vector2.new(barX, barY)
-                    healthBg.Visible = true
-                    healthFg.Size = Vector2.new(barWidth * healthPercent, barHeight)
-                    healthFg.Position = Vector2.new(barX, barY)
-                    healthFg.Color = Color3.fromRGB(255 * (1 - healthPercent), 255 * healthPercent, 0)
-                    healthFg.Visible = true
-                else
                     healthBg.Visible = false
                     healthFg.Visible = false
                 end
@@ -1434,10 +1439,15 @@ local function loadMainScript()
     end)
     
     -- ===== TAB ESP =====
-    createToggle(tabESP, "ESP Box", false, function(s) espEnabled = s end)
-    createToggle(tabESP, "ESP Line", false, function(s) lineEnabled = s end)
-    createToggle(tabESP, "Health Bar", false, function(s) healthEnabled = s end)
-    createToggle(tabESP, "ESP Skeleton", false, function(s) skeletonEnabled = s end)
+    createToggle(tabESP, "ESP Box + Health", false, function(s) 
+        espEnabled = s 
+    end)
+    createToggle(tabESP, "ESP Line", false, function(s) 
+        lineEnabled = s 
+    end)
+    createToggle(tabESP, "ESP Skeleton", false, function(s) 
+        skeletonEnabled = s 
+    end)
     createToggle(tabESP, "Player Counter", false, function(s) 
         playerCounterEnabled = s
         if s then
@@ -1496,12 +1506,15 @@ local function loadMainScript()
             if esp and esp[4] then esp[4].Color = themeColor end
         end
         if enemyCountText then
-            enemyCountText.Color = themeColor
+            enemyCountText.Color = redColor
         end
     end
     
     createButton(tabColor, "Ungu (Default)", function()
         changeTheme(Color3.fromRGB(156, 39, 176))
+    end)
+    createButton(tabColor, "Putih", function()
+        changeTheme(Color3.fromRGB(255, 255, 255))
     end)
     createButton(tabColor, "Chan", function()
         changeTheme(Color3.fromRGB(0, 255, 255))
@@ -1552,7 +1565,7 @@ local function loadMainScript()
     infoText.Size = UDim2.new(0.95, 0, 0, 120)
     infoText.Position = UDim2.new(0.025, 0, 0, 50)
     infoText.BackgroundTransparency = 1
-    infoText.Text = "DRIP CLIENT V7.6\n\nNo root\n\nDEVELOPER: Putzzdev\n\nKONTAK: 088976255131"
+    infoText.Text = "DRIP CLIENT V7.7\n\nNo root\n\nDEVELOPER: Putzzdev\n\nKONTAK: 088976255131"
     infoText.TextColor3 = Color3.fromRGB(255, 255, 255)
     infoText.Font = Enum.Font.Gotham
     infoText.TextSize = 14
@@ -1582,8 +1595,7 @@ local function loadMainScript()
     openBtn.BackgroundTransparency = 1
     openBtn.Image = "rbxassetid://72495850369898"
     openBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
-    openBtn.ScaleType = Enum.ScaleType.Fit
-    openBtn.ZIndex = 10
+    openBtn.ScaleType = Enum.ScaleType.Fit    openBtn.ZIndex = 10
     openBtn.Active = true
     openBtn.Draggable = true
     
@@ -1619,7 +1631,7 @@ local function loadMainScript()
         TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 60, 0, 60)}):Play()
     end)
     
-    print("✅ DRIP CLIENT V7.6 - MENU BERHASIL DIMUAT!")
+    print("✅ DRIP CLIENT V7.7 - MENU BERHASIL DIMUAT!")
 end
 
 -- ================== EVENT VERIFY BUTTON ==================
@@ -1670,4 +1682,4 @@ KeyTextBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("DRIP CLIENT V7.6 - FLY AUTO FORWARD + SPEED ADJUST")
+print("DRIP CLIENT V7.7 - ESP HEALTH GABUNG DENGAN ESP BOX")
