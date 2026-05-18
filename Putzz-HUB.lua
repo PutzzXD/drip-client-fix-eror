@@ -1,7 +1,7 @@
--- ================== DRIP CLIENT V7.7 (FINAL - NO ERROR) ==================
--- Version: 7.7 (Khusus HP - Touch Control + Crosshair)
+-- ================== DRIP CLIENT V7.8 (FIXED EXPIRY + TIMER COUNTDOWN) ==================
+-- Version: 7.8 (Khusus HP - Touch Control + Crosshair)
 -- Developer: Putzz XD
--- Perubahan: Warna kuning -> putih, tulisan PLAYER fokus merah, ESP Health gabung dengan ESP Box
+-- FIX: Key expired berfungsi dengan benar, timer countdown di tab INFO
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -12,6 +12,8 @@ local SAVE_FILE = "drip_key_data.txt"
 local activeKeys = {}
 local currentUserKey = nil
 local keyExpiryTime = 0
+local keyExpiryDays = 0
+local keyJenis = ""
 
 -- ================== LOAD SERVICES ==================
 local Players = game:GetService("Players")
@@ -77,14 +79,17 @@ local invisibleParts = {}
 local invisibleRootPart = nil
 local invisibleHumanoid = nil
 
--- Warna Tema (UNGU + PUTIH + MERAH)
-local themeColor = Color3.fromRGB(255, 255, 255) -- PUTIH
-local darkPurple = Color3.fromRGB(74, 20, 90)   -- UNGU GELAP
-local boxColor = Color3.fromRGB(0, 255, 0)      -- HIJAU untuk box
-local skeletonColor = Color3.fromRGB(0, 255, 0) -- HIJAU untuk skeleton
-local healthBarColor = Color3.fromRGB(0, 255, 0) -- HIJAU untuk health bar
-local redColor = Color3.fromRGB(255, 0, 0)      -- MERAH untuk PLAYER counter
+-- Warna Tema
+local themeColor = Color3.fromRGB(255, 255, 255)
+local darkPurple = Color3.fromRGB(74, 20, 90)
+local boxColor = Color3.fromRGB(0, 255, 0)
+local skeletonColor = Color3.fromRGB(0, 255, 0)
+local healthBarColor = Color3.fromRGB(0, 255, 0)
+local redColor = Color3.fromRGB(255, 0, 0)
 local MAX_ESP_DISTANCE = 115
+
+-- Timer label untuk update realtime
+local timerLabel = nil
 
 -- ================== FUNGSI KEY SYSTEM ==================
 local function loadKeyData()
@@ -98,6 +103,12 @@ local function loadKeyData()
             end)
             if success2 then
                 activeKeys = data
+                -- Load expiry time dari file jika ada
+                if activeKeys[currentUserKey] and activeKeys[currentUserKey].expiryTime then
+                    keyExpiryTime = activeKeys[currentUserKey].expiryTime
+                    keyExpiryDays = activeKeys[currentUserKey].expiryDays or 0
+                    keyJenis = activeKeys[currentUserKey].jenis or ""
+                end
             end
         end
     end
@@ -147,7 +158,7 @@ local function getTimeRemaining(expiryTimestamp)
     local minutes = math.floor((remaining % 3600) / 60)
     local seconds = remaining % 60
     
-    local timeStr = string.format("%d Hari : %02d Jam : %02d Menit : %02d Detik", 
+    local timeStr = string.format("%d Hari %02d Jam %02d Menit %02d Detik", 
         days, hours, minutes, seconds)
     
     return days, hours, minutes, seconds, timeStr
@@ -163,10 +174,12 @@ local function checkKeyExpiry(inputKey)
     
     local foundKey = nil
     local expiryDays = nil
+    local keyJenisData = nil
     
     for _, keyData in ipairs(keysData) do
         if keyData.key == inputKey then
             foundKey = keyData.key
+            keyJenisData = keyData.jenis or "1 HARI"
             
             if keyData.jenis == "1 JAM" then
                 expiryDays = 1/24
@@ -193,34 +206,36 @@ local function checkKeyExpiry(inputKey)
         return false, "KEY TIDAK TERDAFTAR!"
     end
     
-    if activeKeys[inputKey] then
-        local firstUsed = activeKeys[inputKey].firstUsed
-        local currentTime = os.time()
-        local expiryTime = firstUsed + (expiryDays * 86400)
-        
+    local currentTime = os.time()
+    local expiryTime = nil
+    
+    -- Cek apakah key sudah pernah digunakan (ada di activeKeys)
+    if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
+        expiryTime = activeKeys[inputKey].expiryTime
         if currentTime > expiryTime then
-            return false, "KEY SUDAH EXPIRED! (" .. expiryDays .. " hari)"
-        else
-            local days, hours, minutes, seconds, timeStr = getTimeRemaining(expiryTime)
-            keyExpiryTime = expiryTime
-            currentUserKey = inputKey
-            return true, "KEY VALID! Sisa " .. timeStr
+            return false, "KEY SUDAH EXPIRED! (melebihi masa berlaku)"
         end
     else
-        local currentTime = os.time()
+        -- Key baru, hitung expiry time
+        expiryTime = currentTime + (expiryDays * 86400)
         activeKeys[inputKey] = {
             firstUsed = currentTime,
             key = inputKey,
-            expiryDays = expiryDays
+            expiryDays = expiryDays,
+            expiryTime = expiryTime,
+            jenis = keyJenisData
         }
         saveKeyData()
-        
-        local expiryTime = currentTime + (expiryDays * 86400)
-        keyExpiryTime = expiryTime
-        currentUserKey = inputKey
-        
-        return true, "KEY VALID! Berlaku " .. expiryDays .. " hari"
     end
+    
+    keyExpiryTime = expiryTime
+    keyExpiryDays = expiryDays
+    keyJenis = keyJenisData
+    currentUserKey = inputKey
+    
+    -- Hitung sisa waktu untuk pesan
+    local days, hours, minutes, seconds, timeStr = getTimeRemaining(expiryTime)
+    return true, "KEY VALID! Sisa " .. timeStr
 end
 
 local function showNotification(title, text, duration, color)
@@ -301,7 +316,6 @@ KeyHeader.Parent = KeyFrame
 KeyHeader.Size = UDim2.new(1, 0, 0, 80)
 KeyHeader.BackgroundTransparency = 1
 
--- LOGO IMAGE DI KEY SYSTEM
 local KeyIcon = Instance.new("ImageLabel")
 KeyIcon.Parent = KeyHeader
 KeyIcon.Size = UDim2.new(0, 70, 0, 70)
@@ -320,8 +334,6 @@ KeyTitle.Text = "DRIP CLIENT AUTH"
 KeyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 KeyTitle.Font = Enum.Font.GothamBold
 KeyTitle.TextSize = 16
-KeyTitle.TextStrokeTransparency = 0.3
-KeyTitle.TextStrokeColor3 = themeColor
 
 local InfoFrame = Instance.new("Frame")
 InfoFrame.Parent = KeyFrame
@@ -467,10 +479,10 @@ WebsiteBtn.MouseButton1Click:Connect(function()
     local success = pcall(function()
         if setclipboard then
             setclipboard(WEBSITE_URL)
-            StatusLabel.Text = "✓ Link disalin! Buka browser"
+            StatusLabel.Text = "Link disalin! Buka browser"
             StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
             StatusIcon.Text = "✅"
-            showNotification("✅ LINK DISALIN!", "Buka browser dan paste linknya", 2, Color3.fromRGB(0, 150, 0))
+            showNotification("LINK DISALIN!", "Buka browser dan paste linknya", 2, Color3.fromRGB(0, 150, 0))
         else
             StatusLabel.Text = "🌐 " .. WEBSITE_URL
             StatusLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
@@ -478,7 +490,7 @@ WebsiteBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- ================== FUNGSI FLY (AUTO FORWARD + SPEED ADJUST) ==================
+-- ================== FLY FUNCTION (sama seperti sebelumnya) ==================
 local function startFlyMode()
     local plr = LocalPlayer
     local char = plr.Character
@@ -601,13 +613,9 @@ local function stopFlyMode()
     speed = 0
 end
 
--- ================== FUNGSI CROSSHAIR ==================
+-- ================== CROSSHAIR ==================
 local function createCrosshair()
-    if crosshairObject then
-        pcall(function() crosshairObject:Destroy() end)
-        crosshairObject = nil
-    end
-    
+    if crosshairObject then pcall(function() crosshairObject:Destroy() end) end
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "DripCrosshair"
     screenGui.Parent = game.CoreGui
@@ -658,7 +666,7 @@ local function removeCrosshair()
     end
 end
 
--- ================== FUNGSI NOCLIP ==================
+-- ================== NOCLIP ==================
 local function startNoclip()
     if noclipConnection then noclipConnection:Disconnect() end
     noclipConnection = RunService.Stepped:Connect(function()
@@ -686,7 +694,7 @@ local function stopNoclip()
     end
 end
 
--- ================== FUNGSI UTILITY ==================
+-- ================== UTILITY FUNCTIONS ==================
 local function toggleSpin(state)
     spinEnabled = state
     if spinConnection then spinConnection:Disconnect() spinConnection = nil end
@@ -782,7 +790,6 @@ local function setupAntiDamage()
     LocalPlayer.CharacterAdded:Connect(function() task.wait(0.5); if antiDamageEnabled then onHealthChanged() end end)
 end
 
--- ================== FUNGSI INFINITY JUMP ==================
 local function onJumpRequest()
     if infinityJumpEnabled then
         local char = LocalPlayer.Character
@@ -794,7 +801,7 @@ local function onJumpRequest()
 end
 UserInputService.JumpRequest:Connect(onJumpRequest)
 
--- ================== FUNGSI PLAYER COUNTER ==================
+-- ================== PLAYER COUNTER ==================
 local function createPlayerCounter()
     if enemyCountText then
         pcall(function() enemyCountText:Remove() end)
@@ -809,7 +816,7 @@ local function createPlayerCounter()
     enemyCountText.OutlineColor = Color3.fromRGB(0, 0, 0)
     enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 50)
     enemyCountText.Visible = false
-    enemyCountText.Text = "⚠️ PLAYER: 0 ⚠️"
+    enemyCountText.Text = "PLAYER: 0"
 end
 
 local function updatePlayerCounter()
@@ -827,13 +834,13 @@ local function updatePlayerCounter()
         end
     end
     
-    enemyCountText.Text = "⚠️ PLAYER: " .. count .. " ⚠️"
+    enemyCountText.Text = "PLAYER: " .. count
     enemyCountText.Color = redColor
     enemyCountText.Visible = playerCounterEnabled
     enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 50)
 end
 
--- ================== FUNGSI ESP ==================
+-- ================== ESP FUNCTIONS ==================
 local function createESP(player)
     if player == LocalPlayer then return end
     
@@ -864,7 +871,6 @@ local function createESP(player)
     line.Color = themeColor
     line.Visible = false
     
-    -- HEALTH BAR (akan muncul saat ESP Box aktif)
     local healthBg = Drawing.new("Square")
     healthBg.Thickness = 1
     healthBg.Color = Color3.fromRGB(30, 30, 30)
@@ -979,23 +985,19 @@ RunService.RenderStepped:Connect(function()
                 local width = height / 2
                 
                 if espEnabled then
-                    -- ESP BOX
                     box.Size = Vector2.new(width, height)
                     box.Position = Vector2.new(pos.X - width/2, top.Y)
                     box.Visible = true
                     box.Color = boxColor
                     
-                    -- NAME
                     name.Position = Vector2.new(pos.X, top.Y - 18)
                     name.Text = player.Name
                     name.Visible = true
                     
-                    -- DISTANCE
                     distText.Text = math.floor(distance) .. "m"
                     distText.Position = Vector2.new(pos.X, bottom.Y + 5)
                     distText.Visible = true
                     
-                    -- HEALTH BAR (otomatis muncul di samping box)
                     if humanoid then
                         local healthPercent = humanoid.Health / humanoid.MaxHealth
                         local barWidth = 6
@@ -1119,7 +1121,7 @@ end)
 local function loadMainScript()
     KeyGui:Destroy()
     
-    print("✅ DRIP CLIENT - Memuat semua fitur...")
+    print("DRIP CLIENT - Memuat semua fitur...")
     
     createPlayerCounter()
     
@@ -1361,39 +1363,6 @@ local function loadMainScript()
         return frame
     end
     
-    local function createTextBox(parent, placeholder, callback)
-        local frame = Instance.new("Frame")
-        frame.Parent = parent
-        frame.Size = UDim2.new(0.95, 0, 0, 44)
-        frame.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        frame.BackgroundTransparency = 0.2
-        frame.BorderSizePixel = 0
-        local corner = Instance.new("UICorner")
-        corner.Parent = frame
-        corner.CornerRadius = UDim.new(0, 10)
-        local textBox = Instance.new("TextBox")
-        textBox.Parent = frame
-        textBox.Size = UDim2.new(1, -10, 1, -10)
-        textBox.Position = UDim2.new(0, 5, 0, 5)
-        textBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-        textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-        textBox.PlaceholderText = placeholder
-        textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-        textBox.Font = Enum.Font.Gotham
-        textBox.TextSize = 14
-        textBox.ClearTextOnFocus = false
-        local boxCorner = Instance.new("UICorner")
-        boxCorner.Parent = textBox
-        boxCorner.CornerRadius = UDim.new(0, 8)
-        textBox.FocusLost:Connect(function(enterPressed)
-            if enterPressed and textBox.Text ~= "" then
-                callback(textBox.Text)
-                textBox.Text = ""
-            end
-        end)
-        return frame
-    end
-    
     -- ===== TAB MAIN =====
     createToggle(tabMain, "Fly (Auto Maju)", false, function(s)
         if s then 
@@ -1538,7 +1507,7 @@ local function loadMainScript()
         changeTheme(Color3.fromRGB(255, 105, 180))
     end)
     
-    -- ===== TAB INFORMASI =====
+    -- ===== TAB INFORMASI (DENGAN TIMER COUNTDOWN REALTIME) =====
     local infoFrame = Instance.new("Frame")
     infoFrame.Parent = tabInfo
     infoFrame.Size = UDim2.new(0.95, 0, 0, 180)
@@ -1560,17 +1529,82 @@ local function loadMainScript()
     infoTitle.Font = Enum.Font.GothamBlack
     infoTitle.TextSize = 20
     
-    local infoText = Instance.new("TextLabel")
-    infoText.Parent = infoFrame
-    infoText.Size = UDim2.new(0.95, 0, 0, 120)
-    infoText.Position = UDim2.new(0.025, 0, 0, 50)
-    infoText.BackgroundTransparency = 1
-    infoText.Text = "DRIP CLIENT V7.7\n\nNo root\n\nDEVELOPER: Putzzdev\n\nKONTAK: 088976255131"
-    infoText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    infoText.Font = Enum.Font.Gotham
-    infoText.TextSize = 14
-    infoText.TextWrapped = true
-    infoText.TextXAlignment = Enum.TextXAlignment.Center
+    -- TIMER COUNTDOWN (update setiap detik)
+    timerLabel = Instance.new("TextLabel")
+    timerLabel.Parent = infoFrame
+    timerLabel.Size = UDim2.new(0.95, 0, 0, 45)
+    timerLabel.Position = UDim2.new(0.025, 0, 0, 50)
+    timerLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    timerLabel.BackgroundTransparency = 0.2
+    timerLabel.Text = "Menghitung sisa waktu..."
+    timerLabel.TextColor3 = themeColor
+    timerLabel.Font = Enum.Font.GothamBold
+    timerLabel.TextSize = 14
+    timerLabel.TextWrapped = true
+    local timerCorner = Instance.new("UICorner")
+    timerCorner.Parent = timerLabel
+    timerCorner.CornerRadius = UDim.new(0, 10)
+    
+    local infoTextLabel = Instance.new("TextLabel")
+    infoTextLabel.Parent = infoFrame
+    infoTextLabel.Size = UDim2.new(0.95, 0, 0, 80)
+    infoTextLabel.Position = UDim2.new(0.025, 0, 0, 100)
+    infoTextLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    infoTextLabel.BackgroundTransparency = 0.2
+    infoTextLabel.Text = "DRIP CLIENT V7.8\n\nDEVELOPER: Putzzdev\nKONTAK: 088976255131"
+    infoTextLabel.TextColor3 = Color3.fromRGB(220, 230, 255)
+    infoTextLabel.Font = Enum.Font.Gotham
+    infoTextLabel.TextSize = 13
+    infoTextLabel.TextWrapped = true
+    infoTextLabel.TextYAlignment = Enum.TextYAlignment.Center
+    local infoCorner2 = Instance.new("UICorner")
+    infoCorner2.Parent = infoTextLabel
+    infoCorner2.CornerRadius = UDim.new(0, 10)
+    
+    -- Fungsi update timer setiap detik
+    local function updateTimerDisplay()
+        if not keyValid or keyExpiryTime == 0 then
+            timerLabel.Text = "Key tidak valid atau belum diverifikasi"
+            return
+        end
+        
+        local currentTime = os.time()
+        local remaining = keyExpiryTime - currentTime
+        
+        if remaining <= 0 then
+            timerLabel.Text = "KEY EXPIRED - Silakan beli key baru"
+            timerLabel.TextColor3 = redColor
+            return
+        end
+        
+        if keyExpiryDays >= 999999 then
+            timerLabel.Text = "Sisa waktu: PERMANEN (Tidak akan expired)"
+            timerLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+            return
+        end
+        
+        local days = math.floor(remaining / 86400)
+        local hours = math.floor((remaining % 86400) / 3600)
+        local minutes = math.floor((remaining % 3600) / 60)
+        local seconds = remaining % 60
+        
+        if keyJenis == "1 JAM" then
+            timerLabel.Text = string.format("Sisa waktu: %02d:%02d:%02d", hours, minutes, seconds)
+        else
+            timerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", days, hours, minutes, seconds)
+        end
+        timerLabel.TextColor3 = themeColor
+    end
+    
+    -- Jalankan timer update setiap detik
+    task.spawn(function()
+        while keyValid and MainFrame and MainFrame.Parent do
+            pcall(updateTimerDisplay)
+            task.wait(1)
+        end
+    end)
+    
+    updateTimerDisplay()
     
     task.wait(0.1)
     for _, content in pairs(contents) do
@@ -1595,7 +1629,8 @@ local function loadMainScript()
     openBtn.BackgroundTransparency = 1
     openBtn.Image = "rbxassetid://72495850369898"
     openBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
-    openBtn.ScaleType = Enum.ScaleType.Fit    openBtn.ZIndex = 10
+    openBtn.ScaleType = Enum.ScaleType.Fit
+    openBtn.ZIndex = 10
     openBtn.Active = true
     openBtn.Draggable = true
     
@@ -1631,7 +1666,8 @@ local function loadMainScript()
         TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 60, 0, 60)}):Play()
     end)
     
-    print("✅ DRIP CLIENT V7.7 - MENU BERHASIL DIMUAT!")
+    print("DRIP CLIENT V7.8 - MENU BERHASIL DIMUAT!")
+    print("Sisa waktu key akan ditampilkan di tab INFORMASI")
 end
 
 -- ================== EVENT VERIFY BUTTON ==================
@@ -1682,4 +1718,4 @@ KeyTextBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("DRIP CLIENT V7.7 - ESP HEALTH GABUNG DENGAN ESP BOX")
+print("DRIP CLIENT V7.8 - KEY EXPIRY SYSTEM FIXED + TIMER COUNTDOWN")
