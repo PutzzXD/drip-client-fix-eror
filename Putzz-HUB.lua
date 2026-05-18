@@ -1,7 +1,6 @@
--- ================== DRIP CLIENT V7.8 (FIXED EXPIRY + TIMER COUNTDOWN) ==================
--- Version: 7.8 (Khusus HP - Touch Control + Crosshair)
--- Developer: Putzz XD
--- FIX: Key expired berfungsi dengan benar, timer countdown di tab INFO
+-- ================== DRIP CLIENT V7.9 (FIXED TIMER) ==================
+-- Perbaikan: Timer countdown di tab INFO sekarang berfungsi dengan benar
+-- Fix: keyValid dan keyExpiryTime tersimpan dengan baik ke menu utama
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -14,6 +13,7 @@ local currentUserKey = nil
 local keyExpiryTime = 0
 local keyExpiryDays = 0
 local keyJenis = ""
+local keyValidGlobal = false
 
 -- ================== LOAD SERVICES ==================
 local Players = game:GetService("Players")
@@ -84,12 +84,12 @@ local themeColor = Color3.fromRGB(255, 255, 255)
 local darkPurple = Color3.fromRGB(74, 20, 90)
 local boxColor = Color3.fromRGB(0, 255, 0)
 local skeletonColor = Color3.fromRGB(0, 255, 0)
-local healthBarColor = Color3.fromRGB(0, 255, 0)
 local redColor = Color3.fromRGB(255, 0, 0)
 local MAX_ESP_DISTANCE = 115
 
 -- Timer label untuk update realtime
 local timerLabel = nil
+local timerUpdateThread = nil
 
 -- ================== FUNGSI KEY SYSTEM ==================
 local function loadKeyData()
@@ -103,11 +103,16 @@ local function loadKeyData()
             end)
             if success2 then
                 activeKeys = data
-                -- Load expiry time dari file jika ada
-                if activeKeys[currentUserKey] and activeKeys[currentUserKey].expiryTime then
-                    keyExpiryTime = activeKeys[currentUserKey].expiryTime
-                    keyExpiryDays = activeKeys[currentUserKey].expiryDays or 0
-                    keyJenis = activeKeys[currentUserKey].jenis or ""
+                -- Ambil data key terakhir yang digunakan
+                for key, data in pairs(activeKeys) do
+                    if data.lastUsed then
+                        currentUserKey = key
+                        keyExpiryTime = data.expiryTime or 0
+                        keyExpiryDays = data.expiryDays or 0
+                        keyJenis = data.jenis or ""
+                        keyValidGlobal = (keyExpiryTime > os.time())
+                        break
+                    end
                 end
             end
         end
@@ -209,31 +214,38 @@ local function checkKeyExpiry(inputKey)
     local currentTime = os.time()
     local expiryTime = nil
     
-    -- Cek apakah key sudah pernah digunakan (ada di activeKeys)
+    -- Cek apakah key sudah pernah digunakan
     if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
         expiryTime = activeKeys[inputKey].expiryTime
         if currentTime > expiryTime then
-            return false, "KEY SUDAH EXPIRED! (melebihi masa berlaku)"
+            return false, "KEY SUDAH EXPIRED!"
         end
     else
-        -- Key baru, hitung expiry time
         expiryTime = currentTime + (expiryDays * 86400)
         activeKeys[inputKey] = {
             firstUsed = currentTime,
             key = inputKey,
             expiryDays = expiryDays,
             expiryTime = expiryTime,
-            jenis = keyJenisData
+            jenis = keyJenisData,
+            lastUsed = true
         }
         saveKeyData()
     end
+    
+    -- Tandai key ini sebagai yang terakhir digunakan
+    for k, v in pairs(activeKeys) do
+        v.lastUsed = nil
+    end
+    activeKeys[inputKey].lastUsed = true
+    saveKeyData()
     
     keyExpiryTime = expiryTime
     keyExpiryDays = expiryDays
     keyJenis = keyJenisData
     currentUserKey = inputKey
+    keyValidGlobal = true
     
-    -- Hitung sisa waktu untuk pesan
     local days, hours, minutes, seconds, timeStr = getTimeRemaining(expiryTime)
     return true, "KEY VALID! Sisa " .. timeStr
 end
@@ -490,7 +502,7 @@ WebsiteBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- ================== FLY FUNCTION (sama seperti sebelumnya) ==================
+-- ================== FLY FUNCTION ==================
 local function startFlyMode()
     local plr = LocalPlayer
     local char = plr.Character
@@ -1507,10 +1519,10 @@ local function loadMainScript()
         changeTheme(Color3.fromRGB(255, 105, 180))
     end)
     
-    -- ===== TAB INFORMASI (DENGAN TIMER COUNTDOWN REALTIME) =====
+    -- ===== TAB INFORMASI (DENGAN TIMER COUNTDOWN) =====
     local infoFrame = Instance.new("Frame")
     infoFrame.Parent = tabInfo
-    infoFrame.Size = UDim2.new(0.95, 0, 0, 180)
+    infoFrame.Size = UDim2.new(0.95, 0, 0, 220)
     infoFrame.Position = UDim2.new(0.025, 0, 0, 10)
     infoFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
     infoFrame.BackgroundTransparency = 0.3
@@ -1530,28 +1542,28 @@ local function loadMainScript()
     infoTitle.TextSize = 20
     
     -- TIMER COUNTDOWN (update setiap detik)
-    timerLabel = Instance.new("TextLabel")
-    timerLabel.Parent = infoFrame
-    timerLabel.Size = UDim2.new(0.95, 0, 0, 45)
-    timerLabel.Position = UDim2.new(0.025, 0, 0, 50)
-    timerLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-    timerLabel.BackgroundTransparency = 0.2
-    timerLabel.Text = "Menghitung sisa waktu..."
-    timerLabel.TextColor3 = themeColor
-    timerLabel.Font = Enum.Font.GothamBold
-    timerLabel.TextSize = 14
-    timerLabel.TextWrapped = true
-    local timerCorner = Instance.new("UICorner")
-    timerCorner.Parent = timerLabel
-    timerCorner.CornerRadius = UDim.new(0, 10)
+    local infoTimerLabel = Instance.new("TextLabel")
+    infoTimerLabel.Parent = infoFrame
+    infoTimerLabel.Size = UDim2.new(0.95, 0, 0, 55)
+    infoTimerLabel.Position = UDim2.new(0.025, 0, 0, 50)
+    infoTimerLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    infoTimerLabel.BackgroundTransparency = 0.2
+    infoTimerLabel.Text = "Loading..."
+    infoTimerLabel.TextColor3 = themeColor
+    infoTimerLabel.Font = Enum.Font.GothamBold
+    infoTimerLabel.TextSize = 14
+    infoTimerLabel.TextWrapped = true
+    local infoTimerCorner = Instance.new("UICorner")
+    infoTimerCorner.Parent = infoTimerLabel
+    infoTimerCorner.CornerRadius = UDim.new(0, 10)
     
     local infoTextLabel = Instance.new("TextLabel")
     infoTextLabel.Parent = infoFrame
-    infoTextLabel.Size = UDim2.new(0.95, 0, 0, 80)
-    infoTextLabel.Position = UDim2.new(0.025, 0, 0, 100)
+    infoTextLabel.Size = UDim2.new(0.95, 0, 0, 100)
+    infoTextLabel.Position = UDim2.new(0.025, 0, 0, 110)
     infoTextLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
     infoTextLabel.BackgroundTransparency = 0.2
-    infoTextLabel.Text = "DRIP CLIENT V7.8\n\nDEVELOPER: Putzzdev\nKONTAK: 088976255131"
+    infoTextLabel.Text = "DRIP CLIENT V7.9\n\nDEVELOPER: Putzzdev\nKONTAK: 088976255131"
     infoTextLabel.TextColor3 = Color3.fromRGB(220, 230, 255)
     infoTextLabel.Font = Enum.Font.Gotham
     infoTextLabel.TextSize = 13
@@ -1561,10 +1573,11 @@ local function loadMainScript()
     infoCorner2.Parent = infoTextLabel
     infoCorner2.CornerRadius = UDim.new(0, 10)
     
-    -- Fungsi update timer setiap detik
-    local function updateTimerDisplay()
-        if not keyValid or keyExpiryTime == 0 then
-            timerLabel.Text = "Key tidak valid atau belum diverifikasi"
+    -- Fungsi update timer setiap detik (menggunakan data global)
+    local function updateTimer()
+        if not keyValidGlobal or keyExpiryTime == 0 then
+            infoTimerLabel.Text = "Key tidak valid atau belum diverifikasi"
+            infoTimerLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
             return
         end
         
@@ -1572,14 +1585,14 @@ local function loadMainScript()
         local remaining = keyExpiryTime - currentTime
         
         if remaining <= 0 then
-            timerLabel.Text = "KEY EXPIRED - Silakan beli key baru"
-            timerLabel.TextColor3 = redColor
+            infoTimerLabel.Text = "KEY EXPIRED - Silakan beli key baru"
+            infoTimerLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
             return
         end
         
         if keyExpiryDays >= 999999 then
-            timerLabel.Text = "Sisa waktu: PERMANEN (Tidak akan expired)"
-            timerLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+            infoTimerLabel.Text = "Sisa waktu: PERMANEN (Tidak akan expired)"
+            infoTimerLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
             return
         end
         
@@ -1589,22 +1602,24 @@ local function loadMainScript()
         local seconds = remaining % 60
         
         if keyJenis == "1 JAM" then
-            timerLabel.Text = string.format("Sisa waktu: %02d:%02d:%02d", hours, minutes, seconds)
+            infoTimerLabel.Text = string.format("Sisa waktu: %02d:%02d:%02d", hours, minutes, seconds)
+        elseif keyJenis == "1 HARI" or keyJenis == "2 HARI" or keyJenis == "3 HARI" or keyJenis == "7 HARI" or keyJenis == "30 HARI" then
+            infoTimerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", days, hours, minutes, seconds)
         else
-            timerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", days, hours, minutes, seconds)
+            infoTimerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", days, hours, minutes, seconds)
         end
-        timerLabel.TextColor3 = themeColor
+        infoTimerLabel.TextColor3 = themeColor
     end
     
-    -- Jalankan timer update setiap detik
+    -- Jalankan thread update timer setiap detik
     task.spawn(function()
-        while keyValid and MainFrame and MainFrame.Parent do
-            pcall(updateTimerDisplay)
+        while true do
+            pcall(updateTimer)
             task.wait(1)
         end
     end)
     
-    updateTimerDisplay()
+    updateTimer()
     
     task.wait(0.1)
     for _, content in pairs(contents) do
@@ -1666,8 +1681,8 @@ local function loadMainScript()
         TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 60, 0, 60)}):Play()
     end)
     
-    print("DRIP CLIENT V7.8 - MENU BERHASIL DIMUAT!")
-    print("Sisa waktu key akan ditampilkan di tab INFORMASI")
+    print("DRIP CLIENT V7.9 - MENU BERHASIL DIMUAT!")
+    print("Timer countdown aktif di tab INFORMASI")
 end
 
 -- ================== EVENT VERIFY BUTTON ==================
@@ -1718,4 +1733,4 @@ KeyTextBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("DRIP CLIENT V7.8 - KEY EXPIRY SYSTEM FIXED + TIMER COUNTDOWN")
+print("DRIP CLIENT V7.9 - TIMER COUNTDOWN FIXED")
