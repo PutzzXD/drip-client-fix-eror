@@ -1,6 +1,7 @@
--- ================== DRIP CLIENT V8.0 (FLOAT PLATFORM + ESP BOX PUTIH) ==================
--- Fitur baru: Float Platform (kotak putih di bawah kaki, bisa naik/turun)
--- ESP Box sekarang berwarna PUTIH (bukan hijau)
+-- ================== DRIP CLIENT V7.9 (FIXED TIMER & TELEPORT) ==================
+-- Perbaikan: Timer countdown di tab INFO sekarang berfungsi dengan benar
+-- Fix: keyValid dan keyExpiryTime tersimpan dengan baik ke menu utama
+-- Update: Menambahkan Fitur Teleport List Player & ESP Line di bawah layar
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -25,7 +26,7 @@ local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 
 -- ================== VARIABEL FITUR ==================
--- ESP (Box warna putih)
+-- ESP
 local espEnabled = false
 local lineEnabled = false
 local skeletonEnabled = false
@@ -48,13 +49,6 @@ local maxspeed = flySpeed
 local flyBodyVelocity = nil
 local flyBodyGyro = nil
 local flyTorso = nil
-
--- Float Platform
-local floatEnabled = false
-local floatPlatform = nil
-local floatHeight = 3.5
-local floatWeld = nil
-local floatConnection = nil
 
 -- Noclip
 local noclipEnabled = false
@@ -87,10 +81,10 @@ local invisibleRootPart = nil
 local invisibleHumanoid = nil
 
 -- Warna Tema
-local themeColor = Color3.fromRGB(255, 255, 255) -- PUTIH
+local themeColor = Color3.fromRGB(255, 255, 255)
 local darkPurple = Color3.fromRGB(74, 20, 90)
-local boxColor = Color3.fromRGB(255, 255, 255) -- ESP BOX WARNA PUTIH
-local skeletonColor = Color3.fromRGB(255, 255, 255) -- Skeleton warna putih juga
+local boxColor = Color3.fromRGB(0, 255, 0)
+local skeletonColor = Color3.fromRGB(0, 255, 0)
 local redColor = Color3.fromRGB(255, 0, 0)
 local MAX_ESP_DISTANCE = 115
 
@@ -110,6 +104,7 @@ local function loadKeyData()
             end)
             if success2 then
                 activeKeys = data
+                -- Ambil data key terakhir yang digunakan
                 for key, data in pairs(activeKeys) do
                     if data.lastUsed then
                         currentUserKey = key
@@ -220,6 +215,7 @@ local function checkKeyExpiry(inputKey)
     local currentTime = os.time()
     local expiryTime = nil
     
+    -- Cek apakah key sudah pernah digunakan
     if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
         expiryTime = activeKeys[inputKey].expiryTime
         if currentTime > expiryTime then
@@ -238,6 +234,7 @@ local function checkKeyExpiry(inputKey)
         saveKeyData()
     end
     
+    -- Tandai key ini sebagai yang terakhir digunakan
     for k, v in pairs(activeKeys) do
         v.lastUsed = nil
     end
@@ -256,7 +253,7 @@ end
 
 local function showNotification(title, text, duration, color)
     local notif = Instance.new("Frame")
-    notif.Parent = KeyGui
+    notif.Parent = game.CoreGui:FindFirstChild("DripKeySystem") or game.CoreGui:FindFirstChild("DripClient")
     notif.Size = UDim2.new(0, 300, 0, 70)
     notif.Position = UDim2.new(0.5, -150, 0, -80)
     notif.BackgroundColor3 = color or Color3.fromRGB(30, 30, 40)
@@ -506,104 +503,11 @@ WebsiteBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- ================== FLOAT PLATFORM FUNCTIONS ==================
-local function createFloatPlatform()
-    if floatPlatform then
-        floatPlatform:Destroy()
-        floatPlatform = nil
-    end
-    
-    if floatWeld then
-        floatWeld:Destroy()
-        floatWeld = nil
-    end
-    
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    
-    -- Buat platform kotak putih
-    floatPlatform = Instance.new("Part")
-    floatPlatform.Size = Vector3.new(4, 0.5, 4)
-    floatPlatform.Position = hrp.Position - Vector3.new(0, floatHeight, 0)
-    floatPlatform.Anchored = false
-    floatPlatform.CanCollide = true
-    floatPlatform.Transparency = 0.2
-    floatPlatform.BrickColor = BrickColor.new("White")
-    floatPlatform.Material = Enum.Material.SmoothPlastic
-    floatPlatform.Name = "DripFloatPlatform"
-    floatPlatform.Parent = workspace
-    
-    -- WELD ke HumanoidRootPart
-    floatWeld = Instance.new("Weld")
-    floatWeld.Part0 = hrp
-    floatWeld.Part1 = floatPlatform
-    floatWeld.C0 = CFrame.new(0, -floatHeight, 0)
-    floatWeld.Parent = floatPlatform
-    
-    -- Efek glow (sedikit transparan)
-    local selectionBox = Instance.new("SelectionBox")
-    selectionBox.Adornee = floatPlatform
-    selectionBox.Color = BrickColor.new("White")
-    selectionBox.LineThickness = 0.05
-    selectionBox.Transparency = 0.5
-    selectionBox.Parent = floatPlatform
-end
-
-local function destroyFloatPlatform()
-    if floatPlatform then
-        floatPlatform:Destroy()
-        floatPlatform = nil
-    end
-    if floatWeld then
-        floatWeld:Destroy()
-        floatWeld = nil
-    end
-end
-
-local function updateFloatHeight(newHeight)
-    floatHeight = math.clamp(newHeight, 1, 10)
-    if floatWeld and floatWeld.Part0 then
-        floatWeld.C0 = CFrame.new(0, -floatHeight, 0)
-    end
-end
-
-local function toggleFloat(state)
-    floatEnabled = state
-    if floatEnabled then
-        -- Matikan fly dulu biar gak konflik
-        if flyEnabled then
-            flyEnabled = false
-            stopFlyMode()
-            -- Update toggle fly di GUI nanti akan sync
-        end
-        createFloatPlatform()
-        if floatConnection then floatConnection:Disconnect() end
-        floatConnection = LocalPlayer.CharacterAdded:Connect(function()
-            task.wait(0.5)
-            if floatEnabled then
-                createFloatPlatform()
-            end
-        end)
-    else
-        destroyFloatPlatform()
-        if floatConnection then
-            floatConnection:Disconnect()
-            floatConnection = nil
-        end
-    end
-end
-
 -- ================== FLY FUNCTION ==================
 local function startFlyMode()
     local plr = LocalPlayer
     local char = plr.Character
     if not char then return end
-    
-    -- Matikan float dulu biar gak konflik
-    if floatEnabled then
-        floatEnabled = false
-        destroyFloatPlatform()
-    end
     
     flyTorso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("HumanoidRootPart")
     if not flyTorso then return end
@@ -955,7 +859,7 @@ local function createESP(player)
     
     local box = Drawing.new("Square")
     box.Thickness = 2.5
-    box.Color = boxColor  -- WARNA PUTIH
+    box.Color = boxColor
     box.Filled = false
     box.Visible = false
     
@@ -1017,7 +921,7 @@ local function createSkeleton(player)
     for i = 1, #connections do
         local line = Drawing.new("Line")
         line.Thickness = 3
-        line.Color = skeletonColor  -- WARNA PUTIH
+        line.Color = skeletonColor
         line.Visible = false
         table.insert(lines, {line, connections[i][1], connections[i][2]})
     end
@@ -1097,7 +1001,7 @@ RunService.RenderStepped:Connect(function()
                     box.Size = Vector2.new(width, height)
                     box.Position = Vector2.new(pos.X - width/2, top.Y)
                     box.Visible = true
-                    box.Color = boxColor  -- PUTIH
+                    box.Color = boxColor
                     
                     name.Position = Vector2.new(pos.X, top.Y - 18)
                     name.Text = player.Name
@@ -1140,7 +1044,8 @@ RunService.RenderStepped:Connect(function()
             end
             
             if lineEnabled then
-                line.From = Vector2.new(Camera.ViewportSize.X / 2, 0)
+                -- MODIFIKASI: ESP Line diubah titik asalnya menjadi di bawah tengah layar
+                line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
                 line.To = Vector2.new(pos.X, pos.Y)
                 line.Visible = visible
                 line.Color = themeColor
@@ -1243,8 +1148,8 @@ local function loadMainScript()
     
     local mainFrame = Instance.new("Frame")
     mainFrame.Parent = ScreenGui
-    mainFrame.Size = UDim2.new(0, 450, 0, 600)
-    mainFrame.Position = UDim2.new(0.5, -225, 0.5, -300)
+    mainFrame.Size = UDim2.new(0, 400, 0, 550)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -275)
     mainFrame.BackgroundColor3 = darkPurple
     mainFrame.BackgroundTransparency = 0.05
     mainFrame.BorderSizePixel = 0
@@ -1309,15 +1214,15 @@ local function loadMainScript()
     subtitle.Position = UDim2.new(0, 65, 0, 48)
     subtitle.BackgroundTransparency = 1
     subtitle.Text = "Drip VIP"
-    subtitle.TextColor3 = themeColor
+    subtitle.TextColor3 = boxColor
     subtitle.Font = Enum.Font.Gotham
     subtitle.TextSize = 11
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
     
     local tabBar = Instance.new("Frame")
     tabBar.Parent = mainFrame
-    tabBar.Size = UDim2.new(0.96, 0, 0, 42)
-    tabBar.Position = UDim2.new(0.02, 0, 0.13, 0)
+    tabBar.Size = UDim2.new(0.95, 0, 0, 42)
+    tabBar.Position = UDim2.new(0.025, 0, 0.13, 0)
     tabBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
     tabBar.BackgroundTransparency = 0.3
     tabBar.BorderSizePixel = 0
@@ -1338,7 +1243,7 @@ local function loadMainScript()
         btn.Text = icon .. " " .. name
         btn.TextColor3 = Color3.fromRGB(200, 200, 200)
         btn.Font = Enum.Font.GothamBold
-        btn.TextSize = 11
+        btn.TextSize = 12
         local btnCorner = Instance.new("UICorner")
         btnCorner.Parent = btn
         btnCorner.CornerRadius = UDim.new(0, 8)
@@ -1363,7 +1268,7 @@ local function loadMainScript()
         contentCorner.CornerRadius = UDim.new(0, 12)
         local layout = Instance.new("UIListLayout")
         layout.Parent = content
-        layout.Padding = UDim.new(0, 8)
+        layout.Padding = UDim.new(0, 10)
         layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         
         table.insert(tabs, btn)
@@ -1400,7 +1305,7 @@ local function loadMainScript()
     local function createButton(parent, text, callback)
         local frame = Instance.new("Frame")
         frame.Parent = parent
-        frame.Size = UDim2.new(0.95, 0, 0, 40)
+        frame.Size = UDim2.new(0.95, 0, 0, 44)
         frame.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
         frame.BackgroundTransparency = 0.2
         frame.BorderSizePixel = 0
@@ -1414,7 +1319,7 @@ local function loadMainScript()
         btn.Text = text
         btn.TextColor3 = Color3.fromRGB(255, 255, 255)
         btn.Font = Enum.Font.GothamBold
-        btn.TextSize = 13
+        btn.TextSize = 14
         btn.MouseButton1Click:Connect(callback)
         return frame
     end
@@ -1422,7 +1327,7 @@ local function loadMainScript()
     local function createToggle(parent, text, default, callback)
         local frame = Instance.new("Frame")
         frame.Parent = parent
-        frame.Size = UDim2.new(0.95, 0, 0, 40)
+        frame.Size = UDim2.new(0.95, 0, 0, 44)
         frame.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
         frame.BackgroundTransparency = 0.2
         frame.BorderSizePixel = 0
@@ -1437,7 +1342,7 @@ local function loadMainScript()
         label.Text = text
         label.TextColor3 = Color3.fromRGB(255, 255, 255)
         label.Font = Enum.Font.Gotham
-        label.TextSize = 13
+        label.TextSize = 14
         label.TextXAlignment = Enum.TextXAlignment.Left
         local switch = Instance.new("Frame")
         switch.Parent = frame
@@ -1465,14 +1370,122 @@ local function loadMainScript()
         click.Text = ""
         click.MouseButton1Click:Connect(function()
             state = not state
-            TweenService:Create(switch, TweenInfo.new(0.15), {BackgroundColor3 = state and themeColor or Color3.fromRGB(80, 80, 90)}):Play()
-            TweenService:Create(circle, TweenInfo.new(0.15), {Position = state and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0.05, 0, 0.5, -10)}):Play()
+            TweenService:Create(switch, TweenInfo.new(0.2), {BackgroundColor3 = state and themeColor or Color3.fromRGB(80, 80, 90)}):Play()
+            TweenService:Create(circle, TweenInfo.new(0.2), {Position = state and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0.05, 0, 0.5, -10)}):Play()
             callback(state)
         end)
         return frame
     end
+
+    -- ================== FITUR BARU: TELEPORT LIST PLAYER ==================
+    local function createPlayerTeleportDropdown(parent)
+        local baseFrame = Instance.new("Frame")
+        baseFrame.Parent = parent
+        baseFrame.Size = UDim2.new(0.95, 0, 0, 44)
+        baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        baseFrame.BackgroundTransparency = 0.2
+        baseFrame.BorderSizePixel = 0
+        baseFrame.ClipsDescendants = true
+
+        local baseCorner = Instance.new("UICorner")
+        baseCorner.Parent = baseFrame
+        baseCorner.CornerRadius = UDim.new(0, 10)
+
+        local mainButton = Instance.new("TextButton")
+        mainButton.Parent = baseFrame
+        mainButton.Size = UDim2.new(1, 0, 0, 44)
+        mainButton.BackgroundTransparency = 1
+        mainButton.Text = "▼ LIST PLAYER"
+        mainButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        mainButton.Font = Enum.Font.GothamBold
+        mainButton.TextSize = 14
+
+        local scrollList = Instance.new("ScrollingFrame")
+        scrollList.Parent = baseFrame
+        scrollList.Size = UDim2.new(1, 0, 0, 150)
+        scrollList.Position = UDim2.new(0, 0, 0, 44)
+        scrollList.BackgroundTransparency = 1
+        scrollList.BorderSizePixel = 0
+        scrollList.ScrollBarThickness = 6
+        scrollList.ScrollBarImageColor3 = themeColor
+
+        local listLayout = Instance.new("UIListLayout")
+        listLayout.Parent = scrollList
+        listLayout.Padding = UDim.new(0, 5)
+        listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+        local isOpen = false
+
+        local function refreshPlayerList()
+            for _, child in pairs(scrollList:GetChildren()) do
+                if child:IsA("TextButton") then child:Destroy() end
+            end
+
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer then
+                    local pBtn = Instance.new("TextButton")
+                    pBtn.Parent = scrollList
+                    pBtn.Size = UDim2.new(0.9, 0, 0, 30)
+                    pBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+                    pBtn.TextColor3 = Color3.fromRGB(230, 230, 230)
+                    pBtn.Font = Enum.Font.Gotham
+                    pBtn.TextSize = 13
+                    pBtn.Text = plr.DisplayName or plr.Name
+
+                    local pCorner = Instance.new("UICorner")
+                    pCorner.Parent = pBtn
+                    pCorner.CornerRadius = UDim.new(0, 6)
+
+                    pBtn.MouseButton1Click:Connect(function()
+                        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+                            showNotification("TELEPORT", "Berhasil teleport ke " .. (plr.DisplayName or plr.Name), 2, Color3.fromRGB(0, 150, 0))
+                        else
+                            showNotification("TELEPORT GAGAL", "Karakter player tidak ditemukan!", 2, Color3.fromRGB(150, 0, 0))
+                        end
+                        isOpen = false
+                        TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = UDim2.new(0.95, 0, 0, 44)}):Play()
+                        mainButton.Text = "▼ LIST PLAYER"
+                    end)
+                end
+            end
+            scrollList.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+        end
+
+        mainButton.MouseButton1Click:Connect(function()
+            isOpen = not isOpen
+            if isOpen then
+                refreshPlayerList()
+                TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = UDim2.new(0.95, 0, 0, 200)}):Play()
+                mainButton.Text = "▲ LIST PLAYER"
+                
+                -- Auto update canvas size sesaat setelah dibuka
+                task.wait(0.05)
+                scrollList.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
+                
+                -- Memaksa ScrollingFrame Menu Utama menyesuaikan tinggi agar tidak bug/terpotong
+                local parentScroll = parent
+                if parentScroll and parentScroll:IsA("ScrollingFrame") then
+                    task.wait(0.2)
+                    local height = 0
+                    for _, child in pairs(parentScroll:GetChildren()) do
+                        if child:IsA("Frame") then
+                            height = height + child.Size.Y.Offset + 10
+                        end
+                    end
+                    parentScroll.CanvasSize = UDim2.new(0, 0, 0, height + 40)
+                end
+            else
+                TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = UDim2.new(0.95, 0, 0, 44)}):Play()
+                mainButton.Text = "▼ LIST PLAYER"
+            end
+        end)
+    end
     
     -- ===== TAB MAIN =====
+    -- Taruh Dropdown Teleport List Player paling atas di Tab MAIN
+    createPlayerTeleportDropdown(tabMain)
+
     createToggle(tabMain, "Fly (Auto Maju)", false, function(s)
         if s then 
             flyEnabled = true
@@ -1483,74 +1496,37 @@ local function loadMainScript()
         end
     end)
     
-    createToggle(tabMain, "Float Platform", false, function(s)
-        toggleFloat(s)
+    createToggle(tabMain, "Speed Boost", false, function(s)
+        speedEnabled = s
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = s and fastSpeed or normalSpeed end
+        LocalPlayer.CharacterAdded:Connect(function()
+            task.wait(0.5)
+            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum and speedEnabled then hum.WalkSpeed = fastSpeed end
+        end)
     end)
     
-    -- Tombol naik turun untuk Float Platform (muncul hanya saat float aktif)
-    local floatControlFrame = Instance.new("Frame")
-    floatControlFrame.Parent = tabMain
-    floatControlFrame.Size = UDim2.new(0.95, 0, 0, 40)
-    floatControlFrame.BackgroundColor3 = Color3.fromRGB(40, 45, 60)
-    floatControlFrame.BackgroundTransparency = 0.2
-    floatControlFrame.BorderSizePixel = 0
-    floatControlFrame.Visible = false
-    local floatControlCorner = Instance.new("UICorner")
-    floatControlCorner.Parent = floatControlFrame
-    floatControlCorner.CornerRadius = UDim.new(0, 10)
-    
-    local heightLabel = Instance.new("TextLabel")
-    heightLabel.Parent = floatControlFrame
-    heightLabel.Size = UDim2.new(0.4, 0, 1, 0)
-    heightLabel.Position = UDim2.new(0.05, 0, 0, 0)
-    heightLabel.BackgroundTransparency = 1
-    heightLabel.Text = "Tinggi: " .. string.format("%.1f", floatHeight)
-    heightLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    heightLabel.Font = Enum.Font.Gotham
-    heightLabel.TextSize = 12
-    heightLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local upBtn = Instance.new("TextButton")
-    upBtn.Parent = floatControlFrame
-    upBtn.Size = UDim2.new(0.15, 0, 0.8, 0)
-    upBtn.Position = UDim2.new(0.5, 5, 0.1, 0)
-    upBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 200)
-    upBtn.Text = "▲"
-    upBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    upBtn.Font = Enum.Font.GothamBold
-    upBtn.TextSize = 16
-    local upCorner = Instance.new("UICorner")
-    upCorner.Parent = upBtn
-    upCorner.CornerRadius = UDim.new(0, 8)
-    upBtn.MouseButton1Click:Connect(function()
-        updateFloatHeight(floatHeight + 0.5)
-        heightLabel.Text = "Tinggi: " .. string.format("%.1f", floatHeight)
+    createToggle(tabMain, "NoClip", false, function(s)
+        noclipEnabled = s
+        if s then 
+            startNoclip() 
+        else 
+            stopNoclip() 
+        end
     end)
     
-    local downBtn = Instance.new("TextButton")
-    downBtn.Parent = floatControlFrame
-    downBtn.Size = UDim2.new(0.15, 0, 0.8, 0)
-    downBtn.Position = UDim2.new(0.68, 5, 0.1, 0)
-    downBtn.BackgroundColor3 = Color3.fromRGB(200, 80, 0)
-    downBtn.Text = "▼"
-    downBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    downBtn.Font = Enum.Font.GothamBold
-    downBtn.TextSize = 16
-    local downCorner = Instance.new("UICorner")
-    downCorner.Parent = downBtn
-    downCorner.CornerRadius = UDim.new(0, 8)
-    downBtn.MouseButton1Click:Connect(function()
-        updateFloatHeight(floatHeight - 0.5)
-        heightLabel.Text = "Tinggi: " .. string.format("%.1f", floatHeight)
+    createToggle(tabMain, "Infinity Jump", false, function(s)
+        infinityJumpEnabled = s
     end)
     
-    -- Update visibility float control berdasarkan toggle float
-    local floatToggleState = false
-    -- Override createToggle untuk float agar bisa update visibility
-    local floatFrame = createToggle(tabMain, "Float Platform", false, function(s)
-        toggleFloat(s)
-        floatToggleState = s
-        floatControlFrame.Visible = s
+    createToggle(tabMain, "Crosshair", false, function(s)
+        crosshairEnabled = s
+        if s then
+            createCrosshair()
+        else
+            removeCrosshair()
+        end
     end)
     
     -- ===== TAB ESP =====
@@ -1574,39 +1550,6 @@ local function loadMainScript()
     end)
     
     -- ===== TAB UTILITY =====
-    createToggle(tabUtility, "Speed Boost", false, function(s)
-        speedEnabled = s
-        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = s and fastSpeed or normalSpeed end
-        LocalPlayer.CharacterAdded:Connect(function()
-            task.wait(0.5)
-            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if hum and speedEnabled then hum.WalkSpeed = fastSpeed end
-        end)
-    end)
-    
-    createToggle(tabUtility, "NoClip", false, function(s)
-        noclipEnabled = s
-        if s then 
-            startNoclip() 
-        else 
-            stopNoclip() 
-        end
-    end)
-    
-    createToggle(tabUtility, "Infinity Jump", false, function(s)
-        infinityJumpEnabled = s
-    end)
-    
-    createToggle(tabUtility, "Crosshair", false, function(s)
-        crosshairEnabled = s
-        if s then
-            createCrosshair()
-        else
-            removeCrosshair()
-        end
-    end)
-    
     createToggle(tabUtility, "God Mode", false, function(s)
         antiDamageEnabled = s
         if s then
@@ -1639,10 +1582,6 @@ local function loadMainScript()
             task.wait(0.5)
             startFlyMode()
         end
-        if floatEnabled then
-            task.wait(0.5)
-            createFloatPlatform()
-        end
     end)
     
     -- ===== TAB COLOR =====
@@ -1659,9 +1598,6 @@ local function loadMainScript()
         end
         if enemyCountText then
             enemyCountText.Color = redColor
-        end
-        if floatPlatform then
-            floatPlatform.BrickColor = BrickColor.new(themeColor)
         end
     end
     
@@ -1693,7 +1629,7 @@ local function loadMainScript()
         changeTheme(Color3.fromRGB(255, 105, 180))
     end)
     
-    -- ===== TAB INFORMASI =====
+    -- ===== TAB INFORMASI (DENGAN TIMER COUNTDOWN) =====
     local infoFrame = Instance.new("Frame")
     infoFrame.Parent = tabInfo
     infoFrame.Size = UDim2.new(0.95, 0, 0, 220)
@@ -1715,6 +1651,7 @@ local function loadMainScript()
     infoTitle.Font = Enum.Font.GothamBlack
     infoTitle.TextSize = 20
     
+    -- TIMER COUNTDOWN (update setiap detik)
     local infoTimerLabel = Instance.new("TextLabel")
     infoTimerLabel.Parent = infoFrame
     infoTimerLabel.Size = UDim2.new(0.95, 0, 0, 55)
@@ -1736,16 +1673,17 @@ local function loadMainScript()
     infoTextLabel.Position = UDim2.new(0.025, 0, 0, 110)
     infoTextLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
     infoTextLabel.BackgroundTransparency = 0.2
-    infoTextLabel.Text = "DRIP CLIENT V8.0\n\nFITUR BARU: FLOAT PLATFORM\n\nDEVELOPER: Putzzdev\nKONTAK: 088976255131"
+    infoTextLabel.Text = "DRIP CLIENT V7.9\n\nDEVELOPER: Putzzdev\nKONTAK: 088976255131"
     infoTextLabel.TextColor3 = Color3.fromRGB(220, 230, 255)
     infoTextLabel.Font = Enum.Font.Gotham
     infoTextLabel.TextSize = 13
     infoTextLabel.TextWrapped = true
-    infoTextLabel.TextYAlignment = Enum.TextYAlignment.Center
+    infoTextLabel.TextYAlignment = Enum.TextXAlignment.Center
     local infoCorner2 = Instance.new("UICorner")
     infoCorner2.Parent = infoTextLabel
     infoCorner2.CornerRadius = UDim.new(0, 10)
     
+    -- Fungsi update timer setiap detik (menggunakan data global)
     local function updateTimer()
         if not keyValidGlobal or keyExpiryTime == 0 then
             infoTimerLabel.Text = "Key tidak valid atau belum diverifikasi"
@@ -1763,7 +1701,7 @@ local function loadMainScript()
         end
         
         if keyExpiryDays >= 999999 then
-            infoTimerLabel.Text = "Sisa waktu: PERMANEN"
+            infoTimerLabel.Text = "Sisa waktu: PERMANEN (Tidak akan expired)"
             infoTimerLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
             return
         end
@@ -1773,10 +1711,17 @@ local function loadMainScript()
         local minutes = math.floor((remaining % 3600) / 60)
         local seconds = remaining % 60
         
-        infoTimerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", days, hours, minutes, seconds)
+        if keyJenis == "1 JAM" then
+            infoTimerLabel.Text = string.format("Sisa waktu: %02d:%02d:%02d", hours, minutes, seconds)
+        elseif keyJenis == "1 HARI" or keyJenis == "2 HARI" or keyJenis == "3 HARI" or keyJenis == "7 HARI" or keyJenis == "30 HARI" then
+            infoTimerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", days, hours, minutes, seconds)
+        else
+            infoTimerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", days, hours, minutes, seconds)
+        end
         infoTimerLabel.TextColor3 = themeColor
     end
     
+    -- Jalankan thread update timer setiap detik
     task.spawn(function()
         while true do
             pcall(updateTimer)
@@ -1828,11 +1773,11 @@ local function loadMainScript()
         if menuOpen then
             mainFrame.Visible = true
             TweenService:Create(mainFrame, TweenInfo.new(0.25), {
-                Position = UDim2.new(0.5, -225, 0.5, -300)
+                Position = UDim2.new(0.5, -200, 0.5, -275)
             }):Play()
         else
             TweenService:Create(mainFrame, TweenInfo.new(0.25), {
-                Position = UDim2.new(0.5, -225, 1, 0)
+                Position = UDim2.new(0.5, -200, 1, 0)
             }):Play()
             task.wait(0.25)
             mainFrame.Visible = false
@@ -1846,8 +1791,7 @@ local function loadMainScript()
         TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 60, 0, 60)}):Play()
     end)
     
-    print("DRIP CLIENT V8.0 - MENU BERHASIL DIMUAT!")
-    print("Fitur baru: Float Platform (kotak putih di bawah kaki)")
+    print("DRIP CLIENT V7.9 - MENU BERHASIL DIMUAT!")
     print("Timer countdown aktif di tab INFORMASI")
 end
 
@@ -1899,4 +1843,4 @@ KeyTextBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("DRIP CLIENT V8.0 - ESP BOX PUTIH + FLOAT PLATFORM")
+print("DRIP CLIENT V7.9 - TIMER COUNTDOWN FIXED")
