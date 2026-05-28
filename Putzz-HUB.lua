@@ -758,7 +758,19 @@ local function toggleInvisible(state)
             end
         end)
     else
-        for _, v in pairs(invisibleParts) do v.Transparency = 0 end
+        -- Kembalikan semua part ke transparency 0 (normal)
+        if LocalPlayer.Character then
+            for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.Transparency = 0
+                end
+            end
+        end
+        -- Fallback dari invisibleParts yang tersimpan
+        for _, v in pairs(invisibleParts) do
+            pcall(function() v.Transparency = 0 end)
+        end
+        invisibleParts = {}
     end
 end
 
@@ -1419,28 +1431,57 @@ local function loadMainScript()
 
         local function refreshPlayerList()
             for _, child in pairs(scrollList:GetChildren()) do
-                if child:IsA("TextButton") then child:Destroy() end
+                if child:IsA("TextButton") or child:IsA("Frame") then child:Destroy() end
             end
 
+            -- Tombol Refresh
+            local refreshBtn = Instance.new("TextButton")
+            refreshBtn.Parent = scrollList
+            refreshBtn.Size = UDim2.new(0.9, 0, 0, 28)
+            refreshBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 100)
+            refreshBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            refreshBtn.Font = Enum.Font.GothamBold
+            refreshBtn.TextSize = 12
+            refreshBtn.Text = "🔄 REFRESH"
+            refreshBtn.BorderSizePixel = 0
+            local rCorner = Instance.new("UICorner")
+            rCorner.Parent = refreshBtn
+            rCorner.CornerRadius = UDim.new(0, 6)
+            refreshBtn.MouseButton1Click:Connect(function()
+                refreshPlayerList()
+            end)
+
+            local playerCount = 0
             for _, plr in pairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer then
+                    playerCount = playerCount + 1
                     local pBtn = Instance.new("TextButton")
                     pBtn.Parent = scrollList
-                    pBtn.Size = UDim2.new(0.9, 0, 0, 30)
+                    pBtn.Size = UDim2.new(0.9, 0, 0, 32)
                     pBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
                     pBtn.TextColor3 = Color3.fromRGB(230, 230, 230)
                     pBtn.Font = Enum.Font.Gotham
                     pBtn.TextSize = 13
-                    pBtn.Text = plr.DisplayName or plr.Name
+                    pBtn.Text = "👤 " .. (plr.DisplayName or plr.Name)
+                    pBtn.BorderSizePixel = 0
 
                     local pCorner = Instance.new("UICorner")
                     pCorner.Parent = pBtn
                     pCorner.CornerRadius = UDim.new(0, 6)
 
+                    -- Hover effect
+                    pBtn.MouseEnter:Connect(function()
+                        TweenService:Create(pBtn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(60, 60, 80)}):Play()
+                    end)
+                    pBtn.MouseLeave:Connect(function()
+                        TweenService:Create(pBtn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(35, 35, 45)}):Play()
+                    end)
+
+                    local targetPlayer = plr
                     pBtn.MouseButton1Click:Connect(function()
-                        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                            LocalPlayer.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
-                            showNotification("TELEPORT", "Berhasil teleport ke " .. (plr.DisplayName or plr.Name), 2, Color3.fromRGB(0, 150, 0))
+                        if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+                            showNotification("TELEPORT", "Berhasil teleport ke " .. (targetPlayer.DisplayName or targetPlayer.Name), 2, Color3.fromRGB(0, 150, 0))
                         else
                             showNotification("TELEPORT GAGAL", "Karakter player tidak ditemukan!", 2, Color3.fromRGB(150, 0, 0))
                         end
@@ -1450,8 +1491,28 @@ local function loadMainScript()
                     end)
                 end
             end
+
+            if playerCount == 0 then
+                local emptyLabel = Instance.new("TextButton")
+                emptyLabel.Parent = scrollList
+                emptyLabel.Size = UDim2.new(0.9, 0, 0, 30)
+                emptyLabel.BackgroundTransparency = 1
+                emptyLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                emptyLabel.Font = Enum.Font.Gotham
+                emptyLabel.TextSize = 12
+                emptyLabel.Text = "Tidak ada player lain"
+            end
+
             scrollList.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
         end
+        
+        -- Auto refresh saat player join/leave
+        Players.PlayerAdded:Connect(function()
+            if isOpen then refreshPlayerList() end
+        end)
+        Players.PlayerRemoving:Connect(function()
+            if isOpen then refreshPlayerList() end
+        end)
 
         mainButton.MouseButton1Click:Connect(function()
             isOpen = not isOpen
@@ -1564,9 +1625,7 @@ local function loadMainScript()
         toggleSpin(s)
     end)
     
-    createButton(tabUtility, "Ganti Arah Spin", function()
-        toggleSpinDirection()
-    end)
+
     
     createToggle(tabUtility, "Invisible Mode", false, function(s)
         toggleInvisible(s)
