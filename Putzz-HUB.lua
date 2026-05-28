@@ -1,7 +1,11 @@
--- ================== DRIP CLIENT V7.9 (FIXED TIMER & TELEPORT) ==================
--- Perbaikan: Timer countdown di tab INFO sekarang berfungsi dengan benar
--- Fix: keyValid dan keyExpiryTime tersimpan dengan baik ke menu utama
--- Update: Menambahkan Fitur Teleport List Player & ESP Line di bawah layar
+-- ================== DRIP CLIENT V8.0 (FIXED IMAGE BUTTON + TELEPORT LIST) ==================
+-- Fix: Tombol geser ImageButton sekarang muncul dan berfungsi
+-- Fitur: ESP Box + Health, ESP Line (dari bawah layar), ESP Skeleton, Player Counter
+-- Teleport: LIST PLAYER dropdown di tab MAIN
+-- MAIN: Fly, Speed Boost, NoClip, Infinity Jump, Crosshair
+-- UTILITY: God Mode, Spin Muter, Ganti Arah Spin, Invisible Mode
+-- COLOR: Ubah tema warna
+-- INFO: Timer countdown sisa waktu key
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -88,7 +92,7 @@ local skeletonColor = Color3.fromRGB(0, 255, 0)
 local redColor = Color3.fromRGB(255, 0, 0)
 local MAX_ESP_DISTANCE = 115
 
--- Timer label untuk update realtime
+-- Timer label
 local timerLabel = nil
 local timerUpdateThread = nil
 
@@ -104,7 +108,6 @@ local function loadKeyData()
             end)
             if success2 then
                 activeKeys = data
-                -- Ambil data key terakhir yang digunakan
                 for key, data in pairs(activeKeys) do
                     if data.lastUsed then
                         currentUserKey = key
@@ -215,7 +218,6 @@ local function checkKeyExpiry(inputKey)
     local currentTime = os.time()
     local expiryTime = nil
     
-    -- Cek apakah key sudah pernah digunakan
     if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
         expiryTime = activeKeys[inputKey].expiryTime
         if currentTime > expiryTime then
@@ -234,7 +236,6 @@ local function checkKeyExpiry(inputKey)
         saveKeyData()
     end
     
-    -- Tandai key ini sebagai yang terakhir digunakan
     for k, v in pairs(activeKeys) do
         v.lastUsed = nil
     end
@@ -253,7 +254,7 @@ end
 
 local function showNotification(title, text, duration, color)
     local notif = Instance.new("Frame")
-    notif.Parent = game.CoreGui:FindFirstChild("DripKeySystem") or game.CoreGui:FindFirstChild("DripClient")
+    notif.Parent = KeyGui
     notif.Size = UDim2.new(0, 300, 0, 70)
     notif.Position = UDim2.new(0.5, -150, 0, -80)
     notif.BackgroundColor3 = color or Color3.fromRGB(30, 30, 40)
@@ -1044,7 +1045,7 @@ RunService.RenderStepped:Connect(function()
             end
             
             if lineEnabled then
-                -- MODIFIKASI: ESP Line diubah titik asalnya menjadi di bawah tengah layar
+                -- ESP Line dari BAWAH LAYAR ke player
                 line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
                 line.To = Vector2.new(pos.X, pos.Y)
                 line.Visible = visible
@@ -1377,7 +1378,7 @@ local function loadMainScript()
         return frame
     end
 
-    -- ================== FITUR BARU: TELEPORT LIST PLAYER ==================
+    -- ================== FITUR TELEPORT LIST PLAYER (DROPDOWN) ==================
     local function createPlayerTeleportDropdown(parent)
         local baseFrame = Instance.new("Frame")
         baseFrame.Parent = parent
@@ -1459,11 +1460,9 @@ local function loadMainScript()
                 TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = UDim2.new(0.95, 0, 0, 200)}):Play()
                 mainButton.Text = "▲ LIST PLAYER"
                 
-                -- Auto update canvas size sesaat setelah dibuka
                 task.wait(0.05)
                 scrollList.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
                 
-                -- Memaksa ScrollingFrame Menu Utama menyesuaikan tinggi agar tidak bug/terpotong
                 local parentScroll = parent
                 if parentScroll and parentScroll:IsA("ScrollingFrame") then
                     task.wait(0.2)
@@ -1629,7 +1628,7 @@ local function loadMainScript()
         changeTheme(Color3.fromRGB(255, 105, 180))
     end)
     
-    -- ===== TAB INFORMASI (DENGAN TIMER COUNTDOWN) =====
+    -- ===== TAB INFORMASI =====
     local infoFrame = Instance.new("Frame")
     infoFrame.Parent = tabInfo
     infoFrame.Size = UDim2.new(0.95, 0, 0, 220)
@@ -1651,7 +1650,6 @@ local function loadMainScript()
     infoTitle.Font = Enum.Font.GothamBlack
     infoTitle.TextSize = 20
     
-    -- TIMER COUNTDOWN (update setiap detik)
     local infoTimerLabel = Instance.new("TextLabel")
     infoTimerLabel.Parent = infoFrame
     infoTimerLabel.Size = UDim2.new(0.95, 0, 0, 55)
@@ -1673,17 +1671,16 @@ local function loadMainScript()
     infoTextLabel.Position = UDim2.new(0.025, 0, 0, 110)
     infoTextLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
     infoTextLabel.BackgroundTransparency = 0.2
-    infoTextLabel.Text = "DRIP CLIENT V7.9\n\nDEVELOPER: Putzzdev\nKONTAK: 088976255131"
+    infoTextLabel.Text = "DRIP CLIENT V8.0\n\nDEVELOPER: Putzzdev\nKONTAK: 088976255131"
     infoTextLabel.TextColor3 = Color3.fromRGB(220, 230, 255)
     infoTextLabel.Font = Enum.Font.Gotham
     infoTextLabel.TextSize = 13
     infoTextLabel.TextWrapped = true
-    infoTextLabel.TextYAlignment = Enum.TextXAlignment.Center
+    infoTextLabel.TextYAlignment = Enum.TextYAlignment.Center
     local infoCorner2 = Instance.new("UICorner")
     infoCorner2.Parent = infoTextLabel
     infoCorner2.CornerRadius = UDim.new(0, 10)
     
-    -- Fungsi update timer setiap detik (menggunakan data global)
     local function updateTimer()
         if not keyValidGlobal or keyExpiryTime == 0 then
             infoTimerLabel.Text = "Key tidak valid atau belum diverifikasi"
@@ -1721,7 +1718,6 @@ local function loadMainScript()
         infoTimerLabel.TextColor3 = themeColor
     end
     
-    -- Jalankan thread update timer setiap detik
     task.spawn(function()
         while true do
             pcall(updateTimer)
@@ -1746,26 +1742,34 @@ local function loadMainScript()
     tabs[1].BackgroundTransparency = 0.2
     contents[1].Visible = true
     
-    -- ========== TOMBOL GESER (IMAGE) ==========
+    -- ========== TOMBOL GESER (IMAGE) - DIPERBAIKI, PASTI MUNCUL ==========
     local openBtn = Instance.new("ImageButton")
+    openBtn.Name = "DripToggleBtn"
     openBtn.Parent = ScreenGui
     openBtn.Size = UDim2.new(0, 60, 0, 60)
     openBtn.Position = UDim2.new(0, 15, 0.5, -30)
-    openBtn.BackgroundTransparency = 1
+    openBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    openBtn.BackgroundTransparency = 0.4
+    openBtn.BorderSizePixel = 2
+    openBtn.BorderColor3 = Color3.fromRGB(255, 255, 255)
     openBtn.Image = "rbxassetid://72495850369898"
     openBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    openBtn.ImageTransparency = 0
     openBtn.ScaleType = Enum.ScaleType.Fit
-    openBtn.ZIndex = 10
+    openBtn.ZIndex = 999
     openBtn.Active = true
     openBtn.Draggable = true
     
-    local openBtnCorner = Instance.new("UICorner")
-    openBtnCorner.Parent = openBtn
-    openBtnCorner.CornerRadius = UDim.new(0, 14)
-    local openBtnStroke = Instance.new("UIStroke")
-    openBtnStroke.Parent = openBtn
-    openBtnStroke.Color = Color3.fromRGB(255, 255, 255)
-    openBtnStroke.Thickness = 1.5
+    -- Bikin background bulat
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.Parent = openBtn
+    btnCorner.CornerRadius = UDim.new(1, 0)
+    
+    -- Stroke putih biar keliatan
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = openBtn
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Thickness = 2
     
     local menuOpen = true
     openBtn.MouseButton1Click:Connect(function()
@@ -1785,14 +1789,48 @@ local function loadMainScript()
     end)
     
     openBtn.MouseEnter:Connect(function()
-        TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 70, 0, 70)}):Play()
-    end)
-    openBtn.MouseLeave:Connect(function()
-        TweenService:Create(openBtn, TweenInfo.new(0.2), {Size = UDim2.new(0, 60, 0, 60)}):Play()
+        TweenService:Create(openBtn, TweenInfo.new(0.15), {Size = UDim2.new(0, 70, 0, 70)}):Play()
+        TweenService:Create(stroke, TweenInfo.new(0.15), {Thickness = 3}):Play()
     end)
     
-    print("DRIP CLIENT V7.9 - MENU BERHASIL DIMUAT!")
+    openBtn.MouseLeave:Connect(function()
+        TweenService:Create(openBtn, TweenInfo.new(0.15), {Size = UDim2.new(0, 60, 0, 60)}):Play()
+        TweenService:Create(stroke, TweenInfo.new(0.15), {Thickness = 2}):Play()
+    end)
+    
+    -- Drag handler
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    openBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = openBtn.Position
+        end
+    end)
+    
+    openBtn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+    
+    openBtn.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            local newX = startPos.X.Offset + delta.X
+            local newY = startPos.Y.Offset + delta.Y
+            newX = math.clamp(newX, 0, Camera.ViewportSize.X - 60)
+            newY = math.clamp(newY, 0, Camera.ViewportSize.Y - 60)
+            openBtn.Position = UDim2.new(0, newX, 0, newY)
+        end
+    end)
+    
+    print("DRIP CLIENT V8.0 - MENU BERHASIL DIMUAT!")
     print("Timer countdown aktif di tab INFORMASI")
+    print("Tombol geser ImageButton aktif")
 end
 
 -- ================== EVENT VERIFY BUTTON ==================
@@ -1843,4 +1881,4 @@ KeyTextBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("DRIP CLIENT V7.9 - TIMER COUNTDOWN FIXED")
+print("DRIP CLIENT V8.0 - TOMBOL GESER IMAGE FIXED | ESP LINE DARI BAWAH LAYAR")
