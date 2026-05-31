@@ -829,46 +829,71 @@ local function loadMainScript()
     local function createEmoteDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
-        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "CUSTOM EMOTE" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
+        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "LIST CUSTOM EMOTE (ANTI-BLOCK)" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
         
         local scrollList = Instance.new("ScrollingFrame") scrollList.Parent = baseFrame scrollList.Size = UDim2.new(1, 0, 0, 140) scrollList.Position = UDim2.new(0, 0, 0, 42) scrollList.BackgroundTransparency = 1 scrollList.ScrollBarThickness = 5 scrollList.ScrollBarImageColor3 = themeColor
         local listLayout = Instance.new("UIListLayout") listLayout.Parent = scrollList listLayout.Padding = UDim.new(0, 5) listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         
-        local emotes = {
-            {name = "Matrix Evasion Run", id = "rbxassetid://11029283733"}, 
-            {name = "Floss Dance", id = "rbxassetid://5073111166"},
-            {name = "Billy Bounce", id = "rbxassetid://5073108392"},
-            {name = "Hype Dance", id = "rbxassetid://5073118218"},
-            {name = "Matrix Groove", id = "rbxassetid://3361280373"}
-        }
+        local manualEmoteConnection = nil
+        local emoteAktif = ""
 
-        local function playCustomEmote(id)
-            local char = LocalPlayer.Character local hum = char and char:FindFirstChildOfClass("Humanoid")
-            if hum then
-                if currentAnimationTrack then currentAnimationTrack:Stop() currentAnimationTrack:Destroy() end
-                local anim = Instance.new("Animation") anim.AnimationId = id
-                local success, track = pcall(function() return hum:LoadAnimation(anim) end)
-                if success and track then
-                    currentAnimationTrack = track
-                    currentAnimationTrack.Looped = true
-                    currentAnimationTrack.Priority = Enum.AnimationPriority.Action
-                    currentAnimationTrack:Play()
-                    showNotification("EMOTE", "Memutar tarian", 1.5, themeColor)
-                else
-                    showNotification("ERROR", "Animasi tidak tersedia", 2, Color3.fromRGB(150,0,0))
+        local function stopManualEmote()
+            if manualEmoteConnection then manualEmoteConnection:Disconnect() manualEmoteConnection = nil end
+            emoteAktif = ""
+            pcall(function()
+                local char = LocalPlayer.Character
+                local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+                local rShoulder = torso and (torso:FindFirstChild("Right Shoulder") or torso:FindFirstChild("RightShoulder"))
+                if rShoulder then
+                    rShoulder.C0 = CFrame.new(1, 0.5, 0) * CFrame.Angles(0, math.rad(90), 0)
                 end
-            end
-        end
-
-        for _, e in ipairs(emotes) do
-            local eBtn = Instance.new("TextButton") eBtn.Parent = scrollList eBtn.Size = UDim2.new(0.92, 0, 0, 28) eBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45) eBtn.TextColor3 = Color3.new(1,1,1) eBtn.Font = Enum.Font.Gotham eBtn.TextSize = 12 eBtn.Text = e.name
-            Instance.new("UICorner", eBtn).CornerRadius = UDim.new(0, 5)
-            eBtn.MouseButton1Click:Connect(function()
-                playCustomEmote(e.id)
-                baseFrame.Size = UDim2.new(0.95, 0, 0, 42)
-                local h = 0 for _, c in pairs(parent:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end parent.CanvasSize = UDim2.new(0, 0, 0, h + 30)
             end)
         end
+
+        local function playJerkEmote()
+            stopManualEmote()
+            if currentAnimationTrack then currentAnimationTrack:Stop() end
+            
+            emoteAktif = "Jerk"
+            showNotification("EMOTE ACTIVE", "Memulai gerakan Jerk manual!", 1.5, themeColor)
+            
+            local sudut = 0
+            local kecepatanKocok = 0.4
+            
+            manualEmoteConnection = RunService.Heartbeat:Connect(function()
+                pcall(function()
+                    local char = LocalPlayer.Character
+                    if not char or emoteAktif ~= "Jerk" then return end
+                    
+                    local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+                    local rShoulder = torso and (torso:FindFirstChild("Right Shoulder") or torso:FindFirstChild("RightShoulder"))
+                    
+                    if rShoulder then
+                        sudut = sudut + kecepatanKocok
+                        local kocokEfek = math.sin(sudut) * 0.5
+                        rShoulder.C0 = CFrame.new(0.6, -0.2, -0.5) * CFrame.Angles(math.rad(-70) + kocokEfek, math.rad(-40), math.rad(-30))
+                    end
+                end)
+            end)
+        end
+
+        local btnJerk = Instance.new("TextButton") btnJerk.Parent = scrollList btnJerk.Size = UDim2.new(0.92, 0, 0, 32) btnJerk.BackgroundColor3 = Color3.fromRGB(35, 35, 45) btnJerk.TextColor3 = Color3.fromRGB(255, 50, 150) btnJerk.Font = Enum.Font.GothamBold btnJerk.TextSize = 12 btnJerk.Text = "🥵 Jerk Hand / Ngocok Depan"
+        Instance.new("UICorner", btnJerk).CornerRadius = UDim.new(0, 5)
+        
+        btnJerk.MouseButton1Click:Connect(function()
+            playJerkEmote()
+            baseFrame.Size = UDim2.new(0.95, 0, 0, 42)
+            local h = 0 for _, c in pairs(parent:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end parent.CanvasSize = UDim2.new(0, 0, 0, h + 30)
+        end)
+
+        task.spawn(function()
+            while true do
+                task.wait(0.5)
+                if currentAnimationTrack == nil and emoteAktif ~= "" then
+                    stopManualEmote()
+                end
+            end
+        end)
         
         mainButton.MouseButton1Click:Connect(function()
             scrollList.CanvasSize = UDim2.new(0,0,0, listLayout.AbsoluteContentSize.Y + 10)
