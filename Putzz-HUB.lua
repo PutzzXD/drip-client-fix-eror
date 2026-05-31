@@ -1,10 +1,7 @@
--- ================== DRIP CLIENT V7.9 (PERFECT & FINAL VERSION) ==================
--- Perbaikan Lengkap & Pembersihan:
--- 1. Tab MAIN: Ditambahkan God Mode, Spin Muter, dan Invisible. Mendukung scroll penuh.
--- 2. Tab UTILITY: Menampung List Teleport Player & List Emote Dropdown + Tombol Stop.
--- 3. Special Emote: "Matrix Evasion Run" -> Bisa jalan + meliuk-liuk sehingga susah ditembak.
--- 4. Clean: Menghapus tombol ganti arah spin sesuai instruksi terbaru.
--- 5. Restore: Mengembalikan efek loading countdown (3,2,1) dan UI Stroke premium dari file asli.
+-- ================== DRIP CLIENT V8.0 (FIXED KEY SYSTEM + BLACK ESP LINE) ==================
+-- Perbaikan: Key harus dimasukkan manual (tidak auto-load)
+-- Fitur baru: ESP Line warna hitam (opsional)
+-- Hapus emoji & teks berlebihan
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -32,6 +29,7 @@ local HttpService = game:GetService("HttpService")
 -- ESP
 local espEnabled = false
 local lineEnabled = false
+local lineColor = Color3.fromRGB(0, 0, 0) -- WARNA HITAM untuk ESP Line
 local skeletonEnabled = false
 local ESPTable = {}
 local SkeletonESP = {}
@@ -84,14 +82,14 @@ local invisibleHumanoid = nil
 local currentAnimationTrack = nil
 
 -- Warna Tema
-local themeColor = Color3.fromRGB(156, 39, 176) -- Default Ungu Premium
+local themeColor = Color3.fromRGB(156, 39, 176)
 local darkPurple = Color3.fromRGB(74, 20, 90)
 local boxColor = Color3.fromRGB(0, 255, 0)
 local skeletonColor = Color3.fromRGB(0, 255, 0)
 local redColor = Color3.fromRGB(255, 0, 0)
 local MAX_ESP_DISTANCE = 115
 
--- ================== FUNGSI AUXILIARY KEY SYSTEM ==================
+-- ================== FUNGSI KEY SYSTEM ==================
 local function loadKeyData()
     if isfile and isfile(SAVE_FILE) then
         local success, content = pcall(function() return readfile(SAVE_FILE) end)
@@ -99,16 +97,6 @@ local function loadKeyData()
             local success2, data = pcall(function() return HttpService:JSONDecode(content) end)
             if success2 then
                 activeKeys = data
-                for key, d in pairs(activeKeys) do
-                    if d.lastUsed then
-                        currentUserKey = key
-                        keyExpiryTime = d.expiryTime or 0
-                        keyExpiryDays = d.expiryDays or 0
-                        keyJenis = d.jenis or ""
-                        keyValidGlobal = (keyExpiryTime > os.time())
-                        break
-                    end
-                end
             end
         end
     end
@@ -202,7 +190,7 @@ local function showNotification(title, text, duration, color)
     if not parentGui then return end
     local notif = Instance.new("Frame")
     notif.Parent = parentGui
-    notif.Size = UDim2.new(0, 280, 0, 65)
+    notif.Size = UDim2.new(0, 280, 0, 60)
     notif.Position = UDim2.new(0.5, -140, 0, -80)
     notif.BackgroundColor3 = color or Color3.fromRGB(30, 30, 40)
     notif.BackgroundTransparency = 0.15
@@ -226,7 +214,7 @@ local function showNotification(title, text, duration, color)
     local notifText = Instance.new("TextLabel")
     notifText.Parent = notif
     notifText.Size = UDim2.new(1, -10, 0.5, 0)
-    notifText.Position = UDim2.new(0, 5, 0, 30)
+    notifText.Position = UDim2.new(0, 5, 0, 28)
     notifText.BackgroundTransparency = 1
     notifText.Text = text
     notifText.TextColor3 = Color3.fromRGB(220, 220, 220)
@@ -283,7 +271,7 @@ KeyTitle.Parent = KeyHeader
 KeyTitle.Size = UDim2.new(1, 0, 0.4, 0)
 KeyTitle.Position = UDim2.new(0, 0, 0, 52)
 KeyTitle.BackgroundTransparency = 1
-KeyTitle.Text = "DRIP CLIENT AUTH V7.9"
+KeyTitle.Text = "DRIP CLIENT AUTH"
 KeyTitle.TextColor3 = Color3.new(1, 1, 1)
 KeyTitle.Font = Enum.Font.GothamBold
 KeyTitle.TextSize = 15
@@ -303,7 +291,7 @@ InfoText.Parent = InfoFrame
 InfoText.Size = UDim2.new(1, -20, 1, 0)
 InfoText.Position = UDim2.new(0, 10, 0, 0)
 InfoText.BackgroundTransparency = 1
-InfoText.Text = "Masukkan Key Premium Anda untuk memuat menu cheat."
+InfoText.Text = "Masukkan Key Premium untuk memuat menu cheat"
 InfoText.TextColor3 = Color3.fromRGB(180, 180, 190)
 InfoText.Font = Enum.Font.Gotham
 InfoText.TextSize = 12
@@ -315,7 +303,7 @@ KeyTextBox.Size = UDim2.new(0.8, 0, 0, 42)
 KeyTextBox.Position = UDim2.new(0.1, 0, 0.42, 0)
 KeyTextBox.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 KeyTextBox.TextColor3 = Color3.new(1, 1, 1)
-KeyTextBox.PlaceholderText = "Paste key disini..."
+KeyTextBox.PlaceholderText = "Masukkan key..."
 KeyTextBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
 KeyTextBox.Font = Enum.Font.Gotham
 KeyTextBox.TextSize = 13
@@ -367,32 +355,33 @@ StatusIcon.Parent = StatusFrame
 StatusIcon.Size = UDim2.new(0, 30, 1, 0)
 StatusIcon.Position = UDim2.new(0, 5, 0, 0)
 StatusIcon.BackgroundTransparency = 1
-StatusIcon.Text = "🔒"
-StatusIcon.TextSize = 16
+StatusIcon.Text = "LOCK"
+StatusIcon.TextSize = 14
+StatusIcon.TextColor3 = Color3.fromRGB(255, 255, 0)
 
 local StatusLabel = Instance.new("TextLabel")
 StatusLabel.Parent = StatusFrame
 StatusLabel.Size = UDim2.new(1, -40, 1, 0)
 StatusLabel.Position = UDim2.new(0, 35, 0, 0)
 StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Menunggu otentikasi..."
+StatusLabel.Text = "Menunggu key..."
 StatusLabel.TextColor3 = Color3.new(1, 1, 1)
 StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.TextSize = 12
+StatusLabel.TextSize = 11
 StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 WebsiteBtn.MouseButton1Click:Connect(function()
     if setclipboard then
         setclipboard(WEBSITE_URL)
-        StatusLabel.Text = "Link disalin ke Clipboard!"
+        StatusLabel.Text = "Link disalin"
         StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-        showNotification("BERHASIL", "Link key disalin. Silakan buka browser.", 2, Color3.fromRGB(0, 120, 0))
+        showNotification("BERHASIL", "Link key disalin", 2, Color3.fromRGB(0, 120, 0))
     else
         StatusLabel.Text = WEBSITE_URL
     end
 end)
 
--- ================== CORE MECHANICS (FLY, NOCLIP, SPIN, INVISIBLE) ==================
+-- ================== CORE MECHANICS ==================
 local function startFlyMode()
     local plr = LocalPlayer
     if not plr.Character then return end
@@ -528,13 +517,13 @@ end)
 local function createPlayerCounter()
     if enemyCountText then pcall(function() enemyCountText:Remove() end) end
     enemyCountText = Drawing.new("Text")
-    enemyCountText.Size = 26
+    enemyCountText.Size = 24
     enemyCountText.Color = redColor
     enemyCountText.Center = true
     enemyCountText.Outline = true
-    enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 60)
+    enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 55)
     enemyCountText.Visible = false
-    enemyCountText.Text = "PLAYER IN SCREEN: 0"
+    enemyCountText.Text = "PLAYERS: 0"
 end
 
 local function createESP(player)
@@ -623,7 +612,7 @@ RunService.RenderStepped:Connect(function()
             if lineEnabled and visible then
                 line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
                 line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = themeColor
+                line.Color = lineColor
                 line.Visible = true
             else
                 line.Visible = false
@@ -656,7 +645,7 @@ RunService.RenderStepped:Connect(function()
     end
 
     if playerCounterEnabled and enemyCountText then
-        enemyCountText.Text = "PLAYERS VISIBLE: " .. screenCount
+        enemyCountText.Text = "PLAYERS: " .. screenCount
         enemyCountText.Visible = true
     elseif enemyCountText then
         enemyCountText.Visible = false
@@ -677,8 +666,8 @@ local function loadMainScript()
 
     local mainFrame = Instance.new("Frame")
     mainFrame.Parent = ScreenGui
-    mainFrame.Size = UDim2.new(0, 410, 0, 520)
-    mainFrame.Position = UDim2.new(0.5, -205, 0.5, -260)
+    mainFrame.Size = UDim2.new(0, 400, 0, 520)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -260)
     mainFrame.BackgroundColor3 = darkPurple
     mainFrame.BackgroundTransparency = 0.05
     mainFrame.Active = true
@@ -691,7 +680,6 @@ local function loadMainScript()
     mainStroke.Thickness = 2.5
     mainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-    -- HEADER
     local header = Instance.new("Frame")
     header.Parent = mainFrame header.Size = UDim2.new(1, 0, 0, 65) header.BackgroundColor3 = themeColor header.BackgroundTransparency = 0.2
     local headerCorner = Instance.new("UICorner") headerCorner.CornerRadius = UDim.new(0, 20) headerCorner.Parent = header
@@ -700,12 +688,11 @@ local function loadMainScript()
     logoImage.Parent = header logoImage.Size = UDim2.new(0, 42, 0, 42) logoImage.Position = UDim2.new(0, 15, 0, 12) logoImage.BackgroundTransparency = 1 logoImage.Image = "rbxassetid://72495850369898" logoImage.ScaleType = Enum.ScaleType.Fit
     
     local title = Instance.new("TextLabel")
-    title.Parent = header title.Size = UDim2.new(1, -70, 0.5, 0) title.Position = UDim2.new(0, 65, 0, 12) title.BackgroundTransparency = 1 title.Text = "DRIP CLIENT PREMIUM" title.TextColor3 = Color3.new(1,1,1) title.Font = Enum.Font.GothamBlack title.TextSize = 22 title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = header title.Size = UDim2.new(1, -70, 0.5, 0) title.Position = UDim2.new(0, 65, 0, 12) title.BackgroundTransparency = 1 title.Text = "DRIP CLIENT" title.TextColor3 = Color3.new(1,1,1) title.Font = Enum.Font.GothamBlack title.TextSize = 22 title.TextXAlignment = Enum.TextXAlignment.Left
     
     local subtitle = Instance.new("TextLabel")
-    subtitle.Parent = header subtitle.Size = UDim2.new(1, -70, 0.3, 0) subtitle.Position = UDim2.new(0, 65, 0, 36) subtitle.BackgroundTransparency = 1 subtitle.Text = "V7.9 • Organized Dashboard" subtitle.TextColor3 = boxColor subtitle.Font = Enum.Font.Gotham subtitle.TextSize = 11 subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    subtitle.Parent = header subtitle.Size = UDim2.new(1, -70, 0.3, 0) subtitle.Position = UDim2.new(0, 65, 0, 36) subtitle.BackgroundTransparency = 1 subtitle.Text = "V8.0" subtitle.TextColor3 = boxColor subtitle.Font = Enum.Font.Gotham subtitle.TextSize = 11 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- TAB BAR SYSTEM
     local tabBar = Instance.new("Frame")
     tabBar.Parent = mainFrame tabBar.Size = UDim2.new(0.94, 0, 0, 38) tabBar.Position = UDim2.new(0.03, 0, 0, 75) tabBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55) tabBar.BackgroundTransparency = 0.4
     local tabBarCorner = Instance.new("UICorner") tabBarCorner.CornerRadius = UDim.new(0, 8) tabBarCorner.Parent = tabBar
@@ -737,9 +724,8 @@ local function loadMainScript()
     local tabMain = createTab("MAIN", 1)
     local tabESP = createTab("ESP SYSTEM", 2)
     local tabUtility = createTab("UTILITY", 3)
-    local tabInfo = createTab("INFO & COLOR", 4)
+    local tabInfo = createTab("INFO", 4)
 
-    -- UI Element Builders
     local function createButton(parent, text, callback)
         local frame = Instance.new("Frame") frame.Parent = parent frame.Size = UDim2.new(0.95, 0, 0, 42) frame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) frame.BackgroundTransparency = 0.2
         local corner = Instance.new("UICorner") corner.CornerRadius = UDim.new(0, 8) corner.Parent = frame
@@ -768,8 +754,8 @@ local function loadMainScript()
         return frame
     end
 
-    -- ================== TAB MAIN (SCROLLABLE & CLEAN SYSTEM) ==================
-    createToggle(tabMain, "Fly Mode (Auto Forward)", false, function(s)
+    -- TAB MAIN
+    createToggle(tabMain, "Fly Mode", false, function(s)
         flyEnabled = s if s then startFlyMode() else stopFlyMode() end
     end)
     createToggle(tabMain, "Speed Boost", false, function(s)
@@ -781,7 +767,7 @@ local function loadMainScript()
         noclipEnabled = s if s then startNoclip() else stopNoclip() end
     end)
     createToggle(tabMain, "Infinity Jump", false, function(s) infinityJumpEnabled = s end)
-    createToggle(tabMain, "Crosshair Center", false, function(s)
+    createToggle(tabMain, "Crosshair", false, function(s)
         crosshairEnabled = s
         if s then
             if crosshairObject then crosshairObject:Destroy() end
@@ -790,35 +776,23 @@ local function loadMainScript()
             local h = Instance.new("Frame", crosshairObject) h.Size = UDim2.new(0,24,0,2) h.Position = UDim2.new(0.5,-12,0.5,-1) h.BackgroundColor3 = Color3.new(1,1,1) h.BorderSizePixel = 0
         elseif crosshairObject then crosshairObject:Destroy() crosshairObject = nil end
     end)
-    
-    -- Fitur Pindahan dari Utility
-    createToggle(tabMain, "🛡️ God Mode (Anti Damage)", false, function(s)
+    createToggle(tabMain, "God Mode", false, function(s)
         antiDamageEnabled = s if s then setupAntiDamage() else if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end end
     end)
-    createToggle(tabMain, "🌀 Spin Muter", false, function(s) toggleSpin(s) end)
-    createToggle(tabMain, "👁️ Invisible Mode", false, function(s) toggleInvisible(s) end)
+    createToggle(tabMain, "Spin Muter", false, function(s) toggleSpin(s) end)
+    createToggle(tabMain, "Invisible Mode", false, function(s) toggleInvisible(s) end)
 
-    -- Force Adjust Scroll Canvas Tab Main
-    local function adjustMainCanvas()
-        task.wait(0.05)
-        local h = 0 for _, c in pairs(tabMain:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end
-        tabMain.CanvasSize = UDim2.new(0, 0, 0, h + 30)
-    end
-    adjustMainCanvas()
+    -- TAB ESP SYSTEM
+    createToggle(tabESP, "ESP Box", false, function(s) espEnabled = s end)
+    createToggle(tabESP, "ESP Line (Hitam)", false, function(s) lineEnabled = s end)
+    createToggle(tabESP, "ESP Skeleton", false, function(s) skeletonEnabled = s end)
+    createToggle(tabESP, "Player Counter", false, function(s) playerCounterEnabled = s end)
 
-    -- ================== TAB ESP SYSTEM ==================
-    createToggle(tabESP, "ESP Box + Health Metric", false, function(s) espEnabled = s end)
-    createToggle(tabESP, "ESP Line (Bottom Source)", false, function(s) lineEnabled = s end)
-    createToggle(tabESP, "ESP Skeleton Bone", false, function(s) skeletonEnabled = s end)
-    createToggle(tabESP, "Realtime Player Counter", false, function(s) playerCounterEnabled = s end)
-
-    -- ================== TAB UTILITY (TELEPORT & EMOTE LISTS) ==================
-    
-    -- 1. DROPDOWN TELEPORT LIST PLAYER
+    -- TAB UTILITY (Teleport & Emote)
     local function createTeleportDropdown(parent)
-        local baseFrame = Instance.new("Frame") parent = parent baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
+        local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
-        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "⚡ TELEPORT LIST PLAYER" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
+        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "TELEPORT TO PLAYER" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
         
         local scrollList = Instance.new("ScrollingFrame") scrollList.Parent = baseFrame scrollList.Size = UDim2.new(1, 0, 0, 140) scrollList.Position = UDim2.new(0, 0, 0, 42) scrollList.BackgroundTransparency = 1 scrollList.ScrollBarThickness = 5 scrollList.ScrollBarImageColor3 = themeColor
         local listLayout = Instance.new("UIListLayout") listLayout.Parent = scrollList listLayout.Padding = UDim.new(0, 5) listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -835,7 +809,7 @@ local function loadMainScript()
                         pBtn.MouseButton1Click:Connect(function()
                             if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                                 LocalPlayer.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
-                                showNotification("TELEPORTED", "Teleport ke " .. plr.Name, 2, Color3.fromRGB(0,140,0))
+                                showNotification("TELEPORT", "Teleport ke " .. plr.Name, 2, Color3.fromRGB(0,140,0))
                             end
                             isOpen = false TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = UDim2.new(0.95, 0, 0, 42)}):Play()
                         end)
@@ -852,22 +826,20 @@ local function loadMainScript()
     end
     createTeleportDropdown(tabUtility)
 
-    -- 2. DROPDOWN LIST CUSTOM EMOTE
     local function createEmoteDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
-        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "🕺 LIST CUSTOM EMOTE V7.9" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
+        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "CUSTOM EMOTE" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
         
         local scrollList = Instance.new("ScrollingFrame") scrollList.Parent = baseFrame scrollList.Size = UDim2.new(1, 0, 0, 140) scrollList.Position = UDim2.new(0, 0, 0, 42) scrollList.BackgroundTransparency = 1 scrollList.ScrollBarThickness = 5 scrollList.ScrollBarImageColor3 = themeColor
         local listLayout = Instance.new("UIListLayout") listLayout.Parent = scrollList listLayout.Padding = UDim.new(0, 5) listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         
-        -- Tabel Animasi Emote
         local emotes = {
-            {name = "🔥 Matrix Evasion Run (Bisa Jalan + Hard to Hit)", id = "rbxassetid://11029283733"}, 
-            {name = "Floss Dance (Loop)", id = "rbxassetid://5073111166"},
-            {name = "Billy Bounce Bounce", id = "rbxassetid://5073108392"},
-            {name = "Hype Premium Dance", id = "rbxassetid://5073118218"},
-            {name = "Tilt Matrix Groove", id = "rbxassetid://3361280373"}
+            {name = "Matrix Evasion Run", id = "rbxassetid://11029283733"}, 
+            {name = "Floss Dance", id = "rbxassetid://5073111166"},
+            {name = "Billy Bounce", id = "rbxassetid://5073108392"},
+            {name = "Hype Dance", id = "rbxassetid://5073118218"},
+            {name = "Matrix Groove", id = "rbxassetid://3361280373"}
         }
 
         local function playCustomEmote(id)
@@ -881,9 +853,9 @@ local function loadMainScript()
                     currentAnimationTrack.Looped = true
                     currentAnimationTrack.Priority = Enum.AnimationPriority.Action
                     currentAnimationTrack:Play()
-                    showNotification("EMOTE ACTIVE", "Memutar tarian kustom.", 1.5, themeColor)
+                    showNotification("EMOTE", "Memutar tarian", 1.5, themeColor)
                 else
-                    showNotification("ERROR", "Animasi diblokir di game ini.", 2, Color3.fromRGB(150,0,0))
+                    showNotification("ERROR", "Animasi tidak tersedia", 2, Color3.fromRGB(150,0,0))
                 end
             end
         end
@@ -911,69 +883,57 @@ local function loadMainScript()
     end
     createEmoteDropdown(tabUtility)
 
-    -- 3. TOMBOL RESET EMOTE PAKSA
-    createButton(tabUtility, "🛑 HENTIKAN EMOTE (RESET MOVEMENT)", function()
+    createButton(tabUtility, "STOP EMOTE", function()
         if currentAnimationTrack then
             currentAnimationTrack:Stop()
             currentAnimationTrack:Destroy()
             currentAnimationTrack = nil
-            showNotification("EMOTE", "Semua animasi eksternal dihentikan.", 1.5, themeColor)
+            showNotification("EMOTE", "Animasi dihentikan", 1.5, themeColor)
         else
-            showNotification("INFO", "Tidak ada animasi yang aktif.", 1.5, themeColor)
+            showNotification("INFO", "Tidak ada animasi aktif", 1.5, themeColor)
         end
     end)
     
-    -- Adjust Utility Canvas Size Init
-    local function adjustUtilCanvas()
-        task.wait(0.05)
-        local h = 0 for _, c in pairs(tabUtility:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end
-        tabUtility.CanvasSize = UDim2.new(0, 0, 0, h + 30)
-    end
-    adjustUtilCanvas()
-
-    -- ================== TAB INFO & COLOR THEME ==================
+    -- TAB INFO
     local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 160) infoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55) infoBox.BackgroundTransparency = 0.4
     Instance.new("UICorner", infoBox).CornerRadius = UDim.new(0, 10)
     
-    local iLabel = Instance.new("TextLabel", infoBox) iLabel.Size = UDim2.new(1, 0, 0, 30) iLabel.BackgroundTransparency = 1 iLabel.Text = "AUTHENTICATION LIVE METRIC" iLabel.TextColor3 = themeColor iLabel.Font = Enum.Font.GothamBold iLabel.TextSize = 13
-    local infoTimerLabel = Instance.new("TextLabel", infoBox) infoTimerLabel.Size = UDim2.new(0.92, 0, 0, 45) infoTimerLabel.Position = UDim2.new(0.04, 0, 0, 35) infoTimerLabel.BackgroundColor3 = Color3.fromRGB(30,30,40) infoTimerLabel.TextColor3 = Color3.new(1,1,1) infoTimerLabel.Font = Enum.Font.GothamBold infoTimerLabel.TextSize = 12
+    local iLabel = Instance.new("TextLabel", infoBox) iLabel.Size = UDim2.new(1, 0, 0, 30) iLabel.BackgroundTransparency = 1 iLabel.Text = "KEY STATUS" iLabel.TextColor3 = themeColor iLabel.Font = Enum.Font.GothamBold iLabel.TextSize = 13
+    local infoTimerLabel = Instance.new("TextLabel", infoBox) infoTimerLabel.Size = UDim2.new(0.92, 0, 0, 45) infoTimerLabel.Position = UDim2.new(0.04, 0, 0, 35) infoTimerLabel.BackgroundColor3 = Color3.fromRGB(30,30,40) infoTimerLabel.TextColor3 = Color3.new(1,1,1) infoTimerLabel.Font = Enum.Font.GothamBold infoTimerLabel.TextSize = 11
     Instance.new("UICorner", infoTimerLabel).CornerRadius = UDim.new(0, 8)
 
-    local infoDevLabel = Instance.new("TextLabel", infoBox) infoDevLabel.Size = UDim2.new(0.92, 0, 0, 60) infoDevLabel.Position = UDim2.new(0.04, 0, 0, 90) infoDevLabel.BackgroundColor3 = Color3.fromRGB(30,30,40) infoDevLabel.TextColor3 = Color3.fromRGB(200,210,255) infoDevLabel.Font = Enum.Font.Gotham infoDevLabel.TextSize = 11 infoDevLabel.Text = "DRIP CLIENT EXECUTION PLATFORM v7.9\nDEVELOPER: Putzzdev\nWHATSAPP: 088976255131"
+    local infoDevLabel = Instance.new("TextLabel", infoBox) infoDevLabel.Size = UDim2.new(0.92, 0, 0, 60) infoDevLabel.Position = UDim2.new(0.04, 0, 0, 90) infoDevLabel.BackgroundColor3 = Color3.fromRGB(30,30,40) infoDevLabel.TextColor3 = Color3.fromRGB(200,210,255) infoDevLabel.Font = Enum.Font.Gotham infoDevLabel.TextSize = 11 infoDevLabel.Text = "DRIP CLIENT V8.0\nDeveloper: Putzzdev\nWhatsApp: 088976255131"
     Instance.new("UICorner", infoDevLabel).CornerRadius = UDim.new(0, 8)
 
     local function updateTimer()
-        if not keyValidGlobal or keyExpiryTime == 0 then infoTimerLabel.Text = "Key Expired / Unauthenticated" return end
+        if not keyValidGlobal or keyExpiryTime == 0 then infoTimerLabel.Text = "Key tidak valid" return end
         local rem = keyExpiryTime - os.time()
-        if rem <= 0 then infoTimerLabel.Text = "Sisa Waktu: EXPIRED" return end
-        if keyExpiryDays >= 99999 then infoTimerLabel.Text = "Sisa Waktu: LIFETIME PERMANENT" infoTimerLabel.TextColor3 = boxColor return end
+        if rem <= 0 then infoTimerLabel.Text = "Key EXPIRED" return end
+        if keyExpiryDays >= 99999 then infoTimerLabel.Text = "LIFETIME PERMANENT" infoTimerLabel.TextColor3 = boxColor return end
         local d = math.floor(rem / 86400) local h = math.floor((rem % 86400) / 3600) local m = math.floor((rem % 3600) / 60) local s = rem % 60
-        infoTimerLabel.Text = string.format("Sisa Waktu Key: %d Hari %02d Jam %02d Menit %02d Detik", d, h, m, s)
+        infoTimerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", d, h, m, s)
     end
     task.spawn(function() while true do pcall(updateTimer) task.wait(1) end end)
 
-    -- COLOR PALETTE THEMES
     local function changeTheme(newColor)
         themeColor = newColor mainStroke.Color = themeColor header.BackgroundColor3 = themeColor iLabel.TextColor3 = themeColor
         for _, c in pairs(contents) do c.ScrollBarImageColor3 = themeColor end
     end
-    createButton(tabInfo, "🎨 Set Theme Color: Ungu (Premium)", function() changeTheme(Color3.fromRGB(156, 39, 176)) end)
-    createButton(tabInfo, "🎨 Set Theme Color: Cyan Ocean", function() changeTheme(Color3.fromRGB(0, 240, 255)) end)
-    createButton(tabInfo, "🎨 Set Theme Color: Crimson Blood", function() changeTheme(Color3.fromRGB(240, 20, 20)) end)
-    createButton(tabInfo, "🎨 Set Theme Color: Emerald Lime", function() changeTheme(Color3.fromRGB(20, 240, 20)) end)
+    createButton(tabInfo, "Theme: Ungu", function() changeTheme(Color3.fromRGB(156, 39, 176)) end)
+    createButton(tabInfo, "Theme: Cyan", function() changeTheme(Color3.fromRGB(0, 240, 255)) end)
+    createButton(tabInfo, "Theme: Merah", function() changeTheme(Color3.fromRGB(240, 20, 20)) end)
+    createButton(tabInfo, "Theme: Hijau", function() changeTheme(Color3.fromRGB(20, 240, 20)) end)
 
-    -- INITIALIZE OPENING MAIN TAB
     tabs[1].TextColor3 = Color3.new(1,1,1) tabs[1].BackgroundTransparency = 0.2 contents[1].Visible = true
     
-    -- ================== TOGGLE HUB WINDOW BUTTON ==================
     local openBtn = Instance.new("ImageButton", ScreenGui) openBtn.Size = UDim2.new(0, 55, 0, 55) openBtn.Position = UDim2.new(0, 15, 0.5, -27) openBtn.BackgroundTransparency = 1 openBtn.Image = "rbxassetid://72495850369898" openBtn.Active = true openBtn.Draggable = true
     Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0, 12) local obs = Instance.new("UIStroke", openBtn) obs.Color = Color3.new(1,1,1) obs.Thickness = 1.5
 
     local menuOpen = true
     openBtn.MouseButton1Click:Connect(function()
         menuOpen = not menuOpen
-        if menuOpen then mainFrame.Visible = true TweenService:Create(mainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -205, 0.5, -260)}):Play()
-        else TweenService:Create(mainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -205, 1, 10)}):Play() task.wait(0.25) mainFrame.Visible = false end
+        if menuOpen then mainFrame.Visible = true TweenService:Create(mainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -200, 0.5, -260)}):Play()
+        else TweenService:Create(mainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -200, 1, 10)}):Play() task.wait(0.25) mainFrame.Visible = false end
     end)
     
     LocalPlayer.CharacterAdded:Connect(function()
@@ -983,42 +943,69 @@ local function loadMainScript()
         if flyEnabled then startFlyMode() end
     end)
     
-    print("DRIP CLIENT V7.9 - MENU BERHASIL DIMUAT!")
+    print("DRIP CLIENT V8.0 - MENU LOADED")
 end
 
--- ================== VERIFY ACTION HANDLER ==================
+-- ================== VERIFY ACTION ==================
 VerifyBtn.MouseButton1Click:Connect(function()
     local inputKey = KeyTextBox.Text:gsub("%s+", "")
-    if inputKey == "" then StatusLabel.Text = "Masukkan Key Anda!" StatusLabel.TextColor3 = Color3.fromRGB(255,0,0) return end
+    if inputKey == "" then 
+        StatusLabel.Text = "Masukkan key"
+        StatusLabel.TextColor3 = Color3.fromRGB(255,0,0) 
+        return 
+    end
     
-    StatusLabel.Text = "Memverifikasi Key..." StatusLabel.TextColor3 = Color3.fromRGB(255,255,0) StatusIcon.Text = "⏳"
+    StatusLabel.Text = "Verifikasi..." 
+    StatusLabel.TextColor3 = Color3.fromRGB(255,255,0) 
+    StatusIcon.Text = "WAIT"
+    
     local isValid, message = checkKeyExpiry(inputKey)
     
     if isValid then
-        StatusLabel.Text = message StatusLabel.TextColor3 = Color3.fromRGB(0,255,0) StatusIcon.Text = "✅"
+        StatusLabel.Text = message 
+        StatusLabel.TextColor3 = Color3.fromRGB(0,255,0) 
+        StatusIcon.Text = "OK"
+        
         task.wait(1)
-        StatusLabel.Text = "Loading (3)..."
+        StatusLabel.Text = "Loading 3..."
         task.wait(1)
-        StatusLabel.Text = "Loading (2)..."
+        StatusLabel.Text = "Loading 2..."
         task.wait(1)
-        StatusLabel.Text = "Loading (1)..."
+        StatusLabel.Text = "Loading 1..."
         task.wait(1)
+        
         pcall(loadMainScript)
     else
-        StatusLabel.Text = message StatusLabel.TextColor3 = Color3.fromRGB(255,0,0) StatusIcon.Text = "❌"
+        StatusLabel.Text = message 
+        StatusLabel.TextColor3 = Color3.fromRGB(255,0,0) 
+        StatusIcon.Text = "X"
     end
 end)
 
--- Initial ESP Workspace Hooks
-for _, p in pairs(Players:GetPlayers()) do createESP(p) createSkeleton(p) end
-Players.PlayerAdded:Connect(function(p) createESP(p) createSkeleton(p) end)
-Players.PlayerRemoving:Connect(function(p)
-    if ESPTable[p] then for _, d in pairs(ESPTable[p]) do pcall(function() d:Remove() end) end ESPTable[p] = nil end
-    if SkeletonESP[p] then for _, ld in pairs(SkeletonESP[p]) do pcall(function() ld[1]:Remove() end) end SkeletonESP[p] = nil end
+-- ================== INITIAL SETUP ==================
+for _, p in pairs(Players:GetPlayers()) do 
+    createESP(p) 
+    createSkeleton(p) 
+end
+
+Players.PlayerAdded:Connect(function(p) 
+    createESP(p) 
+    createSkeleton(p) 
 end)
 
-loadKeyData()
-if keyValidGlobal then
-    StatusLabel.Text = "Key Terdeteksi! Memuat Otomatis..." StatusLabel.TextColor3 = Color3.fromRGB(0,255,0) StatusIcon.Text = "✅"
-    task.wait(1) task.spawn(loadMainScript)
-end
+Players.PlayerRemoving:Connect(function(p)
+    if ESPTable[p] then 
+        for _, d in pairs(ESPTable[p]) do 
+            pcall(function() d:Remove() end) 
+        end 
+        ESPTable[p] = nil 
+    end
+    if SkeletonESP[p] then 
+        for _, ld in pairs(SkeletonESP[p]) do 
+            pcall(function() ld[1]:Remove() end) 
+        end 
+        SkeletonESP[p] = nil 
+    end
+end)
+
+print("DRIP CLIENT V8.0 - HITAM ESP LINE + KEY MANUAL")
