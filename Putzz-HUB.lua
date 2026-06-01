@@ -620,7 +620,7 @@ RunService.RenderStepped:Connect(function()
             if lineEnabled and visible then
                 line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
                 line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = lineColor -- Warna mengikuti konfigurasi list warna aktif
+                line.Color = lineColor -- Mengikuti konfigurasi warna dari List Warna aktif
                 line.Visible = true
             else
                 line.Visible = false
@@ -734,13 +734,6 @@ local function loadMainScript()
     local tabUtility = createTab("UTILITY", 3)
     local tabInfo = createTab("INFO", 4)
 
-    local function createButton(parent, text, callback)
-        local frame = Instance.new("Frame") frame.Parent = parent frame.Size = UDim2.new(0.95, 0, 0, 42) frame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) frame.BackgroundTransparency = 0.2
-        local corner = Instance.new("UICorner") corner.CornerRadius = UDim.new(0, 8) corner.Parent = frame
-        local btn = Instance.new("TextButton") btn.Parent = frame btn.Size = UDim2.new(1, 0, 1, 0) btn.BackgroundTransparency = 1 btn.Text = text btn.TextColor3 = Color3.new(1,1,1) btn.Font = Enum.Font.GothamBold btn.TextSize = 13 btn.MouseButton1Click:Connect(callback)
-        return frame
-    end
-    
     local function createToggle(parent, text, default, callback)
         local frame = Instance.new("Frame") frame.Parent = parent frame.Size = UDim2.new(0.95, 0, 0, 42) frame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) frame.BackgroundTransparency = 0.2
         local corner = Instance.new("UICorner") corner.CornerRadius = UDim.new(0, 8) corner.Parent = frame
@@ -821,7 +814,7 @@ local function loadMainScript()
     createToggle(tabESP, "ESP Skeleton", false, function(s) skeletonEnabled = s end)
     createToggle(tabESP, "Player Counter", false, function(s) playerCounterEnabled = s end)
 
-    -- TAB UTILITY (Teleport & List Warna ESP Line)
+    -- TAB UTILITY (Teleport)
     local function createTeleportDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -859,32 +852,32 @@ local function loadMainScript()
     end
     createTeleportDropdown(tabUtility)
 
-    -- FITUR BARU: MENGGANTIKAN EMOTE DENGAN "LIST WARNA" UNTUK ESP LINE
+    -- FITUR BARU (TAB UTILITY): DROPDOWN LIST WARNA KHUSUS ESP LINE
     local function createColorListDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
-        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "LIST WARNA" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
+        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "LIST WARNA (ESP LINE)" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
         
         local scrollList = Instance.new("ScrollingFrame") scrollList.Parent = baseFrame scrollList.Size = UDim2.new(1, 0, 0, 140) scrollList.Position = UDim2.new(0, 0, 0, 42) scrollList.BackgroundTransparency = 1 scrollList.ScrollBarThickness = 5 scrollList.ScrollBarImageColor3 = themeColor
         local listLayout = Instance.new("UIListLayout") listLayout.Parent = scrollList listLayout.Padding = UDim.new(0, 5) listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         
-        -- Data list warna dan target nilainya untuk ESP Line
+        -- Opsi list warna khusus mengubah ESP Line sesuai request
         local targetColors = {
             {name = "Hitam", color = Color3.fromRGB(0, 0, 0)},
             {name = "Putih", color = Color3.fromRGB(255, 255, 255)},
-            {name = "Hijau", color = Color3.fromRGB(0, 255, 0)},
             {name = "Biru", color = Color3.fromRGB(0, 0, 255)},
-            {name = "Cyan", color = Color3.fromRGB(0, 255, 255)},
-            {name = "Kuning", color = Color3.fromRGB(255, 255, 0)}
+            {name = "Hijau", color = Color3.fromRGB(0, 255, 0)},
+            {name = "Kuning", color = Color3.fromRGB(255, 255, 0)},
+            {name = "Merah", color = Color3.fromRGB(255, 0, 0)}
         }
 
         for _, item in ipairs(targetColors) do
-            local cBtn = Instance.new("TextButton") cBtn.Parent = scrollList cBtn.Size = UDim2.new(0.92, 0, 0, 28) cBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45) cBtn.TextColor3 = item.color cBtn.Font = Enum.Font.GothamBold cBtn.TextSize = 12 cBtn.Text = item.name
+            local cBtn = Instance.new("TextButton") cBtn.Parent = scrollList cBtn.Size = UDim2.new(0.92, 0, 0, 28) cBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45) cBtn.TextColor3 = item.color cBtn.Font = Enum.Font.GothamBold cBtn.TextSize = 12 cBtn.Text = item.name:upper()
             Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 5)
             
             cBtn.MouseButton1Click:Connect(function()
-                lineColor = item.color -- Mengubah langsung warna ESP Line global
-                showNotification("ESP LINE COLOR", "Warna ESP Line diubah ke: " .. item.name, 2, item.color)
+                lineColor = item.color -- Mengubah variabel warna global ESP Line
+                showNotification("WARNA ESP LINE", "Warna ESP Line berhasil diubah ke: " .. item.name, 2, item.color)
             end)
         end
 
@@ -903,38 +896,13 @@ local function loadMainScript()
     end
     createColorListDropdown(tabUtility)
 
-    -- TAB INFORMASI (LIST TEMA MENU)
-    local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 160) infoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55) infoBox.BackgroundTransparency = 0.4
+    -- TAB INFORMASI (Hanya Menyisakan Info Developer Saja)
+    local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 100) infoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55) infoBox.BackgroundTransparency = 0.4
     Instance.new("UICorner", infoBox).CornerRadius = UDim.new(0, 10)
     
-    local iLabel = Instance.new("TextLabel", infoBox) iLabel.Size = UDim2.new(1, 0, 0, 30) iLabel.BackgroundTransparency = 1 iLabel.Text = "KEY STATUS" iLabel.TextColor3 = themeColor iLabel.Font = Enum.Font.GothamBold iLabel.TextSize = 13
-    local infoTimerLabel = Instance.new("TextLabel", infoBox) infoTimerLabel.Size = UDim2.new(0.92, 0, 0, 45) infoTimerLabel.Position = UDim2.new(0.04, 0, 0, 35) infoTimerLabel.BackgroundColor3 = Color3.fromRGB(30,30,40) infoTimerLabel.TextColor3 = Color3.new(1,1,1) infoTimerLabel.Font = Enum.Font.GothamBold infoTimerLabel.TextSize = 11
-    Instance.new("UICorner", infoTimerLabel).CornerRadius = UDim.new(0, 8)
+    local iLabel = Instance.new("TextLabel", infoBox) iLabel.Size = UDim2.new(1, 0, 0, 30) iLabel.BackgroundTransparency = 1 iLabel.Text = "DEVELOPER INFORMATION" iLabel.TextColor3 = themeColor iLabel.Font = Enum.Font.GothamBold iLabel.TextSize = 13
 
-    local infoDevLabel = Instance.new("TextLabel", infoBox) infoDevLabel.Size = UDim2.new(0.92, 0, 0, 60) infoDevLabel.Position = UDim2.new(0.04, 0, 0, 90) infoDevLabel.BackgroundColor3 = Color3.fromRGB(30,30,40) infoDevLabel.TextColor3 = Color3.fromRGB(200,210,255) infoDevLabel.Font = Enum.Font.Gotham infoDevLabel.TextSize = 11 infoDevLabel.Text = "DRIP CLIENT V8.0\nDeveloper: Putzzdev\nWhatsApp: 088976255131"
-    Instance.new("UICorner", infoDevLabel).CornerRadius = UDim.new(0, 8)
-
-    local function updateTimer()
-        if not keyValidGlobal or keyExpiryTime == 0 then infoTimerLabel.Text = "Key tidak valid" return end
-        local rem = keyExpiryTime - os.time()
-        if rem <= 0 then infoTimerLabel.Text = "Key EXPIRED" return end
-        if keyExpiryDays >= 99999 then infoTimerLabel.Text = "LIFETIME PERMANENT" infoTimerLabel.TextColor3 = Color3.fromRGB(0, 255, 0) return end
-        local d = math.floor(rem / 86400) local h = math.floor((rem % 86400) / 3600) local m = math.floor((rem % 3600) / 60) local s = rem % 60
-        infoTimerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", d, h, m, s)
-    end
-    task.spawn(function() while true do pcall(updateTimer) task.wait(1) end end)
-
-    local function changeTheme(newColor)
-        themeColor = newColor mainStroke.Color = themeColor header.BackgroundColor3 = themeColor iLabel.TextColor3 = themeColor
-        for _, c in pairs(contents) do c.ScrollBarImageColor3 = themeColor end
-    end
-    
-    createButton(tabInfo, "Theme: Hitam", function() changeTheme(Color3.fromRGB(15, 15, 15)) end)
-    createButton(tabInfo, "Theme: Putih", function() changeTheme(Color3.fromRGB(255, 255, 255)) end)
-    createButton(tabInfo, "Theme: Hijau", function() changeTheme(Color3.fromRGB(20, 240, 20)) end)
-    createButton(tabInfo, "Theme: Biru", function() changeTheme(Color3.fromRGB(30, 144, 255)) end)
-    createButton(tabInfo, "Theme: Cyan", function() changeTheme(Color3.fromRGB(0, 240, 255)) end)
-    createButton(tabInfo, "Theme: Kuning", function() changeTheme(Color3.fromRGB(255, 215, 0)) end)
+    local infoDevLabel = Instance.new("TextLabel", infoBox) infoDevLabel.Size = UDim2.new(0.92, 0, 0, 60) infoDevLabel.Position = UDim2.new(0.04, 0, 0, 30) infoDevLabel.BackgroundTransparency = 1 infoDevLabel.TextColor3 = Color3.fromRGB(200,210,255) infoDevLabel.Font = Enum.Font.Gotham infoDevLabel.TextSize = 12 infoDevLabel.Text = "DRIP CLIENT V8.0\nDeveloper: Putzzdev\nWhatsApp: 088976255131"
 
     tabs[1].TextColor3 = Color3.new(1,1,1) tabs[1].BackgroundTransparency = 0.2 contents[1].Visible = true
     
