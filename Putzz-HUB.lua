@@ -1,6 +1,4 @@
--- ================== DRIP CLIENT V8.0 (MODIFIED BY GEMINI) ==================
--- Perubahan: ESP Box Hitam, Dropdown Warna ESP Line (Hitam & Putih)
--- Fitur Baru: Menu "jump 👇🏻power" di TAB MAIN menggantikan Crosshair
+-- ================== DRIP CLIENT V8.0 (FULLY MODIFIED) ==================
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -28,7 +26,7 @@ local HttpService = game:GetService("HttpService")
 -- ESP
 local espEnabled = false
 local lineEnabled = false
-local lineColor = Color3.fromRGB(0, 0, 0) -- Default Hitam
+local lineColor = Color3.fromRGB(0, 0, 0) -- Default Hitam untuk ESP Line
 local skeletonEnabled = false
 local ESPTable = {}
 local SkeletonESP = {}
@@ -57,9 +55,9 @@ local speedEnabled = false
 local normalSpeed = 16
 local fastSpeed = 60
 
--- Jump Power Variables
+-- Jump Power Mod Variables
 local jumpPowerEnabled = false
-local jumpPowerValue = 50 -- Default Roblox jump power
+local jumpPowerValue = 50 
 
 -- Combat & Utility Variables
 local infinityJumpEnabled = false
@@ -82,10 +80,10 @@ local invisibleHumanoid = nil
 
 local currentAnimationTrack = nil
 
--- Warna Tema
+-- Warna Tema & Objek
 local themeColor = Color3.fromRGB(156, 39, 176)
 local darkPurple = Color3.fromRGB(74, 20, 90)
-local boxColor = Color3.fromRGB(0, 0, 0) -- SEKARANG ESP BOX WARNA HITAM
+local boxColor = Color3.fromRGB(0, 0, 0) -- ESP BOX WARNA HITAM
 local skeletonColor = Color3.fromRGB(0, 255, 0)
 local redColor = Color3.fromRGB(255, 0, 0)
 local MAX_ESP_DISTANCE = 115
@@ -96,9 +94,7 @@ local function loadKeyData()
         local success, content = pcall(function() return readfile(SAVE_FILE) end)
         if success and content and content ~= "" then
             local success2, data = pcall(function() return HttpService:JSONDecode(content) end)
-            if success2 then
-                activeKeys = data
-            end
+            if success2 then activeKeys = data end
         end
     end
 end
@@ -514,7 +510,7 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Loop update Jump Power & Walkspeed aman jika character mati/respawn
+-- Loop Sinkronisasi Fitur Player
 RunService.Heartbeat:Connect(function()
     if LocalPlayer.Character then
         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -527,7 +523,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- ================== ESP & COUNTER DRAWINGS ==================
+-- ================== ESP DRAWINGS SYSTEM ==================
 local function createPlayerCounter()
     if enemyCountText then pcall(function() enemyCountText:Remove() end) end
     enemyCountText = Drawing.new("Text")
@@ -593,7 +589,7 @@ RunService.RenderStepped:Connect(function()
                 if espEnabled then
                     box.Size = Vector2.new(width, height)
                     box.Position = Vector2.new(pos.X - width/2, top.Y)
-                    box.Color = boxColor
+                    box.Color = boxColor -- WARNA BOX SEKARANG HITAM
                     box.Visible = true
 
                     name.Position = Vector2.new(pos.X, top.Y - 16)
@@ -666,7 +662,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- ================== HUB LOADER FRAMEWORK ==================
+-- ================== HUB MAIN INTERFACE ==================
 local function loadMainScript()
     if game.CoreGui:FindFirstChild("DripKeySystem") then
         game.CoreGui.DripKeySystem:Destroy()
@@ -768,16 +764,14 @@ local function loadMainScript()
         return frame
     end
 
-    -- ================== ADVANCED DROPDOWN/SLIDER FOR FEATURES ==================
-    -- JUMP POWER SUB-MENU SETUP ("jump 👇🏻power")
+    -- SUB-MENU JUMP POWER DI PINGGIR (MENGIKUTI STRUKTUR PINGGIR FITUR LAIN)
     local function createJumpPowerMenu(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
         
-        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "jump 👇🏻power" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
+        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "Jump Power" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13 mainButton.TextXAlignment = Enum.TextXAlignment.Left mainButton.Position = UDim2.new(0.05, 0, 0, 0)
         
-        -- Toggle Aktifkan Jump Power Mod
-        local toggleFrame = Instance.new("Frame") toggleFrame.Parent = baseFrame toggleFrame.Size = UDim2.new(0.9, 0, 0, 35) toggleFrame.Position = UDim2.new(0.05, 0, 0, 48) toggleFrame.BackgroundTransparency = 1
+        local toggleFrame = Instance.new("Frame") toggleFrame.Parent = baseFrame toggleFrame.Size = UDim2.new(0.9, 0, 0, 35) toggleFrame.Position = UDim2.new(0.05, 0, 0, 45) toggleFrame.BackgroundTransparency = 1
         local tLabel = Instance.new("TextLabel") tLabel.Parent = toggleFrame tLabel.Size = UDim2.new(0.6, 0, 1, 0) tLabel.BackgroundTransparency = 1 tLabel.Text = "Aktifkan Custom Power" tLabel.TextColor3 = Color3.new(1,1,1) tLabel.Font = Enum.Font.Gotham tLabel.TextSize = 12 tLabel.TextXAlignment = Enum.TextXAlignment.Left
         
         local tSwitch = Instance.new("TextButton") tSwitch.Parent = toggleFrame tSwitch.Size = UDim2.new(0, 50, 0, 22) tSwitch.Position = UDim2.new(0.75, 0, 0.5, -11) tSwitch.BackgroundColor3 = Color3.fromRGB(80, 80, 90) tSwitch.Text = "OFF" tSwitch.TextColor3 = Color3.new(1,1,1) tSwitch.Font = Enum.Font.GothamBold tSwitch.TextSize = 10
@@ -788,14 +782,11 @@ local function loadMainScript()
             tSwitch.Text = jumpPowerEnabled and "ON" or "OFF"
             tSwitch.BackgroundColor3 = jumpPowerEnabled and themeColor or Color3.fromRGB(80, 80, 90)
             local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if hum then
-                if not jumpPowerEnabled then hum.JumpPower = 50 end
-            end
+            if hum then if not jumpPowerEnabled then hum.JumpPower = 50 end end
         end)
 
-        -- Input Box untuk Set Nilai Jump Power
-        local inputFrame = Instance.new("Frame") inputFrame.Parent = baseFrame inputFrame.Size = UDim2.new(0.9, 0, 0, 35) inputFrame.Position = UDim2.new(0.05, 0, 0, 88) inputFrame.BackgroundTransparency = 1
-        local iLabel = Instance.new("TextLabel") iLabel.Parent = inputFrame iLabel.Size = UDim2.new(0.6, 0, 1, 0) iLabel.BackgroundTransparency = 1 iLabel.Text = "Atur Power (Angka):" iLabel.TextColor3 = Color3.new(1,1,1) iLabel.Font = Enum.Font.Gotham tLabel.TextSize = 12 iLabel.TextXAlignment = Enum.TextXAlignment.Left
+        local inputFrame = Instance.new("Frame") inputFrame.Parent = baseFrame inputFrame.Size = UDim2.new(0.9, 0, 0, 35) inputFrame.Position = UDim2.new(0.05, 0, 0, 82) inputFrame.BackgroundTransparency = 1
+        local iLabel = Instance.new("TextLabel") iLabel.Parent = inputFrame iLabel.Size = UDim2.new(0.6, 0, 1, 0) iLabel.BackgroundTransparency = 1 iLabel.Text = "Atur Power (Value):" iLabel.TextColor3 = Color3.new(1,1,1) iLabel.Font = Enum.Font.Gotham iLabel.TextSize = 12 iLabel.TextXAlignment = Enum.TextXAlignment.Left
         
         local valBox = Instance.new("TextBox") valBox.Parent = inputFrame valBox.Size = UDim2.new(0, 65, 0, 26) valBox.Position = UDim2.new(0.72, 0, 0.5, -13) valBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40) valBox.TextColor3 = Color3.fromRGB(0, 255, 0) valBox.Font = Enum.Font.GothamBold valBox.TextSize = 12 valBox.Text = tostring(jumpPowerValue) valBox.ClearTextOnFocus = false
         Instance.new("UICorner", valBox).CornerRadius = UDim.new(0, 5)
@@ -808,77 +799,28 @@ local function loadMainScript()
         local isOpen = false
         mainButton.MouseButton1Click:Connect(function()
             isOpen = not isOpen
-            TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = isOpen and UDim2.new(0.95, 0, 0, 135) or UDim2.new(0.95, 0, 0, 42)}):Play()
+            TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = isOpen and UDim2.new(0.95, 0, 0, 125) or UDim2.new(0.95, 0, 0, 42)}):Play()
             task.wait(0.22)
             local h = 0 for _, c in pairs(parent:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end parent.CanvasSize = UDim2.new(0, 0, 0, h + 30)
         end)
     end
 
-    -- TAB MAIN FEATURES
-    createToggle(tabMain, "Fly Mode", false, function(s)
-        flyEnabled = s if s then startFlyMode() else stopFlyMode() end
-    end)
-    createToggle(tabMain, "Speed Boost", false, function(s)
-        speedEnabled = s
-        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = s and fastSpeed or normalSpeed end
-    end)
-    createToggle(tabMain, "NoClip", false, function(s)
-        noclipEnabled = s if s then startNoclip() else stopNoclip() end
-    end)
+    -- TAB MAIN FEATURES LIST
+    createToggle(tabMain, "Fly Mode", false, function(s) flyEnabled = s if s then startFlyMode() else stopFlyMode() end end)
+    createToggle(tabMain, "Speed Boost", false, function(s) speedEnabled = s local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if hum then hum.WalkSpeed = s and fastSpeed or normalSpeed end end)
+    createToggle(tabMain, "NoClip", false, function(s) noclipEnabled = s if s then startNoclip() else stopNoclip() end end)
     createToggle(tabMain, "Infinity Jump", false, function(s) infinityJumpEnabled = s end)
     
-    -- TARO MENU JUMP POWER DI TAB MAIN (Menggantikan Crosshair)
+    -- JUMP POWER SEJAJAR DI PINGGIR (MENGGANTIKAN CROSSHAIR LAMA)
     createJumpPowerMenu(tabMain)
 
-    createToggle(tabMain, "God Mode", false, function(s)
-        antiDamageEnabled = s if s then setupAntiDamage() else if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end end
-    end)
+    createToggle(tabMain, "God Mode", false, function(s) antiDamageEnabled = s if s then setupAntiDamage() else if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end end end)
     createToggle(tabMain, "Spin Muter", false, function(s) toggleSpin(s) end)
     createToggle(tabMain, "Invisible Mode", false, function(s) toggleInvisible(s) end)
 
-    -- TAB ESP SYSTEM (Box Hitam & Line Color List Selection)
+    -- TAB ESP SYSTEM (ESP Line kembali normal)
     createToggle(tabESP, "ESP Box (Hitam)", false, function(s) espEnabled = s end)
-    
-    -- Dropdown List Warna untuk ESP Line (Hitam & Putih)
-    local function createLineColorDropdown(parent)
-        local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
-        local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
-        
-        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "ESP Line Color: HITAM" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
-        
-        local toggleLine = Instance.new("TextButton") toggleLine.Parent = baseFrame toggleLine.Size = UDim2.new(0.9, 0, 0, 30) toggleLine.Position = UDim2.new(0.05, 0, 0, 48) toggleLine.BackgroundColor3 = Color3.fromRGB(30,30,40) toggleLine.Text = "Aktifkan Line: OFF" toggleLine.TextColor3 = Color3.new(1,1,1) toggleLine.Font = Enum.Font.GothamBold toggleLine.TextSize = 11
-        Instance.new("UICorner", toggleLine).CornerRadius = UDim.new(0, 6)
-        toggleLine.MouseButton1Click:Connect(function()
-            lineEnabled = not lineEnabled
-            toggleLine.Text = lineEnabled and "Aktifkan Line: ON" or "Aktifkan Line: OFF"
-            toggleLine.TextColor3 = lineEnabled and themeColor or Color3.new(1,1,1)
-        end)
-
-        local colors = {
-            {name = "Warna: Hitam 🖤", color = Color3.fromRGB(0, 0, 0)},
-            {name = "Warna: Putih 🤍", color = Color3.fromRGB(255, 255, 255)}
-        }
-        
-        for i, cData in ipairs(colors) do
-            local cBtn = Instance.new("TextButton") cBtn.Parent = baseFrame cBtn.Size = UDim2.new(0.9, 0, 0, 28) cBtn.Position = UDim2.new(0.05, 0, 0, 48 + (i * 34)) cBtn.BackgroundColor3 = Color3.fromRGB(40,40,50) cBtn.Text = cData.name cBtn.TextColor3 = Color3.new(1,1,1) cBtn.Font = Enum.Font.Gotham cBtn.TextSize = 11
-            Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 5)
-            cBtn.MouseButton1Click:Connect(function()
-                lineColor = cData.color
-                mainButton.Text = "ESP Line Color: " .. (cData.color == Color3.fromRGB(0,0,0) and "HITAM" or "PUTIH")
-            end)
-        end
-        
-        local isOpen = false
-        mainButton.MouseButton1Click:Connect(function()
-            isOpen = not isOpen
-            TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = isOpen and UDim2.new(0.95, 0, 0, 160) or UDim2.new(0.95, 0, 0, 42)}):Play()
-            task.wait(0.22)
-            local h = 0 for _, c in pairs(parent:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end parent.CanvasSize = UDim2.new(0, 0, 0, h + 30)
-        end)
-    end
-    createLineColorDropdown(tabESP)
-
+    createToggle(tabESP, "ESP Line", false, function(s) lineEnabled = s end)
     createToggle(tabESP, "ESP Skeleton", false, function(s) skeletonEnabled = s end)
     createToggle(tabESP, "Player Counter", false, function(s) playerCounterEnabled = s end)
 
@@ -938,19 +880,15 @@ local function loadMainScript()
                 local char = LocalPlayer.Character
                 local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
                 local rShoulder = torso and (torso:FindFirstChild("Right Shoulder") or torso:FindFirstChild("RightShoulder"))
-                if rShoulder then
-                    rShoulder.C0 = CFrame.new(1, 0.5, 0) * CFrame.Angles(0, math.rad(90), 0)
-                end
+                if rShoulder then rShoulder.C0 = CFrame.new(1, 0.5, 0) * CFrame.Angles(0, math.rad(90), 0) end
             end)
         end
 
         local function playJerkEmote()
             stopManualEmote()
             if currentAnimationTrack then currentAnimationTrack:Stop() end
-            
             emoteAktif = "Jerk"
             showNotification("EMOTE ACTIVE", "Memulai gerakan Jerk manual!", 1.5, themeColor)
-            
             local sudut = 0
             local kecepatanKocok = 0.4
             
@@ -958,10 +896,8 @@ local function loadMainScript()
                 pcall(function()
                     local char = LocalPlayer.Character
                     if not char or emoteAktif ~= "Jerk" then return end
-                    
                     local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
                     local rShoulder = torso and (torso:FindFirstChild("Right Shoulder") or torso:FindFirstChild("RightShoulder"))
-                    
                     if rShoulder then
                         sudut = sudut + kecepatanKocok
                         local kocokEfek = math.sin(sudut) * 0.5
@@ -983,9 +919,7 @@ local function loadMainScript()
         task.spawn(function()
             while true do
                 task.wait(0.5)
-                if currentAnimationTrack == nil and emoteAktif ~= "" then
-                    stopManualEmote()
-                end
+                if currentAnimationTrack == nil and emoteAktif ~= "" then stopManualEmote() end
             end
         end)
         
@@ -1004,16 +938,14 @@ local function loadMainScript()
 
     createButton(tabUtility, "STOP EMOTE", function()
         if currentAnimationTrack then
-            currentAnimationTrack:Stop()
-            currentAnimationTrack:Destroy()
-            currentAnimationTrack = nil
+            currentAnimationTrack:Stop() currentAnimationTrack:Destroy() currentAnimationTrack = nil
             showNotification("EMOTE", "Animasi dihentikan", 1.5, themeColor)
         else
             showNotification("INFO", "Tidak ada animasi aktif", 1.5, themeColor)
         end
     end)
     
-    -- TAB INFO
+    -- TAB INFORMASI (LIST TEMA WARNA: HITAM, PUTIH, HIJAU, BIRU, CYAN, KUNING)
     local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 160) infoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55) infoBox.BackgroundTransparency = 0.4
     Instance.new("UICorner", infoBox).CornerRadius = UDim.new(0, 10)
     
@@ -1038,10 +970,14 @@ local function loadMainScript()
         themeColor = newColor mainStroke.Color = themeColor header.BackgroundColor3 = themeColor iLabel.TextColor3 = themeColor
         for _, c in pairs(contents) do c.ScrollBarImageColor3 = themeColor end
     end
-    createButton(tabInfo, "Theme: Ungu", function() changeTheme(Color3.fromRGB(156, 39, 176)) end)
-    createButton(tabInfo, "Theme: Cyan", function() changeTheme(Color3.fromRGB(0, 240, 255)) end)
-    createButton(tabInfo, "Theme: Merah", function() changeTheme(Color3.fromRGB(240, 20, 20)) end)
+    
+    -- LIST WARNA TEMA SESUAI PERMINTAAN
+    createButton(tabInfo, "Theme: Hitam", function() changeTheme(Color3.fromRGB(15, 15, 15)) end)
+    createButton(tabInfo, "Theme: Putih", function() changeTheme(Color3.fromRGB(255, 255, 255)) end)
     createButton(tabInfo, "Theme: Hijau", function() changeTheme(Color3.fromRGB(20, 240, 20)) end)
+    createButton(tabInfo, "Theme: Biru", function() changeTheme(Color3.fromRGB(30, 144, 255)) end)
+    createButton(tabInfo, "Theme: Cyan", function() changeTheme(Color3.fromRGB(0, 240, 255)) end)
+    createButton(tabInfo, "Theme: Kuning", function() changeTheme(Color3.fromRGB(255, 215, 0)) end)
 
     tabs[1].TextColor3 = Color3.new(1,1,1) tabs[1].BackgroundTransparency = 0.2 contents[1].Visible = true
     
@@ -1062,19 +998,19 @@ local function loadMainScript()
         if flyEnabled then startFlyMode() end
     end)
     
-    print("DRIP CLIENT V8.0 - MENU LOADED")
+    print("DRIP CLIENT V8.0 - MENU SUCCESS")
 end
 
--- ================== VERIFY ACTION ==================
+-- ================== KEY VERIFICATION EVENT ==================
 VerifyBtn.MouseButton1Click:Connect(function()
     local inputKey = KeyTextBox.Text:gsub("%s+", "")
     if inputKey == "" then 
-        StatusLabel.Text = "Masukkan key"
+        StatusLabel.Text = "Masukkan key!"
         StatusLabel.TextColor3 = Color3.fromRGB(255,0,0) 
         return 
     end
     
-    StatusLabel.Text = "Verifikasi..." 
+    StatusLabel.Text = "Memverifikasi..." 
     StatusLabel.TextColor3 = Color3.fromRGB(255,255,0) 
     StatusIcon.Text = "WAIT"
     
@@ -1101,7 +1037,7 @@ VerifyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ================== INITIAL SETUP ==================
+-- ================== INITIAL ESP SETUP ==================
 for _, p in pairs(Players:GetPlayers()) do 
     createESP(p) 
     createSkeleton(p) 
@@ -1113,18 +1049,8 @@ Players.PlayerAdded:Connect(function(p)
 end)
 
 Players.PlayerRemoving:Connect(function(p)
-    if ESPTable[p] then 
-        for _, d in pairs(ESPTable[p]) do 
-            pcall(function() d:Remove() end) 
-        end 
-        ESPTable[p] = nil 
-    end
-    if SkeletonESP[p] then 
-        for _, ld in pairs(SkeletonESP[p]) do 
-            pcall(function() ld[1]:Remove() end) 
-        end 
-        SkeletonESP[p] = nil 
-    end
+    if ESPTable[p] then for _, d in pairs(ESPTable[p]) do pcall(function() d:Remove() end) end ESPTable[p] = nil end
+    if SkeletonESP[p] then for _, ld in pairs(SkeletonESP[p]) do pcall(function() ld[1]:Remove() end) end SkeletonESP[p] = nil end
 end)
 
-print("DRIP CLIENT V8.0 MODIFIED LOADED SUCCESSFULLY")
+print("DRIP CLIENT V8.0 BUILT COMPLETED SUCCESSFULLY")
