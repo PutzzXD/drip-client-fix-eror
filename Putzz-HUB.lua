@@ -1,7 +1,6 @@
--- ================== DRIP CLIENT V8.0 (FIXED KEY SYSTEM + BLACK ESP LINE) ==================
--- Perbaikan: Key harus dimasukkan manual (tidak auto-load)
--- Fitur baru: ESP Line warna hitam (opsional)
--- Hapus emoji & teks berlebihan
+-- ================== DRIP CLIENT V8.0 (MODIFIED BY GEMINI) ==================
+-- Perubahan: ESP Box Hitam, Dropdown Warna ESP Line (Hitam & Putih)
+-- Fitur Baru: Menu "jump 👇🏻power" di TAB MAIN menggantikan Crosshair
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -29,7 +28,7 @@ local HttpService = game:GetService("HttpService")
 -- ESP
 local espEnabled = false
 local lineEnabled = false
-local lineColor = Color3.fromRGB(0, 0, 0) -- WARNA HITAM untuk ESP Line
+local lineColor = Color3.fromRGB(0, 0, 0) -- Default Hitam
 local skeletonEnabled = false
 local ESPTable = {}
 local SkeletonESP = {}
@@ -58,10 +57,12 @@ local speedEnabled = false
 local normalSpeed = 16
 local fastSpeed = 60
 
+-- Jump Power Variables
+local jumpPowerEnabled = false
+local jumpPowerValue = 50 -- Default Roblox jump power
+
 -- Combat & Utility Variables
 local infinityJumpEnabled = false
-local crosshairEnabled = false
-local crosshairObject = nil
 
 local antiDamageEnabled = false
 local antiDamageConnection = nil
@@ -84,7 +85,7 @@ local currentAnimationTrack = nil
 -- Warna Tema
 local themeColor = Color3.fromRGB(156, 39, 176)
 local darkPurple = Color3.fromRGB(74, 20, 90)
-local boxColor = Color3.fromRGB(0, 255, 0)
+local boxColor = Color3.fromRGB(0, 0, 0) -- SEKARANG ESP BOX WARNA HITAM
 local skeletonColor = Color3.fromRGB(0, 255, 0)
 local redColor = Color3.fromRGB(255, 0, 0)
 local MAX_ESP_DISTANCE = 115
@@ -513,6 +514,19 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
+-- Loop update Jump Power & Walkspeed aman jika character mati/respawn
+RunService.Heartbeat:Connect(function()
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            if jumpPowerEnabled then
+                hum.UseJumpPower = true
+                hum.JumpPower = jumpPowerValue
+            end
+        end
+    end
+end)
+
 -- ================== ESP & COUNTER DRAWINGS ==================
 local function createPlayerCounter()
     if enemyCountText then pcall(function() enemyCountText:Remove() end) end
@@ -691,7 +705,7 @@ local function loadMainScript()
     title.Parent = header title.Size = UDim2.new(1, -70, 0.5, 0) title.Position = UDim2.new(0, 65, 0, 12) title.BackgroundTransparency = 1 title.Text = "DRIP CLIENT" title.TextColor3 = Color3.new(1,1,1) title.Font = Enum.Font.GothamBlack title.TextSize = 22 title.TextXAlignment = Enum.TextXAlignment.Left
     
     local subtitle = Instance.new("TextLabel")
-    subtitle.Parent = header subtitle.Size = UDim2.new(1, -70, 0.3, 0) subtitle.Position = UDim2.new(0, 65, 0, 36) subtitle.BackgroundTransparency = 1 subtitle.Text = "V8.0" subtitle.TextColor3 = boxColor subtitle.Font = Enum.Font.Gotham subtitle.TextSize = 11 subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    subtitle.Parent = header subtitle.Size = UDim2.new(1, -70, 0.3, 0) subtitle.Position = UDim2.new(0, 65, 0, 36) subtitle.BackgroundTransparency = 1 subtitle.Text = "V8.0" subtitle.TextColor3 = Color3.fromRGB(0, 255, 0) subtitle.Font = Enum.Font.Gotham subtitle.TextSize = 11 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 
     local tabBar = Instance.new("Frame")
     tabBar.Parent = mainFrame tabBar.Size = UDim2.new(0.94, 0, 0, 38) tabBar.Position = UDim2.new(0.03, 0, 0, 75) tabBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55) tabBar.BackgroundTransparency = 0.4
@@ -754,7 +768,53 @@ local function loadMainScript()
         return frame
     end
 
-    -- TAB MAIN
+    -- ================== ADVANCED DROPDOWN/SLIDER FOR FEATURES ==================
+    -- JUMP POWER SUB-MENU SETUP ("jump 👇🏻power")
+    local function createJumpPowerMenu(parent)
+        local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
+        local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
+        
+        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "jump 👇🏻power" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
+        
+        -- Toggle Aktifkan Jump Power Mod
+        local toggleFrame = Instance.new("Frame") toggleFrame.Parent = baseFrame toggleFrame.Size = UDim2.new(0.9, 0, 0, 35) toggleFrame.Position = UDim2.new(0.05, 0, 0, 48) toggleFrame.BackgroundTransparency = 1
+        local tLabel = Instance.new("TextLabel") tLabel.Parent = toggleFrame tLabel.Size = UDim2.new(0.6, 0, 1, 0) tLabel.BackgroundTransparency = 1 tLabel.Text = "Aktifkan Custom Power" tLabel.TextColor3 = Color3.new(1,1,1) tLabel.Font = Enum.Font.Gotham tLabel.TextSize = 12 tLabel.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local tSwitch = Instance.new("TextButton") tSwitch.Parent = toggleFrame tSwitch.Size = UDim2.new(0, 50, 0, 22) tSwitch.Position = UDim2.new(0.75, 0, 0.5, -11) tSwitch.BackgroundColor3 = Color3.fromRGB(80, 80, 90) tSwitch.Text = "OFF" tSwitch.TextColor3 = Color3.new(1,1,1) tSwitch.Font = Enum.Font.GothamBold tSwitch.TextSize = 10
+        Instance.new("UICorner", tSwitch).CornerRadius = UDim.new(0, 6)
+        
+        tSwitch.MouseButton1Click:Connect(function()
+            jumpPowerEnabled = not jumpPowerEnabled
+            tSwitch.Text = jumpPowerEnabled and "ON" or "OFF"
+            tSwitch.BackgroundColor3 = jumpPowerEnabled and themeColor or Color3.fromRGB(80, 80, 90)
+            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                if not jumpPowerEnabled then hum.JumpPower = 50 end
+            end
+        end)
+
+        -- Input Box untuk Set Nilai Jump Power
+        local inputFrame = Instance.new("Frame") inputFrame.Parent = baseFrame inputFrame.Size = UDim2.new(0.9, 0, 0, 35) inputFrame.Position = UDim2.new(0.05, 0, 0, 88) inputFrame.BackgroundTransparency = 1
+        local iLabel = Instance.new("TextLabel") iLabel.Parent = inputFrame iLabel.Size = UDim2.new(0.6, 0, 1, 0) iLabel.BackgroundTransparency = 1 iLabel.Text = "Atur Power (Angka):" iLabel.TextColor3 = Color3.new(1,1,1) iLabel.Font = Enum.Font.Gotham tLabel.TextSize = 12 iLabel.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local valBox = Instance.new("TextBox") valBox.Parent = inputFrame valBox.Size = UDim2.new(0, 65, 0, 26) valBox.Position = UDim2.new(0.72, 0, 0.5, -13) valBox.BackgroundColor3 = Color3.fromRGB(30, 30, 40) valBox.TextColor3 = Color3.fromRGB(0, 255, 0) valBox.Font = Enum.Font.GothamBold valBox.TextSize = 12 valBox.Text = tostring(jumpPowerValue) valBox.ClearTextOnFocus = false
+        Instance.new("UICorner", valBox).CornerRadius = UDim.new(0, 5)
+        
+        valBox.FocusLost:Connect(function()
+            local num = tonumber(valBox.Text)
+            if num then jumpPowerValue = num else valBox.Text = tostring(jumpPowerValue) end
+        end)
+
+        local isOpen = false
+        mainButton.MouseButton1Click:Connect(function()
+            isOpen = not isOpen
+            TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = isOpen and UDim2.new(0.95, 0, 0, 135) or UDim2.new(0.95, 0, 0, 42)}):Play()
+            task.wait(0.22)
+            local h = 0 for _, c in pairs(parent:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end parent.CanvasSize = UDim2.new(0, 0, 0, h + 30)
+        end)
+    end
+
+    -- TAB MAIN FEATURES
     createToggle(tabMain, "Fly Mode", false, function(s)
         flyEnabled = s if s then startFlyMode() else stopFlyMode() end
     end)
@@ -767,24 +827,58 @@ local function loadMainScript()
         noclipEnabled = s if s then startNoclip() else stopNoclip() end
     end)
     createToggle(tabMain, "Infinity Jump", false, function(s) infinityJumpEnabled = s end)
-    createToggle(tabMain, "Crosshair", false, function(s)
-        crosshairEnabled = s
-        if s then
-            if crosshairObject then crosshairObject:Destroy() end
-            crosshairObject = Instance.new("ScreenGui", game.CoreGui)
-            local v = Instance.new("Frame", crosshairObject) v.Size = UDim2.new(0,2,0,24) v.Position = UDim2.new(0.5,-1,0.5,-12) v.BackgroundColor3 = Color3.new(1,1,1) v.BorderSizePixel = 0
-            local h = Instance.new("Frame", crosshairObject) h.Size = UDim2.new(0,24,0,2) h.Position = UDim2.new(0.5,-12,0.5,-1) h.BackgroundColor3 = Color3.new(1,1,1) h.BorderSizePixel = 0
-        elseif crosshairObject then crosshairObject:Destroy() crosshairObject = nil end
-    end)
+    
+    -- TARO MENU JUMP POWER DI TAB MAIN (Menggantikan Crosshair)
+    createJumpPowerMenu(tabMain)
+
     createToggle(tabMain, "God Mode", false, function(s)
         antiDamageEnabled = s if s then setupAntiDamage() else if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end end
     end)
     createToggle(tabMain, "Spin Muter", false, function(s) toggleSpin(s) end)
     createToggle(tabMain, "Invisible Mode", false, function(s) toggleInvisible(s) end)
 
-    -- TAB ESP SYSTEM
-    createToggle(tabESP, "ESP Box", false, function(s) espEnabled = s end)
-    createToggle(tabESP, "ESP Line (Hitam)", false, function(s) lineEnabled = s end)
+    -- TAB ESP SYSTEM (Box Hitam & Line Color List Selection)
+    createToggle(tabESP, "ESP Box (Hitam)", false, function(s) espEnabled = s end)
+    
+    -- Dropdown List Warna untuk ESP Line (Hitam & Putih)
+    local function createLineColorDropdown(parent)
+        local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
+        local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
+        
+        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "ESP Line Color: HITAM" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
+        
+        local toggleLine = Instance.new("TextButton") toggleLine.Parent = baseFrame toggleLine.Size = UDim2.new(0.9, 0, 0, 30) toggleLine.Position = UDim2.new(0.05, 0, 0, 48) toggleLine.BackgroundColor3 = Color3.fromRGB(30,30,40) toggleLine.Text = "Aktifkan Line: OFF" toggleLine.TextColor3 = Color3.new(1,1,1) toggleLine.Font = Enum.Font.GothamBold toggleLine.TextSize = 11
+        Instance.new("UICorner", toggleLine).CornerRadius = UDim.new(0, 6)
+        toggleLine.MouseButton1Click:Connect(function()
+            lineEnabled = not lineEnabled
+            toggleLine.Text = lineEnabled and "Aktifkan Line: ON" or "Aktifkan Line: OFF"
+            toggleLine.TextColor3 = lineEnabled and themeColor or Color3.new(1,1,1)
+        end)
+
+        local colors = {
+            {name = "Warna: Hitam 🖤", color = Color3.fromRGB(0, 0, 0)},
+            {name = "Warna: Putih 🤍", color = Color3.fromRGB(255, 255, 255)}
+        }
+        
+        for i, cData in ipairs(colors) do
+            local cBtn = Instance.new("TextButton") cBtn.Parent = baseFrame cBtn.Size = UDim2.new(0.9, 0, 0, 28) cBtn.Position = UDim2.new(0.05, 0, 0, 48 + (i * 34)) cBtn.BackgroundColor3 = Color3.fromRGB(40,40,50) cBtn.Text = cData.name cBtn.TextColor3 = Color3.new(1,1,1) cBtn.Font = Enum.Font.Gotham cBtn.TextSize = 11
+            Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 5)
+            cBtn.MouseButton1Click:Connect(function()
+                lineColor = cData.color
+                mainButton.Text = "ESP Line Color: " .. (cData.color == Color3.fromRGB(0,0,0) and "HITAM" or "PUTIH")
+            end)
+        end
+        
+        local isOpen = false
+        mainButton.MouseButton1Click:Connect(function()
+            isOpen = not isOpen
+            TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = isOpen and UDim2.new(0.95, 0, 0, 160) or UDim2.new(0.95, 0, 0, 42)}):Play()
+            task.wait(0.22)
+            local h = 0 for _, c in pairs(parent:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end parent.CanvasSize = UDim2.new(0, 0, 0, h + 30)
+        end)
+    end
+    createLineColorDropdown(tabESP)
+
     createToggle(tabESP, "ESP Skeleton", false, function(s) skeletonEnabled = s end)
     createToggle(tabESP, "Player Counter", false, function(s) playerCounterEnabled = s end)
 
@@ -934,7 +1028,7 @@ local function loadMainScript()
         if not keyValidGlobal or keyExpiryTime == 0 then infoTimerLabel.Text = "Key tidak valid" return end
         local rem = keyExpiryTime - os.time()
         if rem <= 0 then infoTimerLabel.Text = "Key EXPIRED" return end
-        if keyExpiryDays >= 99999 then infoTimerLabel.Text = "LIFETIME PERMANENT" infoTimerLabel.TextColor3 = boxColor return end
+        if keyExpiryDays >= 99999 then infoTimerLabel.Text = "LIFETIME PERMANENT" infoTimerLabel.TextColor3 = Color3.fromRGB(0, 255, 0) return end
         local d = math.floor(rem / 86400) local h = math.floor((rem % 86400) / 3600) local m = math.floor((rem % 3600) / 60) local s = rem % 60
         infoTimerLabel.Text = string.format("Sisa waktu: %d hari %02d jam %02d menit %02d detik", d, h, m, s)
     end
@@ -1033,4 +1127,4 @@ Players.PlayerRemoving:Connect(function(p)
     end
 end)
 
-print("DRIP CLIENT V8.0 - HITAM ESP LINE + KEY MANUAL")
+print("DRIP CLIENT V8.0 MODIFIED LOADED SUCCESSFULLY")
