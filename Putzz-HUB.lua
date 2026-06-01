@@ -78,8 +78,6 @@ local invisibleParts = {}
 local invisibleRootPart = nil
 local invisibleHumanoid = nil
 
-local currentAnimationTrack = nil
-
 -- Warna Tema & Objek
 local themeColor = Color3.fromRGB(156, 39, 176)
 local darkPurple = Color3.fromRGB(74, 20, 90)
@@ -589,7 +587,7 @@ RunService.RenderStepped:Connect(function()
                 if espEnabled then
                     box.Size = Vector2.new(width, height)
                     box.Position = Vector2.new(pos.X - width/2, top.Y)
-                    box.Color = boxColor -- WARNA BOX SEKARANG HITAM
+                    box.Color = boxColor
                     box.Visible = true
 
                     name.Position = Vector2.new(pos.X, top.Y - 16)
@@ -622,7 +620,7 @@ RunService.RenderStepped:Connect(function()
             if lineEnabled and visible then
                 line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
                 line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = lineColor
+                line.Color = lineColor -- Warna mengikuti konfigurasi list warna aktif
                 line.Visible = true
             else
                 line.Visible = false
@@ -764,7 +762,7 @@ local function loadMainScript()
         return frame
     end
 
-    -- SUB-MENU JUMP POWER DI PINGGIR (MENGIKUTI STRUKTUR PINGGIR FITUR LAIN)
+    -- SUB-MENU JUMP POWER PINGGIR
     local function createJumpPowerMenu(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -811,20 +809,19 @@ local function loadMainScript()
     createToggle(tabMain, "NoClip", false, function(s) noclipEnabled = s if s then startNoclip() else stopNoclip() end end)
     createToggle(tabMain, "Infinity Jump", false, function(s) infinityJumpEnabled = s end)
     
-    -- JUMP POWER SEJAJAR DI PINGGIR (MENGGANTIKAN CROSSHAIR LAMA)
     createJumpPowerMenu(tabMain)
 
     createToggle(tabMain, "God Mode", false, function(s) antiDamageEnabled = s if s then setupAntiDamage() else if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end end end)
     createToggle(tabMain, "Spin Muter", false, function(s) toggleSpin(s) end)
     createToggle(tabMain, "Invisible Mode", false, function(s) toggleInvisible(s) end)
 
-    -- TAB ESP SYSTEM (ESP Line kembali normal)
+    -- TAB ESP SYSTEM
     createToggle(tabESP, "ESP Box (Hitam)", false, function(s) espEnabled = s end)
     createToggle(tabESP, "ESP Line", false, function(s) lineEnabled = s end)
     createToggle(tabESP, "ESP Skeleton", false, function(s) skeletonEnabled = s end)
     createToggle(tabESP, "Player Counter", false, function(s) playerCounterEnabled = s end)
 
-    -- TAB UTILITY (Teleport & Emote)
+    -- TAB UTILITY (Teleport & List Warna ESP Line)
     local function createTeleportDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -862,70 +859,40 @@ local function loadMainScript()
     end
     createTeleportDropdown(tabUtility)
 
-    local function createEmoteDropdown(parent)
+    -- FITUR BARU: MENGGANTIKAN EMOTE DENGAN "LIST WARNA" UNTUK ESP LINE
+    local function createColorListDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
-        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "LIST CUSTOM EMOTE (ANTI-BLOCK)" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
+        local mainButton = Instance.new("TextButton") mainButton.Parent = baseFrame mainButton.Size = UDim2.new(1, 0, 0, 42) mainButton.BackgroundTransparency = 1 mainButton.Text = "LIST WARNA" mainButton.TextColor3 = Color3.new(1,1,1) mainButton.Font = Enum.Font.GothamBold mainButton.TextSize = 13
         
         local scrollList = Instance.new("ScrollingFrame") scrollList.Parent = baseFrame scrollList.Size = UDim2.new(1, 0, 0, 140) scrollList.Position = UDim2.new(0, 0, 0, 42) scrollList.BackgroundTransparency = 1 scrollList.ScrollBarThickness = 5 scrollList.ScrollBarImageColor3 = themeColor
         local listLayout = Instance.new("UIListLayout") listLayout.Parent = scrollList listLayout.Padding = UDim.new(0, 5) listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         
-        local manualEmoteConnection = nil
-        local emoteAktif = ""
+        -- Data list warna dan target nilainya untuk ESP Line
+        local targetColors = {
+            {name = "Hitam", color = Color3.fromRGB(0, 0, 0)},
+            {name = "Putih", color = Color3.fromRGB(255, 255, 255)},
+            {name = "Hijau", color = Color3.fromRGB(0, 255, 0)},
+            {name = "Biru", color = Color3.fromRGB(0, 0, 255)},
+            {name = "Cyan", color = Color3.fromRGB(0, 255, 255)},
+            {name = "Kuning", color = Color3.fromRGB(255, 255, 0)}
+        }
 
-        local function stopManualEmote()
-            if manualEmoteConnection then manualEmoteConnection:Disconnect() manualEmoteConnection = nil end
-            emoteAktif = ""
-            pcall(function()
-                local char = LocalPlayer.Character
-                local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
-                local rShoulder = torso and (torso:FindFirstChild("Right Shoulder") or torso:FindFirstChild("RightShoulder"))
-                if rShoulder then rShoulder.C0 = CFrame.new(1, 0.5, 0) * CFrame.Angles(0, math.rad(90), 0) end
-            end)
-        end
-
-        local function playJerkEmote()
-            stopManualEmote()
-            if currentAnimationTrack then currentAnimationTrack:Stop() end
-            emoteAktif = "Jerk"
-            showNotification("EMOTE ACTIVE", "Memulai gerakan Jerk manual!", 1.5, themeColor)
-            local sudut = 0
-            local kecepatanKocok = 0.4
+        for _, item in ipairs(targetColors) do
+            local cBtn = Instance.new("TextButton") cBtn.Parent = scrollList cBtn.Size = UDim2.new(0.92, 0, 0, 28) cBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45) cBtn.TextColor3 = item.color cBtn.Font = Enum.Font.GothamBold cBtn.TextSize = 12 cBtn.Text = item.name
+            Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 5)
             
-            manualEmoteConnection = RunService.Heartbeat:Connect(function()
-                pcall(function()
-                    local char = LocalPlayer.Character
-                    if not char or emoteAktif ~= "Jerk" then return end
-                    local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
-                    local rShoulder = torso and (torso:FindFirstChild("Right Shoulder") or torso:FindFirstChild("RightShoulder"))
-                    if rShoulder then
-                        sudut = sudut + kecepatanKocok
-                        local kocokEfek = math.sin(sudut) * 0.5
-                        rShoulder.C0 = CFrame.new(0.6, -0.2, -0.5) * CFrame.Angles(math.rad(-70) + kocokEfek, math.rad(-40), math.rad(-30))
-                    end
-                end)
+            cBtn.MouseButton1Click:Connect(function()
+                lineColor = item.color -- Mengubah langsung warna ESP Line global
+                showNotification("ESP LINE COLOR", "Warna ESP Line diubah ke: " .. item.name, 2, item.color)
             end)
         end
 
-        local btnJerk = Instance.new("TextButton") btnJerk.Parent = scrollList btnJerk.Size = UDim2.new(0.92, 0, 0, 32) btnJerk.BackgroundColor3 = Color3.fromRGB(35, 35, 45) btnJerk.TextColor3 = Color3.fromRGB(255, 50, 150) btnJerk.Font = Enum.Font.GothamBold btnJerk.TextSize = 12 btnJerk.Text = "🥵 Jerk Hand / Ngocok Depan"
-        Instance.new("UICorner", btnJerk).CornerRadius = UDim.new(0, 5)
-        
-        btnJerk.MouseButton1Click:Connect(function()
-            playJerkEmote()
-            baseFrame.Size = UDim2.new(0.95, 0, 0, 42)
-            local h = 0 for _, c in pairs(parent:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end parent.CanvasSize = UDim2.new(0, 0, 0, h + 30)
-        end)
-
-        task.spawn(function()
-            while true do
-                task.wait(0.5)
-                if currentAnimationTrack == nil and emoteAktif ~= "" then stopManualEmote() end
-            end
-        end)
-        
+        local isOpen = false
         mainButton.MouseButton1Click:Connect(function()
+            isOpen = not isOpen
             scrollList.CanvasSize = UDim2.new(0,0,0, listLayout.AbsoluteContentSize.Y + 10)
-            if baseFrame.Size.Y.Offset == 42 then
+            if isOpen then
                 TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = UDim2.new(0.95, 0, 0, 190)}):Play()
             else
                 TweenService:Create(baseFrame, TweenInfo.new(0.2), {Size = UDim2.new(0.95, 0, 0, 42)}):Play()
@@ -934,18 +901,9 @@ local function loadMainScript()
             local h = 0 for _, c in pairs(parent:GetChildren()) do if c:IsA("Frame") then h = h + c.Size.Y.Offset + 8 end end parent.CanvasSize = UDim2.new(0, 0, 0, h + 30)
         end)
     end
-    createEmoteDropdown(tabUtility)
+    createColorListDropdown(tabUtility)
 
-    createButton(tabUtility, "STOP EMOTE", function()
-        if currentAnimationTrack then
-            currentAnimationTrack:Stop() currentAnimationTrack:Destroy() currentAnimationTrack = nil
-            showNotification("EMOTE", "Animasi dihentikan", 1.5, themeColor)
-        else
-            showNotification("INFO", "Tidak ada animasi aktif", 1.5, themeColor)
-        end
-    end)
-    
-    -- TAB INFORMASI (LIST TEMA WARNA: HITAM, PUTIH, HIJAU, BIRU, CYAN, KUNING)
+    -- TAB INFORMASI (LIST TEMA MENU)
     local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 160) infoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55) infoBox.BackgroundTransparency = 0.4
     Instance.new("UICorner", infoBox).CornerRadius = UDim.new(0, 10)
     
@@ -971,7 +929,6 @@ local function loadMainScript()
         for _, c in pairs(contents) do c.ScrollBarImageColor3 = themeColor end
     end
     
-    -- LIST WARNA TEMA SESUAI PERMINTAAN
     createButton(tabInfo, "Theme: Hitam", function() changeTheme(Color3.fromRGB(15, 15, 15)) end)
     createButton(tabInfo, "Theme: Putih", function() changeTheme(Color3.fromRGB(255, 255, 255)) end)
     createButton(tabInfo, "Theme: Hijau", function() changeTheme(Color3.fromRGB(20, 240, 20)) end)
@@ -993,7 +950,6 @@ local function loadMainScript()
     
     LocalPlayer.CharacterAdded:Connect(function()
         task.wait(1)
-        if currentAnimationTrack then currentAnimationTrack = nil end
         if noclipEnabled then startNoclip() end
         if flyEnabled then startFlyMode() end
     end)
