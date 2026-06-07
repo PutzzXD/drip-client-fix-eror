@@ -1,12 +1,20 @@
 -- ================== DRIP CLIENT V8.1 (LOADING SCREEN + EXECUTOR DETECTION) ==================
--- Penambahan: Loading screen animasi sebelum key
+-- Penambahan: Loading screen animasi premium sebelum key
 -- Penambahan: Deteksi nama executor user (Delta, Arceus X, dll)
+
+-- ================== LOAD SERVICES AWAL (DIBAWAH AGAR TIDAK EROR) ==================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService") -- FIX: Dipindahkan ke paling atas agar fungsi loading bisa memakainya
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 
 -- ================== DETEKSI NAMA EXECUTOR ==================
 local function detectExecutor()
     local executorName = "Unknown Executor"
     
-    -- Daftar pengecekan executor populer
     local executors = {
         {name = "Delta", check = function() return syn and syn.request and syn.crypt end},
         {name = "Arceus X", check = function() return game:GetService("CoreGui"):FindFirstChild("Arceus X V2") or (identifyexecutor and identifyexecutor() == "Arceus X") end},
@@ -41,7 +49,6 @@ local function detectExecutor()
         end
     end
     
-    -- Fallback: coba panggil identifyexecutor jika ada
     local success, idName = pcall(function()
         if identifyexecutor then return identifyexecutor() end
         return nil
@@ -56,7 +63,7 @@ end
 local userExecutor = detectExecutor()
 print("Executor detected: " .. userExecutor)
 
--- ================== LOADING SCREEN (SEBELUM KEY) ==================
+-- ================== LOADING SCREEN MODERINISASI (FIXED & BEAUTIFIED) ==================
 local LoadingGui = Instance.new("ScreenGui")
 LoadingGui.Name = "DripLoading"
 LoadingGui.Parent = game.CoreGui
@@ -66,86 +73,97 @@ LoadingGui.DisplayOrder = 9999
 local loadingFrame = Instance.new("Frame")
 loadingFrame.Parent = LoadingGui
 loadingFrame.Size = UDim2.new(1, 0, 1, 0)
-loadingFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 18)
-loadingFrame.BackgroundTransparency = 0
+loadingFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 18)
 loadingFrame.BorderSizePixel = 0
 
 local loadingCenter = Instance.new("Frame")
 loadingCenter.Parent = loadingFrame
-loadingCenter.Size = UDim2.new(0, 200, 0, 150)
-loadingCenter.Position = UDim2.new(0.5, -100, 0.5, -75)
-loadingCenter.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
-loadingCenter.BackgroundTransparency = 0.1
-local centerCorner = Instance.new("UICorner")
-centerCorner.Parent = loadingCenter
-centerCorner.CornerRadius = UDim.new(0, 20)
+loadingCenter.Size = UDim2.new(0, 240, 0, 160)
+loadingCenter.Position = UDim2.new(0.5, -120, 0.5, -80)
+loadingCenter.BackgroundColor3 = Color3.fromRGB(20, 20, 32)
+loadingCenter.BorderSizePixel = 0
+local centerCorner = Instance.new("UICorner", loadingCenter)
+centerCorner.CornerRadius = UDim.new(0, 16)
+
+-- Tambahan efek garis menyala mewah di sekeliling box loading
+local centerStroke = Instance.new("UIStroke", loadingCenter)
+centerStroke.Color = Color3.fromRGB(156, 39, 176)
+centerStroke.Thickness = 1.5
 
 local logoLoad = Instance.new("ImageLabel")
 logoLoad.Parent = loadingCenter
-logoLoad.Size = UDim2.new(0, 60, 0, 60)
-logoLoad.Position = UDim2.new(0.5, -30, 0, 15)
+logoLoad.Size = UDim2.new(0, 50, 0, 50)
+logoLoad.Position = UDim2.new(0.5, -25, 0, 15)
 logoLoad.BackgroundTransparency = 1
 logoLoad.Image = "rbxassetid://72495850369898"
 logoLoad.ScaleType = Enum.ScaleType.Fit
 
 local titleLoad = Instance.new("TextLabel")
 titleLoad.Parent = loadingCenter
-titleLoad.Size = UDim2.new(1, 0, 0, 30)
-titleLoad.Position = UDim2.new(0, 0, 0, 80)
+titleLoad.Size = UDim2.new(1, 0, 0, 25)
+titleLoad.Position = UDim2.new(0, 0, 0, 75)
 titleLoad.BackgroundTransparency = 1
 titleLoad.Text = "DRIP CLIENT"
 titleLoad.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLoad.Font = Enum.Font.GothamBlack
-titleLoad.TextSize = 18
+titleLoad.TextSize = 16
 
 local statusLoad = Instance.new("TextLabel")
 statusLoad.Parent = loadingCenter
-statusLoad.Size = UDim2.new(1, 0, 0, 25)
-statusLoad.Position = UDim2.new(0, 0, 0, 112)
+statusLoad.Size = UDim2.new(1, 0, 0, 20)
+statusLoad.Position = UDim2.new(0, 0, 0, 102)
 statusLoad.BackgroundTransparency = 1
 statusLoad.Text = "Loading system..."
-statusLoad.TextColor3 = Color3.fromRGB(150, 150, 200)
-statusLoad.Font = Enum.Font.Gotham
-statusLoad.TextSize = 12
+statusLoad.TextColor3 = Color3.fromRGB(160, 160, 190)
+statusLoad.Font = Enum.Font.GothamMedium
+statusLoad.TextSize = 11
 
 local progressBarBg = Instance.new("Frame")
 progressBarBg.Parent = loadingCenter
-progressBarBg.Size = UDim2.new(0.8, 0, 0, 4)
-progressBarBg.Position = UDim2.new(0.1, 0, 0, 135)
-progressBarBg.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+progressBarBg.Size = UDim2.new(0.8, 0, 0, 6)
+progressBarBg.Position = UDim2.new(0.1, 0, 0, 130)
+progressBarBg.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 progressBarBg.BorderSizePixel = 0
-local bgCorner = Instance.new("UICorner")
-bgCorner.Parent = progressBarBg
-bgCorner.CornerRadius = UDim.new(0, 2)
+Instance.new("UICorner", progressBarBg).CornerRadius = UDim.new(0, 3)
 
 local progressBar = Instance.new("Frame")
 progressBar.Parent = progressBarBg
 progressBar.Size = UDim2.new(0, 0, 1, 0)
 progressBar.BackgroundColor3 = Color3.fromRGB(156, 39, 176)
 progressBar.BorderSizePixel = 0
-local barCorner = Instance.new("UICorner")
-barCorner.Parent = progressBar
-barCorner.CornerRadius = UDim.new(0, 2)
+Instance.new("UICorner", progressBar).CornerRadius = UDim.new(0, 3)
 
 local function updateProgress(widthPercent, text)
-    TweenService:Create(progressBar, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(widthPercent, 0, 1, 0)}):Play()
     statusLoad.Text = text
+    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    TweenService:Create(progressBar, tweenInfo, {Size = UDim2.new(widthPercent, 0, 1, 0)}):Play()
 end
 
--- Simulasi loading steps
+-- Thread simulasi proses loading bar secara sinkron & rapi
 task.spawn(function()
-    updateProgress(0.1, "Initializing modules...")
+    updateProgress(0.15, "Initializing core modules...")
+    task.wait(0.6)
+    updateProgress(0.38, "Checking client execution environment...")
+    task.wait(0.6)
+    updateProgress(0.60, "Connecting securely to Firebase API...")
+    task.wait(0.7)
+    updateProgress(0.82, "Caching assets and user theme data...")
     task.wait(0.5)
-    updateProgress(0.3, "Connecting to server...")
-    task.wait(0.5)
-    updateProgress(0.5, "Loading assets...")
-    task.wait(0.5)
-    updateProgress(0.7, "Preparing interface...")
-    task.wait(0.5)
-    updateProgress(0.9, "Almost ready...")
-    task.wait(0.3)
-    updateProgress(1, "Complete!")
-    task.wait(0.5)
+    updateProgress(1.00, "Ready! Initializing Key System UI...")
+    task.wait(0.4)
+    
+    -- Animasi Mulus Memudar saat loading rampung (Fade-Out Premium)
+    local fadeTime = 0.3
+    TweenService:Create(loadingFrame, TweenInfo.new(fadeTime), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(loadingCenter, TweenInfo.new(fadeTime), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(centerStroke, TweenInfo.new(fadeTime), {Transparency = 1}):Play()
+    TweenService:Create(logoLoad, TweenInfo.new(fadeTime), {ImageTransparency = 1}):Play()
+    TweenService:Create(titleLoad, TweenInfo.new(fadeTime), {TextTransparency = 1}):Play()
+    TweenService:Create(statusLoad, TweenInfo.new(fadeTime), {TextTransparency = 1}):Play()
+    TweenService:Create(progressBarBg, TweenInfo.new(fadeTime), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(progressBar, TweenInfo.new(fadeTime), {BackgroundTransparency = 1}):Play()
+    
+    task.wait(fadeTime)
     LoadingGui:Destroy()
 end)
 
@@ -162,17 +180,7 @@ local keyExpiryDays = 0
 local keyJenis = ""
 local keyValidGlobal = false
 
--- ================== LOAD SERVICES ==================
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-local HttpService = game:GetService("HttpService")
-
 -- ================== VARIABEL FITUR ==================
--- ESP
 local espEnabled = false
 local lineEnabled = false
 local lineColor = Color3.fromRGB(0, 0, 0)
@@ -180,11 +188,9 @@ local skeletonEnabled = false
 local ESPTable = {}
 local SkeletonESP = {}
 
--- Player Counter
 local playerCounterEnabled = false
 local enemyCountText = nil
 
--- Movement HP (Fly)
 local flyEnabled = false
 local flyConnection = nil
 local flySpeed = 100
@@ -204,13 +210,10 @@ local speedEnabled = false
 local normalSpeed = 16
 local fastSpeed = 60
 
--- Jump Power Mod Variables
 local jumpPowerEnabled = false
 local jumpPowerValue = 50 
 
--- Combat & Utility Variables
 local infinityJumpEnabled = false
-
 local antiDamageEnabled = false
 local antiDamageConnection = nil
 local antiDamageThread = nil
@@ -227,10 +230,9 @@ local invisibleParts = {}
 local invisibleRootPart = nil
 local invisibleHumanoid = nil
 
--- Warna Tema & Objek
 local themeColor = Color3.fromRGB(156, 39, 176)
 local darkPurple = Color3.fromRGB(74, 20, 90)
-local boxColor = Color3.fromRGB(0, 0, 0) -- ESP BOX WARNA HITAM
+local boxColor = Color3.fromRGB(0, 0, 0)
 local skeletonColor = Color3.fromRGB(0, 255, 0)
 local redColor = Color3.fromRGB(255, 0, 0)
 local MAX_ESP_DISTANCE = 115
@@ -657,7 +659,6 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Loop Sinkronisasi Fitur Player
 RunService.Heartbeat:Connect(function()
     if LocalPlayer.Character then
         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -904,7 +905,6 @@ local function loadMainScript()
         return frame
     end
 
-    -- SUB-MENU JUMP POWER
     local function createJumpPowerMenu(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -945,7 +945,6 @@ local function loadMainScript()
         end)
     end
 
-    -- TAB MAIN FEATURES
     createToggle(tabMain, "Fly Mode", false, function(s) flyEnabled = s if s then startFlyMode() else stopFlyMode() end end)
     createToggle(tabMain, "Speed Boost", false, function(s) speedEnabled = s local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if hum then hum.WalkSpeed = s and fastSpeed or normalSpeed end end)
     createToggle(tabMain, "NoClip", false, function(s) noclipEnabled = s if s then startNoclip() else stopNoclip() end end)
@@ -957,13 +956,11 @@ local function loadMainScript()
     createToggle(tabMain, "Spin Muter", false, function(s) toggleSpin(s) end)
     createToggle(tabMain, "Invisible Mode", false, function(s) toggleInvisible(s) end)
 
-    -- TAB ESP SYSTEM
     createToggle(tabESP, "ESP Box (Hitam)", false, function(s) espEnabled = s end)
     createToggle(tabESP, "ESP Line", false, function(s) lineEnabled = s end)
     createToggle(tabESP, "ESP Skeleton", false, function(s) skeletonEnabled = s end)
     createToggle(tabESP, "Player Counter", false, function(s) playerCounterEnabled = s end)
 
-    -- TAB UTILITY (Teleport + Warna ESP Line)
     local function createTeleportDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -1001,7 +998,6 @@ local function loadMainScript()
     end
     createTeleportDropdown(tabUtility)
 
-    -- LIST WARNA UNTUK ESP LINE
     local function createColorListDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -1044,7 +1040,6 @@ local function loadMainScript()
     end
     createColorListDropdown(tabUtility)
 
-    -- TAB INFO (Termasuk Nama Executor)
     local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 140) infoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55) infoBox.BackgroundTransparency = 0.4
     Instance.new("UICorner", infoBox).CornerRadius = UDim.new(0, 10)
     
