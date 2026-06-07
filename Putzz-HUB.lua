@@ -142,90 +142,7 @@ local function checkKeyExpiry(inputKey)
     return true, "VALID! Sisa: " .. timeStr
 end
 
--- ================== INITIAL LOADING SCREEN (SEDENG & KALEM) ==================
-local LoadingGui = Instance.new("ScreenGui")
-LoadingGui.Name = "DripLoading"
-LoadingGui.Parent = game.CoreGui
-LoadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-local loadingFrame = Instance.new("Frame")
-loadingFrame.Parent = LoadingGui
-loadingFrame.Size = UDim2.new(1, 0, 1, 0)
-loadingFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 16) -- Hitam sedeng agak keabuan, kalem di HP
-loadingFrame.BorderSizePixel = 0
-
-local loadingCenter = Instance.new("Frame")
-loadingCenter.Parent = loadingFrame
-loadingCenter.Size = UDim2.new(0, 210, 0, 130) -- Ukuran diperkecil agar pas dan proporsional
-loadingCenter.Position = UDim2.new(0.5, -105, 0.5, -65)
-loadingCenter.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
-loadingCenter.BorderSizePixel = 0
-Instance.new("UICorner", loadingCenter).CornerRadius = UDim.new(0, 12)
-
-local centerStroke = Instance.new("UIStroke", loadingCenter)
-centerStroke.Color = Color3.fromRGB(156, 39, 176)
-centerStroke.Thickness = 1.2
-
-local titleLoad = Instance.new("TextLabel")
-titleLoad.Parent = loadingCenter
-titleLoad.Size = UDim2.new(1, 0, 0, 25)
-titleLoad.Position = UDim2.new(0, 0, 0, 20)
-titleLoad.BackgroundTransparency = 1
-titleLoad.Text = "DRIP CLIENT"
-titleLoad.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLoad.Font = Enum.Font.GothamBlack
-titleLoad.TextSize = 14
-
-local statusLoad = Instance.new("TextLabel")
-statusLoad.Parent = loadingCenter
-statusLoad.Size = UDim2.new(1, 0, 0, 20)
-statusLoad.Position = UDim2.new(0, 0, 0, 50)
-statusLoad.BackgroundTransparency = 1
-statusLoad.Text = "Loading system..."
-statusLoad.TextColor3 = Color3.fromRGB(150, 150, 170)
-statusLoad.Font = Enum.Font.GothamMedium
-statusLoad.TextSize = 10
-
-local progressBarBg = Instance.new("Frame")
-progressBarBg.Parent = loadingCenter
-progressBarBg.Size = UDim2.new(0.8, 0, 0, 4)
-progressBarBg.Position = UDim2.new(0.1, 0, 0, 85)
-progressBarBg.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-progressBarBg.BorderSizePixel = 0
-Instance.new("UICorner", progressBarBg).CornerRadius = UDim.new(0, 2)
-
-local progressBar = Instance.new("Frame")
-progressBar.Parent = progressBarBg
-progressBar.Size = UDim2.new(0, 0, 1, 0)
-progressBar.BackgroundColor3 = Color3.fromRGB(156, 39, 176)
-progressBar.BorderSizePixel = 0
-Instance.new("UICorner", progressBar).CornerRadius = UDim.new(0, 2)
-
-local function updateInitialProgress(widthPercent, text)
-    statusLoad.Text = text
-    TweenService:Create(progressBar, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(widthPercent, 0, 1, 0)}):Play()
-end
-
-task.spawn(function()
-    updateInitialProgress(0.25, "Memuat modul internal...")
-    task.wait(0.5)
-    updateInitialProgress(0.60, "Memeriksa arsitektur executor...")
-    task.wait(0.5)
-    updateInitialProgress(1.00, "Sistem siap digunakan!")
-    task.wait(0.4)
-    
-    -- Animasi transisi memudar halus saat selesai
-    local fade = TweenInfo.new(0.25)
-    TweenService:Create(loadingFrame, fade, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(loadingCenter, fade, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(centerStroke, fade, {Transparency = 1}):Play()
-    TweenService:Create(titleLoad, fade, {TextTransparency = 1}):Play()
-    TweenService:Create(statusLoad, fade, {TextTransparency = 1}):Play()
-    TweenService:Create(progressBarBg, fade, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(progressBar, fade, {BackgroundTransparency = 1}):Play()
-    task.wait(0.25)
-    LoadingGui:Destroy()
-end)
+-- Loading screen dihapus
 
 -- ================== VARIABEL FITUR CHEAT ==================
 local espEnabled = false
@@ -398,10 +315,15 @@ local function toggleInvisible(state)
     invisibleEnabled = state
     if invisibleConnection then invisibleConnection:Disconnect() invisibleConnection = nil end
     if state and LocalPlayer.Character then
+        -- Reset dulu invisibleParts sebelum isi ulang
+        invisibleParts = {}
         invisibleRootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         invisibleHumanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
-            if v:IsA("BasePart") and v.Transparency == 0 then table.insert(invisibleParts, v) v.Transparency = 0.5 end
+            if v:IsA("BasePart") and v.Transparency == 0 then
+                table.insert(invisibleParts, {part = v, origTrans = v.Transparency})
+                v.Transparency = 0.5
+            end
         end
         invisibleConnection = RunService.Heartbeat:Connect(function()
             if invisibleEnabled and invisibleRootPart and invisibleHumanoid then
@@ -416,9 +338,25 @@ local function toggleInvisible(state)
             end
         end)
     else
+        -- Kembalikan transparency ke nilai asli masing-masing part
         if LocalPlayer.Character then
-            for _, v in pairs(LocalPlayer.Character:GetDescendants()) do if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then v.Transparency = 0 end end
+            for _, data in pairs(invisibleParts) do
+                pcall(function()
+                    if data.part and data.part.Parent then
+                        data.part.Transparency = data.origTrans
+                    end
+                end)
+            end
+            -- Fallback: semua part yang masih transparan dikembalikan ke 0
+            for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") and v.Transparency == 0.5 then
+                    v.Transparency = 0
+                end
+            end
         end
+        invisibleParts = {}
+        invisibleRootPart = nil
+        invisibleHumanoid = nil
     end
 end
 
@@ -950,8 +888,23 @@ local function runPremiumSuccessProgress()
     setProgress(0.75, "Sinkronisasi waktu server terenkripsi...")
     task.wait(0.4)
     setProgress(1.00, "Sukses! Meluncurkan interface utama...")
+    task.wait(0.5)
+
+    -- Fade out dan destroy seluruh Key GUI sebelum buka main menu
+    TweenService:Create(KeyFrame, TweenInfo.new(0.25), {BackgroundTransparency = 1}):Play()
+    for _, v in pairs(KeyFrame:GetDescendants()) do
+        if v:IsA("TextLabel") or v:IsA("TextButton") then
+            pcall(function() TweenService:Create(v, TweenInfo.new(0.25), {TextTransparency = 1}):Play() end)
+        elseif v:IsA("Frame") then
+            pcall(function() TweenService:Create(v, TweenInfo.new(0.25), {BackgroundTransparency = 1}):Play() end)
+        end
+    end
     task.wait(0.3)
-    
+    -- Destroy seluruh KeyGui biar bersih
+    if game.CoreGui:FindFirstChild("DripKeySystem") then
+        game.CoreGui.DripKeySystem:Destroy()
+    end
+
     pcall(loadMainScript)
 end
 
