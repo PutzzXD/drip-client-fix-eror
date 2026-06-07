@@ -1,4 +1,153 @@
--- ================== DRIP CLIENT V8.0 (FULLY MODIFIED) ==================
+-- ================== DRIP CLIENT V8.1 (LOADING SCREEN + EXECUTOR DETECTION) ==================
+-- Penambahan: Loading screen animasi sebelum key
+-- Penambahan: Deteksi nama executor user (Delta, Arceus X, dll)
+
+-- ================== DETEKSI NAMA EXECUTOR ==================
+local function detectExecutor()
+    local executorName = "Unknown Executor"
+    
+    -- Daftar pengecekan executor populer
+    local executors = {
+        {name = "Delta", check = function() return syn and syn.request and syn.crypt end},
+        {name = "Arceus X", check = function() return game:GetService("CoreGui"):FindFirstChild("Arceus X V2") or (identifyexecutor and identifyexecutor() == "Arceus X") end},
+        {name = "CodeX", check = function() return CodeX and CodeX.Execute end},
+        {name = "Hydrogen", check = function() return isfile and readfile and writefile and (not syn) end},
+        {name = "Fluxus", check = function() return fluxus and fluxus.ismobile end},
+        {name = "Krnl", check = function() return krnl and krnl.loadlibrary end},
+        {name = "ScriptWare", check = function() return scriptware and scriptware.loader end},
+        {name = "Synapse X", check = function() return syn and syn.crypt and syn.request end},
+        {name = "Evon", check = function() return evon and evon.execute end},
+        {name = "Vega X", check = function() return game:GetService("CoreGui"):FindFirstChild("Vega Hub") end},
+        {name = "Oxygen U", check = function() return Oxygen and Oxygen.Execute end},
+        {name = "Valyse", check = function() return shared and shared.Valyse end},
+        {name = "Sirhurt", check = function() return sirhurt and sirhurt.execute end},
+        {name = "Calamari", check = function() return identifyexecutor and identifyexecutor() == "Calamari" end},
+        {name = "Electron", check = function() return Electron and Electron.Loader end},
+        {name = "Kiddion", check = function() return getgenv and getgenv().Kiddion end},
+        {name = "Aztup", check = function() return Aztup and Aztup.Bypass end},
+        {name = "Krnl Admin", check = function() return krnl and krnl.console end},
+        {name = "Comet", check = function() return comet and comet.execute end},
+        {name = "Zypher", check = function() return Zypher and Zypher.loadstring end},
+        {name = "Swift", check = function() return Swift and Swift.Execute end},
+        {name = "Rise", check = function() return Rise and Rise.Execute end},
+        {name = "Nexus", check = function() return Nexus and Nexus.Load end}
+    }
+    
+    for _, exec in ipairs(executors) do
+        local success, result = pcall(exec.check)
+        if success and result then
+            executorName = exec.name
+            break
+        end
+    end
+    
+    -- Fallback: coba panggil identifyexecutor jika ada
+    local success, idName = pcall(function()
+        if identifyexecutor then return identifyexecutor() end
+        return nil
+    end)
+    if success and idName and idName ~= "" then
+        executorName = idName
+    end
+    
+    return executorName
+end
+
+local userExecutor = detectExecutor()
+print("Executor detected: " .. userExecutor)
+
+-- ================== LOADING SCREEN (SEBELUM KEY) ==================
+local LoadingGui = Instance.new("ScreenGui")
+LoadingGui.Name = "DripLoading"
+LoadingGui.Parent = game.CoreGui
+LoadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+LoadingGui.DisplayOrder = 9999
+
+local loadingFrame = Instance.new("Frame")
+loadingFrame.Parent = LoadingGui
+loadingFrame.Size = UDim2.new(1, 0, 1, 0)
+loadingFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 18)
+loadingFrame.BackgroundTransparency = 0
+loadingFrame.BorderSizePixel = 0
+
+local loadingCenter = Instance.new("Frame")
+loadingCenter.Parent = loadingFrame
+loadingCenter.Size = UDim2.new(0, 200, 0, 150)
+loadingCenter.Position = UDim2.new(0.5, -100, 0.5, -75)
+loadingCenter.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+loadingCenter.BackgroundTransparency = 0.1
+local centerCorner = Instance.new("UICorner")
+centerCorner.Parent = loadingCenter
+centerCorner.CornerRadius = UDim.new(0, 20)
+
+local logoLoad = Instance.new("ImageLabel")
+logoLoad.Parent = loadingCenter
+logoLoad.Size = UDim2.new(0, 60, 0, 60)
+logoLoad.Position = UDim2.new(0.5, -30, 0, 15)
+logoLoad.BackgroundTransparency = 1
+logoLoad.Image = "rbxassetid://72495850369898"
+logoLoad.ScaleType = Enum.ScaleType.Fit
+
+local titleLoad = Instance.new("TextLabel")
+titleLoad.Parent = loadingCenter
+titleLoad.Size = UDim2.new(1, 0, 0, 30)
+titleLoad.Position = UDim2.new(0, 0, 0, 80)
+titleLoad.BackgroundTransparency = 1
+titleLoad.Text = "DRIP CLIENT"
+titleLoad.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLoad.Font = Enum.Font.GothamBlack
+titleLoad.TextSize = 18
+
+local statusLoad = Instance.new("TextLabel")
+statusLoad.Parent = loadingCenter
+statusLoad.Size = UDim2.new(1, 0, 0, 25)
+statusLoad.Position = UDim2.new(0, 0, 0, 112)
+statusLoad.BackgroundTransparency = 1
+statusLoad.Text = "Loading system..."
+statusLoad.TextColor3 = Color3.fromRGB(150, 150, 200)
+statusLoad.Font = Enum.Font.Gotham
+statusLoad.TextSize = 12
+
+local progressBarBg = Instance.new("Frame")
+progressBarBg.Parent = loadingCenter
+progressBarBg.Size = UDim2.new(0.8, 0, 0, 4)
+progressBarBg.Position = UDim2.new(0.1, 0, 0, 135)
+progressBarBg.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+progressBarBg.BorderSizePixel = 0
+local bgCorner = Instance.new("UICorner")
+bgCorner.Parent = progressBarBg
+bgCorner.CornerRadius = UDim.new(0, 2)
+
+local progressBar = Instance.new("Frame")
+progressBar.Parent = progressBarBg
+progressBar.Size = UDim2.new(0, 0, 1, 0)
+progressBar.BackgroundColor3 = Color3.fromRGB(156, 39, 176)
+progressBar.BorderSizePixel = 0
+local barCorner = Instance.new("UICorner")
+barCorner.Parent = progressBar
+barCorner.CornerRadius = UDim.new(0, 2)
+
+local function updateProgress(widthPercent, text)
+    TweenService:Create(progressBar, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(widthPercent, 0, 1, 0)}):Play()
+    statusLoad.Text = text
+end
+
+-- Simulasi loading steps
+task.spawn(function()
+    updateProgress(0.1, "Initializing modules...")
+    task.wait(0.5)
+    updateProgress(0.3, "Connecting to server...")
+    task.wait(0.5)
+    updateProgress(0.5, "Loading assets...")
+    task.wait(0.5)
+    updateProgress(0.7, "Preparing interface...")
+    task.wait(0.5)
+    updateProgress(0.9, "Almost ready...")
+    task.wait(0.3)
+    updateProgress(1, "Complete!")
+    task.wait(0.5)
+    LoadingGui:Destroy()
+end)
 
 -- ================== KEY SYSTEM CONFIG ==================
 local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
@@ -26,7 +175,7 @@ local HttpService = game:GetService("HttpService")
 -- ESP
 local espEnabled = false
 local lineEnabled = false
-local lineColor = Color3.fromRGB(0, 0, 0) -- Default Hitam untuk ESP Line
+local lineColor = Color3.fromRGB(0, 0, 0)
 local skeletonEnabled = false
 local ESPTable = {}
 local SkeletonESP = {}
@@ -620,7 +769,7 @@ RunService.RenderStepped:Connect(function()
             if lineEnabled and visible then
                 line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
                 line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = lineColor -- Mengikuti konfigurasi warna dari List Warna aktif
+                line.Color = lineColor
                 line.Visible = true
             else
                 line.Visible = false
@@ -699,7 +848,7 @@ local function loadMainScript()
     title.Parent = header title.Size = UDim2.new(1, -70, 0.5, 0) title.Position = UDim2.new(0, 65, 0, 12) title.BackgroundTransparency = 1 title.Text = "DRIP CLIENT" title.TextColor3 = Color3.new(1,1,1) title.Font = Enum.Font.GothamBlack title.TextSize = 22 title.TextXAlignment = Enum.TextXAlignment.Left
     
     local subtitle = Instance.new("TextLabel")
-    subtitle.Parent = header subtitle.Size = UDim2.new(1, -70, 0.3, 0) subtitle.Position = UDim2.new(0, 65, 0, 36) subtitle.BackgroundTransparency = 1 subtitle.Text = "V8.0" subtitle.TextColor3 = Color3.fromRGB(0, 255, 0) subtitle.Font = Enum.Font.Gotham subtitle.TextSize = 11 subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    subtitle.Parent = header subtitle.Size = UDim2.new(1, -70, 0.3, 0) subtitle.Position = UDim2.new(0, 65, 0, 36) subtitle.BackgroundTransparency = 1 subtitle.Text = "V8.1" subtitle.TextColor3 = Color3.fromRGB(0, 255, 0) subtitle.Font = Enum.Font.Gotham subtitle.TextSize = 11 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 
     local tabBar = Instance.new("Frame")
     tabBar.Parent = mainFrame tabBar.Size = UDim2.new(0.94, 0, 0, 38) tabBar.Position = UDim2.new(0.03, 0, 0, 75) tabBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55) tabBar.BackgroundTransparency = 0.4
@@ -755,7 +904,7 @@ local function loadMainScript()
         return frame
     end
 
-    -- SUB-MENU JUMP POWER PINGGIR
+    -- SUB-MENU JUMP POWER
     local function createJumpPowerMenu(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -796,7 +945,7 @@ local function loadMainScript()
         end)
     end
 
-    -- TAB MAIN FEATURES LIST
+    -- TAB MAIN FEATURES
     createToggle(tabMain, "Fly Mode", false, function(s) flyEnabled = s if s then startFlyMode() else stopFlyMode() end end)
     createToggle(tabMain, "Speed Boost", false, function(s) speedEnabled = s local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if hum then hum.WalkSpeed = s and fastSpeed or normalSpeed end end)
     createToggle(tabMain, "NoClip", false, function(s) noclipEnabled = s if s then startNoclip() else stopNoclip() end end)
@@ -814,7 +963,7 @@ local function loadMainScript()
     createToggle(tabESP, "ESP Skeleton", false, function(s) skeletonEnabled = s end)
     createToggle(tabESP, "Player Counter", false, function(s) playerCounterEnabled = s end)
 
-    -- TAB UTILITY (Teleport)
+    -- TAB UTILITY (Teleport + Warna ESP Line)
     local function createTeleportDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -852,7 +1001,7 @@ local function loadMainScript()
     end
     createTeleportDropdown(tabUtility)
 
-    -- FITUR BARU (TAB UTILITY): DROPDOWN LIST WARNA KHUSUS ESP LINE
+    -- LIST WARNA UNTUK ESP LINE
     local function createColorListDropdown(parent)
         local baseFrame = Instance.new("Frame") baseFrame.Parent = parent baseFrame.Size = UDim2.new(0.95, 0, 0, 42) baseFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 60) baseFrame.BackgroundTransparency = 0.2 baseFrame.ClipsDescendants = true
         local baseCorner = Instance.new("UICorner") baseCorner.CornerRadius = UDim.new(0, 8) baseCorner.Parent = baseFrame
@@ -861,7 +1010,6 @@ local function loadMainScript()
         local scrollList = Instance.new("ScrollingFrame") scrollList.Parent = baseFrame scrollList.Size = UDim2.new(1, 0, 0, 140) scrollList.Position = UDim2.new(0, 0, 0, 42) scrollList.BackgroundTransparency = 1 scrollList.ScrollBarThickness = 5 scrollList.ScrollBarImageColor3 = themeColor
         local listLayout = Instance.new("UIListLayout") listLayout.Parent = scrollList listLayout.Padding = UDim.new(0, 5) listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         
-        -- Opsi list warna khusus mengubah ESP Line sesuai request
         local targetColors = {
             {name = "Hitam", color = Color3.fromRGB(0, 0, 0)},
             {name = "Putih", color = Color3.fromRGB(255, 255, 255)},
@@ -876,8 +1024,8 @@ local function loadMainScript()
             Instance.new("UICorner", cBtn).CornerRadius = UDim.new(0, 5)
             
             cBtn.MouseButton1Click:Connect(function()
-                lineColor = item.color -- Mengubah variabel warna global ESP Line
-                showNotification("WARNA ESP LINE", "Warna ESP Line berhasil diubah ke: " .. item.name, 2, item.color)
+                lineColor = item.color
+                showNotification("WARNA ESP LINE", "Warna ESP Line: " .. item.name, 2, item.color)
             end)
         end
 
@@ -896,13 +1044,30 @@ local function loadMainScript()
     end
     createColorListDropdown(tabUtility)
 
-    -- TAB INFORMASI (Hanya Menyisakan Info Developer Saja)
-    local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 100) infoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55) infoBox.BackgroundTransparency = 0.4
+    -- TAB INFO (Termasuk Nama Executor)
+    local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 140) infoBox.BackgroundColor3 = Color3.fromRGB(45, 45, 55) infoBox.BackgroundTransparency = 0.4
     Instance.new("UICorner", infoBox).CornerRadius = UDim.new(0, 10)
     
-    local iLabel = Instance.new("TextLabel", infoBox) iLabel.Size = UDim2.new(1, 0, 0, 30) iLabel.BackgroundTransparency = 1 iLabel.Text = "DEVELOPER INFORMATION" iLabel.TextColor3 = themeColor iLabel.Font = Enum.Font.GothamBold iLabel.TextSize = 13
+    local iLabel = Instance.new("TextLabel", infoBox) iLabel.Size = UDim2.new(1, 0, 0, 30) iLabel.BackgroundTransparency = 1 iLabel.Text = "INFORMASI" iLabel.TextColor3 = themeColor iLabel.Font = Enum.Font.GothamBold iLabel.TextSize = 13
 
-    local infoDevLabel = Instance.new("TextLabel", infoBox) infoDevLabel.Size = UDim2.new(0.92, 0, 0, 60) infoDevLabel.Position = UDim2.new(0.04, 0, 0, 30) infoDevLabel.BackgroundTransparency = 1 infoDevLabel.TextColor3 = Color3.fromRGB(200,210,255) infoDevLabel.Font = Enum.Font.Gotham infoDevLabel.TextSize = 12 infoDevLabel.Text = "DRIP CLIENT V8.0\nDeveloper: Putzzdev\nWhatsApp: 088976255131"
+    local executorText = Instance.new("TextLabel", infoBox)
+    executorText.Size = UDim2.new(0.92, 0, 0, 25)
+    executorText.Position = UDim2.new(0.04, 0, 0, 35)
+    executorText.BackgroundTransparency = 1
+    executorText.TextColor3 = Color3.fromRGB(200, 210, 255)
+    executorText.Font = Enum.Font.Gotham
+    executorText.TextSize = 12
+    executorText.Text = "Executor: " .. userExecutor
+    executorText.TextXAlignment = Enum.TextXAlignment.Left
+
+    local infoDevLabel = Instance.new("TextLabel", infoBox)
+    infoDevLabel.Size = UDim2.new(0.92, 0, 0, 60)
+    infoDevLabel.Position = UDim2.new(0.04, 0, 0, 65)
+    infoDevLabel.BackgroundTransparency = 1
+    infoDevLabel.TextColor3 = Color3.fromRGB(200, 210, 255)
+    infoDevLabel.Font = Enum.Font.Gotham
+    infoDevLabel.TextSize = 11
+    infoDevLabel.Text = "DRIP CLIENT V8.1\nDeveloper: Putzzdev\nWhatsApp: 088976255131"
 
     tabs[1].TextColor3 = Color3.new(1,1,1) tabs[1].BackgroundTransparency = 0.2 contents[1].Visible = true
     
@@ -922,7 +1087,7 @@ local function loadMainScript()
         if flyEnabled then startFlyMode() end
     end)
     
-    print("DRIP CLIENT V8.0 - MENU SUCCESS")
+    print("DRIP CLIENT V8.1 - MENU SUCCESS")
 end
 
 -- ================== KEY VERIFICATION EVENT ==================
@@ -977,4 +1142,4 @@ Players.PlayerRemoving:Connect(function(p)
     if SkeletonESP[p] then for _, ld in pairs(SkeletonESP[p]) do pcall(function() ld[1]:Remove() end) end SkeletonESP[p] = nil end
 end)
 
-print("DRIP CLIENT V8.0 BUILT COMPLETED SUCCESSFULLY")
+print("DRIP CLIENT V8.1 - LOADING SCREEN + EXECUTOR DETECTION ACTIVE")
