@@ -193,7 +193,7 @@ local darkPurple = Color3.fromRGB(18, 14, 24) -- Disesuaikan agar warna tidak te
 local boxColor = Color3.fromRGB(0, 0, 0)
 local skeletonColor = Color3.fromRGB(0, 255, 0)
 local redColor = Color3.fromRGB(255, 0, 0)
-local MAX_ESP_DISTANCE = 115
+local MAX_ESP_DISTANCE = 200000
 
 local function showNotification(title, text, duration, color)
     local parentGui = game.CoreGui:FindFirstChild("DripClient") or game.CoreGui:FindFirstChild("DripKeySystem")
