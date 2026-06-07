@@ -360,14 +360,89 @@ local function toggleInvisible(state)
     end
 end
 
+-- ================== GOD MODE PERMANEN (BENERAN KEBAL) ==================
+-- Fungsi setupAntiDamage yang ditingkatkan dengan multiple connections dan custom Disconnect
 local function setupAntiDamage()
-    if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end
-    antiDamageHeartbeat = RunService.Heartbeat:Connect(function()
+    -- Hapus semua koneksi sebelumnya jika ada
+    if antiDamageHeartbeat then
+        if type(antiDamageHeartbeat) == "table" and antiDamageHeartbeat._disconnect then
+            antiDamageHeartbeat:_disconnect()
+        elseif antiDamageHeartbeat.Disconnect then
+            antiDamageHeartbeat:Disconnect()
+        end
+        antiDamageHeartbeat = nil
+    end
+    
+    -- Kumpulan koneksi yang akan dikelola
+    local connections = {}
+    
+    -- Fungsi untuk membuat karakter kebal
+    local function makeInvincible()
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum then return end
+        
+        hum.Health = hum.MaxHealth
+        hum.BreakJointsOnDeath = false
+        
+        -- Hentikan koneksi HealthChanged sebelumnya jika ada
+        if hum._godHealthConn then
+            hum._godHealthConn:Disconnect()
+            hum._godHealthConn = nil
+        end
+        
+        -- Pasang HealthChanged untuk respon instan
+        local healthConn = hum.HealthChanged:Connect(function(newHealth)
+            if antiDamageEnabled and newHealth < hum.MaxHealth then
+                hum.Health = hum.MaxHealth
+            end
+        end)
+        hum._godHealthConn = healthConn
+        table.insert(connections, healthConn)
+    end
+    
+    -- Heartbeat untuk cadangan (jika HealthChanged gagal)
+    local hbConn = RunService.Heartbeat:Connect(function()
         if antiDamageEnabled and LocalPlayer.Character then
             local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if hum and (hum.Health < hum.MaxHealth or hum.Health <= 0) then hum.Health = hum.MaxHealth end
+            if hum and hum.Health < hum.MaxHealth then
+                hum.Health = hum.MaxHealth
+            end
         end
     end)
+    table.insert(connections, hbConn)
+    
+    -- Terapkan ke karakter saat ini
+    makeInvincible()
+    
+    -- Event ketika karakter berganti (respawn)
+    local charConn = LocalPlayer.CharacterAdded:Connect(function()
+        task.wait(0.2) -- tunggu humanoid tersedia
+        if antiDamageEnabled then
+            makeInvincible()
+        end
+    end)
+    table.insert(connections, charConn)
+    
+    -- Buat objek dengan metode Disconnect untuk kompatibilitas dengan toggle lama
+    local godModeObject = {}
+    function godModeObject:Disconnect()
+        for _, conn in ipairs(connections) do
+            pcall(function() conn:Disconnect() end)
+        end
+        connections = {}
+        if LocalPlayer.Character then
+            local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum and hum._godHealthConn then
+                hum._godHealthConn:Disconnect()
+                hum._godHealthConn = nil
+            end
+        end
+    end
+    function godModeObject:_disconnect() self:Disconnect() end
+    
+    antiDamageHeartbeat = godModeObject
 end
 
 UserInputService.JumpRequest:Connect(function()
@@ -662,7 +737,15 @@ local function loadMainScript()
     createToggle(tabMain, "Speed Boost", false, function(s) speedEnabled = s local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if hum then hum.WalkSpeed = s and fastSpeed or normalSpeed end end)
     createToggle(tabMain, "NoClip", false, function(s) noclipEnabled = s if s then startNoclip() else stopNoclip() end end)
     createToggle(tabMain, "Infinity Jump", false, function(s) infinityJumpEnabled = s end)
-    createToggle(tabMain, "God Mode", false, function(s) antiDamageEnabled = s if s then setupAntiDamage() else if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end end end)
+    createToggle(tabMain, "God Mode", false, function(s)
+        antiDamageEnabled = s
+        if s then
+            setupAntiDamage()
+        else
+            if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end
+            antiDamageHeartbeat = nil
+        end
+    end)
     createToggle(tabMain, "Spin Muter", false, function(s) toggleSpin(s) end)
     createToggle(tabMain, "Invisible Mode", false, function(s) toggleInvisible(s) end)
 
