@@ -1,6 +1,7 @@
--- ================== DRIP CLIENT - MAINTENANCE MODE ==================
+-- ================== DRIP CLIENT - MAINTENANCE MODE (FIXED) ==================
 -- Script ini muncul saat developer sedang mengupdate script.
 -- Tidak ada fitur cheat di dalamnya.
+-- Ukuran teks otomatis menyesuaikan, gak ada yang kepotong.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -18,8 +19,8 @@ ScreenGui.Parent = game.CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local mainFrame = Instance.new("Frame", ScreenGui)
-mainFrame.Size = UDim2.new(0, 390, 0, 320)
-mainFrame.Position = UDim2.new(0.5, -195, 0.5, -160)
+mainFrame.Size = UDim2.new(0, 390, 0, 360)
+mainFrame.Position = UDim2.new(0.5, -195, 0.5, -180)
 mainFrame.BackgroundColor3 = darkPurple
 mainFrame.Active = true
 mainFrame.Draggable = true
@@ -82,7 +83,7 @@ Instance.new("UICorner", tabInfoBtn).CornerRadius = UDim.new(0, 5)
 
 -- Content panel
 local contentInfo = Instance.new("ScrollingFrame", mainFrame)
-contentInfo.Size = UDim2.new(0.94, 0, 0, 190)
+contentInfo.Size = UDim2.new(0.94, 0, 0, 220)
 contentInfo.Position = UDim2.new(0.03, 0, 0, 115)
 contentInfo.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 contentInfo.BackgroundTransparency = 0.4
@@ -90,7 +91,6 @@ contentInfo.BorderSizePixel = 0
 contentInfo.ScrollBarThickness = 4
 contentInfo.ScrollBarImageColor3 = themeColor
 contentInfo.Visible = true
-contentInfo.CanvasSize = UDim2.new(0, 0, 0, 0)
 contentInfo.AutomaticCanvasSize = Enum.AutomaticSize.Y
 Instance.new("UICorner", contentInfo).CornerRadius = UDim.new(0, 10)
 
@@ -98,7 +98,7 @@ local infoLayout = Instance.new("UIListLayout", contentInfo)
 infoLayout.Padding = UDim.new(0, 10)
 infoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
--- ================== PESAN DI TAB INFORMASI (SEDERHANA) ==================
+-- ================== PESAN DI TAB INFORMASI (BISA LO EDIT BEBAS) ==================
 local messageBox = Instance.new("Frame", contentInfo)
 messageBox.Size = UDim2.new(0.96, 0, 0, 0)
 messageBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
@@ -111,11 +111,11 @@ messageText.Position = UDim2.new(0, 10, 0, 10)
 messageText.BackgroundTransparency = 1
 messageText.Text = [[
 🔧 DRIP CLIENT - SEDANG DIUPDATE 🔧
-NOTIFICATION FROM DEVELOPER 
+NOTIFICATION FROM DEVELOPER
 
 Mohon maaf atas ketidaknyamanannya.
 
-Saat ini developer sedang melakukan proses update pada script/fix eror yang ada dan akan menambah fitur terbaru
+Saat ini developer sedang melakukan proses update pada script / fix error yang ada dan akan menambah fitur terbaru.
 
 Script akan kembali aktif setelah proses update selesai.
 
@@ -130,6 +130,7 @@ Terima kasih atas pengertian dan dukungannya.
    TikTok: @putzz_mvpp
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ⚠️ DRIP CLIENT - MAINTENANCE MODE ⚠️
 ]]
 messageText.TextColor3 = Color3.fromRGB(200, 210, 240)
@@ -139,8 +140,8 @@ messageText.TextWrapped = true
 messageText.TextYAlignment = Enum.TextYAlignment.Top
 messageText.TextXAlignment = Enum.TextXAlignment.Left
 
--- Update height messageBox berdasarkan TextLabel
-task.wait(0.05)
+-- Update ukuran messageBox
+task.wait(0.1)
 messageBox.Size = UDim2.new(0.96, 0, 0, messageText.TextBounds.Y + 20)
 
 local infoFooter = Instance.new("TextLabel", contentInfo)
@@ -153,16 +154,6 @@ infoFooter.TextSize = 11
 infoFooter.TextWrapped = true
 infoFooter.TextXAlignment = Enum.TextXAlignment.Center
 infoFooter.AutomaticSize = Enum.AutomaticSize.Y
-
--- Update Canvas Size
-task.wait(0.1)
-local totalHeight = 0
-for _, child in pairs(contentInfo:GetChildren()) do
-    if child:IsA("Frame") or child:IsA("TextLabel") then
-        totalHeight = totalHeight + child.Size.Y.Offset + 10
-    end
-end
-contentInfo.CanvasSize = UDim2.new(0, 0, 0, totalHeight + 30)
 
 -- ================== TOMBOL GESER (IMAGE) ==================
 local openBtn = Instance.new("ImageButton", ScreenGui)
@@ -183,7 +174,7 @@ openBtn.MouseButton1Click:Connect(function()
     menuOpen = not menuOpen
     if menuOpen then
         mainFrame.Visible = true
-        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -195, 0.5, -160)}):Play()
+        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -195, 0.5, -180)}):Play()
     else
         TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -195, 1, 10)}):Play()
         task.wait(0.2)
@@ -192,4 +183,4 @@ openBtn.MouseButton1Click:Connect(function()
 end)
 
 print("DRIP CLIENT - MAINTENANCE MODE ACTIVE")
-print("Script ini hanya menampilkan informasi maintenance, tidak ada fitur cheat.")
+print("Tidak ada fitur cheat, hanya notifikasi maintenance.")
