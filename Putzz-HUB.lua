@@ -1,16 +1,80 @@
--- ================== DRIP CLIENT - MAINTENANCE MODE (FIXED) ==================
+-- ================== DRIP CLIENT - MAINTENANCE MODE (DENGAN TIMER) ==================
 -- Script ini muncul saat developer sedang mengupdate script.
 -- Tidak ada fitur cheat di dalamnya.
--- Ukuran teks otomatis menyesuaikan, gak ada yang kepotong.
+-- Timer 5 jam tersimpan secara lokal (tidak reset walau keluar game)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 
 local themeColor = Color3.fromRGB(156, 39, 176)
 local darkPurple = Color3.fromRGB(18, 14, 24)
+
+-- ================== TIMER 5 JAM (TETAP TERSIMPAN) ==================
+local TIMER_FILE = "drip_timer_data.txt"
+local TOTAL_DURATION = 5 * 60 * 60 -- 5 jam dalam detik
+
+-- Fungsi baca sisa waktu dari file
+local function loadRemainingTime()
+    if isfile and isfile(TIMER_FILE) then
+        local success, content = pcall(function() return readfile(TIMER_FILE) end)
+        if success and content then
+            local savedTime = tonumber(content)
+            if savedTime and savedTime > 0 then
+                return savedTime
+            end
+        end
+    end
+    return TOTAL_DURATION
+end
+
+-- Fungsi simpan sisa waktu
+local function saveRemainingTime(remaining)
+    if writefile then
+        pcall(function() writefile(TIMER_FILE, tostring(math.floor(remaining))) end)
+    end
+end
+
+-- Variabel timer
+local remainingSeconds = loadRemainingTime()
+local timerRunning = (remainingSeconds > 0)
+local timerLabel = nil
+
+-- Fungsi update timer
+local function updateTimerDisplay()
+    if not timerLabel then return end
+    
+    if remainingSeconds <= 0 then
+        timerLabel.Text = "✅ UPDATE SELESAI! Silakan download versi terbaru"
+        timerLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+        return
+    end
+    
+    local hours = math.floor(remainingSeconds / 3600)
+    local minutes = math.floor((remainingSeconds % 3600) / 60)
+    local seconds = remainingSeconds % 60
+    
+    timerLabel.Text = string.format("⏳ Perkiraan selesai: %02d Jam %02d Menit %02d Detik", hours, minutes, seconds)
+    timerLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+end
+
+-- Loop timer di background
+task.spawn(function()
+    while timerRunning and remainingSeconds > 0 do
+        task.wait(1)
+        remainingSeconds = remainingSeconds - 1
+        saveRemainingTime(remainingSeconds)
+        updateTimerDisplay()
+        
+        if remainingSeconds <= 0 then
+            timerRunning = false
+            updateTimerDisplay()
+        end
+    end
+end)
 
 -- ================== MAIN MENU (MAINTENANCE MODE) ==================
 local ScreenGui = Instance.new("ScreenGui")
@@ -19,8 +83,8 @@ ScreenGui.Parent = game.CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local mainFrame = Instance.new("Frame", ScreenGui)
-mainFrame.Size = UDim2.new(0, 390, 0, 360)
-mainFrame.Position = UDim2.new(0.5, -195, 0.5, -180)
+mainFrame.Size = UDim2.new(0, 390, 0, 450)
+mainFrame.Position = UDim2.new(0.5, -195, 0.5, -225)
 mainFrame.BackgroundColor3 = darkPurple
 mainFrame.Active = true
 mainFrame.Draggable = true
@@ -69,7 +133,7 @@ tabBar.Position = UDim2.new(0.03, 0, 0, 70)
 tabBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 6)
 
--- Tab Informasi (satu-satunya tab yang ada)
+-- Tab Informasi
 local tabInfoBtn = Instance.new("TextButton", tabBar)
 tabInfoBtn.Size = UDim2.new(1, -4, 1, -6)
 tabInfoBtn.Position = UDim2.new(0.02, 0, 0, 3)
@@ -83,7 +147,7 @@ Instance.new("UICorner", tabInfoBtn).CornerRadius = UDim.new(0, 5)
 
 -- Content panel
 local contentInfo = Instance.new("ScrollingFrame", mainFrame)
-contentInfo.Size = UDim2.new(0.94, 0, 0, 220)
+contentInfo.Size = UDim2.new(0.94, 0, 0, 300)
 contentInfo.Position = UDim2.new(0.03, 0, 0, 115)
 contentInfo.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 contentInfo.BackgroundTransparency = 0.4
@@ -98,7 +162,7 @@ local infoLayout = Instance.new("UIListLayout", contentInfo)
 infoLayout.Padding = UDim.new(0, 10)
 infoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
--- ================== PESAN DI TAB INFORMASI (BISA LO EDIT BEBAS) ==================
+-- ================== BOX PESAN UTAMA (Teks Lo yang Dulu) ==================
 local messageBox = Instance.new("Frame", contentInfo)
 messageBox.Size = UDim2.new(0.96, 0, 0, 0)
 messageBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
@@ -120,9 +184,49 @@ Saat ini developer sedang melakukan proses update pada script / fix error yang a
 Script akan kembali aktif setelah proses update selesai.
 
 Terima kasih atas pengertian dan dukungannya.
+]]
+messageText.TextColor3 = Color3.fromRGB(200, 210, 240)
+messageText.Font = Enum.Font.Gotham
+messageText.TextSize = 12
+messageText.TextWrapped = true
+messageText.TextYAlignment = Enum.TextYAlignment.Top
+messageText.TextXAlignment = Enum.TextXAlignment.Left
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+task.wait(0.1)
+messageBox.Size = UDim2.new(0.96, 0, 0, messageText.TextBounds.Y + 20)
 
+-- ================== BOX TIMER (DI BAWAH PESAN) ==================
+local timerBox = Instance.new("Frame", contentInfo)
+timerBox.Size = UDim2.new(0.96, 0, 0, 50)
+timerBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+Instance.new("UICorner", timerBox).CornerRadius = UDim.new(0, 10)
+
+timerLabel = Instance.new("TextLabel", timerBox)
+timerLabel.Size = UDim2.new(1, -20, 1, 0)
+timerLabel.Position = UDim2.new(0, 10, 0, 0)
+timerLabel.BackgroundTransparency = 1
+timerLabel.Text = ""
+timerLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+timerLabel.Font = Enum.Font.GothamBold
+timerLabel.TextSize = 11
+timerLabel.TextWrapped = true
+timerLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+-- Update tampilan timer pertama kali
+updateTimerDisplay()
+
+-- ================== BOX KONTAK DEVELOPER ==================
+local contactBox = Instance.new("Frame", contentInfo)
+contactBox.Size = UDim2.new(0.96, 0, 0, 0)
+contactBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+contactBox.AutomaticSize = Enum.AutomaticSize.Y
+Instance.new("UICorner", contactBox).CornerRadius = UDim.new(0, 10)
+
+local contactText = Instance.new("TextLabel", contactBox)
+contactText.Size = UDim2.new(1, -20, 0, 0)
+contactText.Position = UDim2.new(0, 10, 0, 10)
+contactText.BackgroundTransparency = 1
+contactText.Text = [[
 📢 Pantau channel WhatsApp / Telegram untuk info update terbaru.
 
 💬 KONTAK DEVELOPER:
@@ -133,27 +237,15 @@ Terima kasih atas pengertian dan dukungannya.
 
 ⚠️ DRIP CLIENT - MAINTENANCE MODE ⚠️
 ]]
-messageText.TextColor3 = Color3.fromRGB(200, 210, 240)
-messageText.Font = Enum.Font.Gotham
-messageText.TextSize = 12
-messageText.TextWrapped = true
-messageText.TextYAlignment = Enum.TextYAlignment.Top
-messageText.TextXAlignment = Enum.TextXAlignment.Left
+contactText.TextColor3 = Color3.fromRGB(200, 210, 240)
+contactText.Font = Enum.Font.Gotham
+contactText.TextSize = 12
+contactText.TextWrapped = true
+contactText.TextYAlignment = Enum.TextYAlignment.Top
+contactText.TextXAlignment = Enum.TextXAlignment.Left
 
--- Update ukuran messageBox
 task.wait(0.1)
-messageBox.Size = UDim2.new(0.96, 0, 0, messageText.TextBounds.Y + 20)
-
-local infoFooter = Instance.new("TextLabel", contentInfo)
-infoFooter.Size = UDim2.new(0.96, 0, 0, 0)
-infoFooter.BackgroundTransparency = 1
-infoFooter.Text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🛡️ DRIP CLIENT - BY PUTZZDEV 🛡️\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-infoFooter.TextColor3 = themeColor
-infoFooter.Font = Enum.Font.GothamBold
-infoFooter.TextSize = 11
-infoFooter.TextWrapped = true
-infoFooter.TextXAlignment = Enum.TextXAlignment.Center
-infoFooter.AutomaticSize = Enum.AutomaticSize.Y
+contactBox.Size = UDim2.new(0.96, 0, 0, contactText.TextBounds.Y + 20)
 
 -- ================== TOMBOL GESER (IMAGE) ==================
 local openBtn = Instance.new("ImageButton", ScreenGui)
@@ -174,7 +266,7 @@ openBtn.MouseButton1Click:Connect(function()
     menuOpen = not menuOpen
     if menuOpen then
         mainFrame.Visible = true
-        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -195, 0.5, -180)}):Play()
+        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -195, 0.5, -225)}):Play()
     else
         TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -195, 1, 10)}):Play()
         task.wait(0.2)
@@ -183,4 +275,4 @@ openBtn.MouseButton1Click:Connect(function()
 end)
 
 print("DRIP CLIENT - MAINTENANCE MODE ACTIVE")
-print("Tidak ada fitur cheat, hanya notifikasi maintenance.")
+print("Timer 5 jam berjalan. Sisa waktu tersimpan di file:", TIMER_FILE)
