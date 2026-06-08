@@ -789,6 +789,178 @@ local function loadMainScript()
     end
     createTeleportDropdown(tabUtility)
 
+    -- ================== FREEZE ALL PLAYERS (VISUAL ONLY) ==================
+    local freezeAllEnabled = false
+    local frozenConnections = {}
+
+    local function freezeAllPlayers(state)
+        freezeAllEnabled = state
+        -- Unfreeze dulu semua
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                for _, part in pairs(p.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        pcall(function() part.Anchored = false end)
+                    end
+                end
+            end
+        end
+        if state then
+            -- Freeze semua player lain secara client-side
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    for _, part in pairs(p.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            pcall(function() part.Anchored = true end)
+                        end
+                    end
+                end
+            end
+            -- Freeze karakter baru yang spawn
+            Players.PlayerAdded:Connect(function(p)
+                p.CharacterAdded:Connect(function(char)
+                    if freezeAllEnabled then
+                        task.wait(0.5)
+                        for _, part in pairs(char:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                pcall(function() part.Anchored = true end)
+                            end
+                        end
+                    end
+                end)
+            end)
+        end
+    end
+
+    createToggle(tabUtility, "❄️ Freeze All Player", false, function(s)
+        freezeAllPlayers(s)
+        showNotification("FREEZE", s and "Semua player dibekukan!" or "Freeze dinonaktifkan", 2, s and Color3.fromRGB(0,180,255) or Color3.fromRGB(200,200,200))
+    end)
+
+    -- ================== FREEZE DIRI SENDIRI ==================
+    local freezeSelfEnabled = false
+    local freezeSelfBtn = nil
+    local freezeSelfBtnVisible = false
+
+    local function applyFreezeSelf(state)
+        freezeSelfEnabled = state
+        local myChar = LocalPlayer.Character
+        if myChar then
+            local hrp = myChar:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.Anchored = state
+            end
+        end
+        -- Update warna tombol float freeze
+        if freezeSelfBtn then
+            TweenService:Create(freezeSelfBtn, TweenInfo.new(0.15), {
+                BackgroundColor3 = state and Color3.fromRGB(0, 180, 255) or Color3.fromRGB(30, 30, 45)
+            }):Play()
+            freezeSelfBtn.Text = state and "❄ ON" or "❄ OFF"
+        end
+    end
+
+    -- Re-anchor saat respawn
+    LocalPlayer.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        if freezeSelfEnabled then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then hrp.Anchored = true end
+        end
+    end)
+
+    createToggle(tabUtility, "❄️ Freeze Diri Sendiri", false, function(s)
+        -- Munculkan/sembunyikan tombol float freeze diri
+        freezeSelfBtnVisible = s
+        if s then
+            if not freezeSelfBtn then
+                -- Buat tombol float khusus freeze diri
+                freezeSelfBtn = Instance.new("TextButton", ScreenGui)
+                freezeSelfBtn.Size             = UDim2.new(0, 72, 0, 36)
+                freezeSelfBtn.Position         = UDim2.new(0, 15, 0.5, 40)
+                freezeSelfBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+                freezeSelfBtn.BorderSizePixel  = 0
+                freezeSelfBtn.Text             = "❄ OFF"
+                freezeSelfBtn.TextColor3       = Color3.fromRGB(0, 220, 255)
+                freezeSelfBtn.Font             = Enum.Font.GothamBold
+                freezeSelfBtn.TextSize         = 13
+                freezeSelfBtn.ZIndex           = 20
+                Instance.new("UICorner", freezeSelfBtn).CornerRadius = UDim.new(0, 10)
+                local fss = Instance.new("UIStroke", freezeSelfBtn)
+                fss.Color = Color3.fromRGB(0, 200, 255); fss.Thickness = 1.5
+
+                -- Drag tombol freeze
+                local fsDrag, fsX, fsY, fsPX, fsPY = false, 0, 0, 0, 0
+                freezeSelfBtn.InputBegan:Connect(function(inp)
+                    if inp.UserInputType == Enum.UserInputType.MouseButton1
+                    or inp.UserInputType == Enum.UserInputType.Touch then
+                        fsDrag = true
+                        fsX    = inp.Position.X; fsY = inp.Position.Y
+                        fsPX   = freezeSelfBtn.Position.X.Offset
+                        fsPY   = freezeSelfBtn.Position.Y.Offset
+                    end
+                end)
+                freezeSelfBtn.InputEnded:Connect(function(inp)
+                    if inp.UserInputType == Enum.UserInputType.MouseButton1
+                    or inp.UserInputType == Enum.UserInputType.Touch then
+                        fsDrag = false
+                    end
+                end)
+                RunService.RenderStepped:Connect(function()
+                    if not fsDrag then return end
+                    local m  = game:GetService("UserInputService"):GetMouseLocation()
+                    local vp = workspace.CurrentCamera.ViewportSize
+                    freezeSelfBtn.Position = UDim2.new(0,
+                        math.clamp(fsPX + (m.X - fsX), 0, vp.X - 72), 0,
+                        math.clamp(fsPY + (m.Y - fsY), 0, vp.Y - 36)
+                    )
+                end)
+
+                -- Click toggle freeze diri
+                local fsMoved = false
+                freezeSelfBtn.InputBegan:Connect(function(inp)
+                    if inp.UserInputType == Enum.UserInputType.MouseButton1
+                    or inp.UserInputType == Enum.UserInputType.Touch then
+                        fsMoved = false
+                    end
+                end)
+                freezeSelfBtn.InputChanged:Connect(function(inp)
+                    if inp.UserInputType == Enum.UserInputType.MouseMovement
+                    or inp.UserInputType == Enum.UserInputType.Touch then
+                        fsMoved = true
+                    end
+                end)
+                freezeSelfBtn.InputEnded:Connect(function(inp)
+                    if (inp.UserInputType == Enum.UserInputType.MouseButton1
+                    or inp.UserInputType == Enum.UserInputType.Touch) and not fsMoved then
+                        applyFreezeSelf(not freezeSelfEnabled)
+                    end
+                end)
+
+                -- Animasi masuk
+                freezeSelfBtn.Size = UDim2.new(0, 0, 0, 36)
+                TweenService:Create(freezeSelfBtn, TweenInfo.new(0.2, Enum.EasingStyle.Back), {
+                    Size = UDim2.new(0, 72, 0, 36)
+                }):Play()
+            else
+                freezeSelfBtn.Visible = true
+            end
+        else
+            -- Sembunyikan tombol dan matikan freeze
+            applyFreezeSelf(false)
+            if freezeSelfBtn then
+                TweenService:Create(freezeSelfBtn, TweenInfo.new(0.15), {
+                    Size = UDim2.new(0, 0, 0, 36)
+                }):Play()
+                task.delay(0.2, function()
+                    if freezeSelfBtn then
+                        freezeSelfBtn.Visible = false
+                    end
+                end)
+            end
+        end
+    end)
+
     -- TAB INFO DENGAN SISTEM KEY COUNTDOWN DARI SERVER
     local infoBox = Instance.new("Frame", tabInfo) infoBox.Size = UDim2.new(0.95, 0, 0, 150) infoBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
     Instance.new("UICorner", infoBox).CornerRadius = UDim.new(0, 8)
