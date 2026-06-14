@@ -1,278 +1,930 @@
--- ================== DRIP CLIENT - MAINTENANCE MODE (DENGAN TIMER) ==================
--- Script ini muncul saat developer sedang mengupdate script.
--- Tidak ada fitur cheat di dalamnya.
--- Timer 5 jam tersimpan secara lokal (tidak reset walau keluar game)
+-- ================== DRIP CLIENT V8.2 PREMIUM - RAYFIELD UI ==================
 
+-- ================== LOAD SERVICES ==================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 
-local themeColor = Color3.fromRGB(156, 39, 176)
-local darkPurple = Color3.fromRGB(18, 14, 24)
+-- ================== DETEKSI NAMA EXECUTOR ==================
+local function detectExecutor()
+    local executorName = "Unknown Executor"
+    local executors = {
+        {name = "Delta", check = function() return syn and syn.request and syn.crypt end},
+        {name = "Arceus X", check = function() return game:GetService("CoreGui"):FindFirstChild("Arceus X V2") or (identifyexecutor and identifyexecutor() == "Arceus X") end},
+        {name = "CodeX", check = function() return CodeX and CodeX.Execute end},
+        {name = "Hydrogen", check = function() return isfile and readfile and writefile and (not syn) end},
+        {name = "Fluxus", check = function() return fluxus and fluxus.ismobile end},
+        {name = "Krnl", check = function() return krnl and krnl.loadlibrary end},
+        {name = "ScriptWare", check = function() return scriptware and scriptware.loader end},
+        {name = "Synapse X", check = function() return syn and syn.crypt and syn.request end},
+        {name = "Evon", check = function() return evon and evon.execute end},
+        {name = "Vega X", check = function() return game:GetService("CoreGui"):FindFirstChild("Vega Hub") end},
+        {name = "Swift", check = function() return Swift and Swift.Execute end},
+        {name = "Nexus", check = function() return Nexus and Nexus.Load end}
+    }
+    for _, exec in ipairs(executors) do
+        local success, result = pcall(exec.check)
+        if success and result then executorName = exec.name break end
+    end
+    local success, idName = pcall(function() if identifyexecutor then return identifyexecutor() end return nil end)
+    if success and idName and idName ~= "" then executorName = idName end
+    return executorName
+end
 
--- ================== TIMER 5 JAM (TETAP TERSIMPAN) ==================
-local TIMER_FILE = "drip_timer_data.txt"
-local TOTAL_DURATION = 5 * 60 * 60 -- 5 jam dalam detik
+local userExecutor = detectExecutor()
 
--- Fungsi baca sisa waktu dari file
-local function loadRemainingTime()
-    if isfile and isfile(TIMER_FILE) then
-        local success, content = pcall(function() return readfile(TIMER_FILE) end)
-        if success and content then
-            local savedTime = tonumber(content)
-            if savedTime and savedTime > 0 then
-                return savedTime
+-- ================== GLOBAL STATE & FILE SAVING SYSTEM ==================
+local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
+local WEBSITE_URL = "https://drip-client-get-key.vercel.app/"
+local SAVE_FILE = "drip_key_data.txt"
+
+local activeKeys = {}
+local currentUserKey = nil
+local keyExpiryTime = 0
+local keyJenis = ""
+local keyValidGlobal = false
+local infoKeyCountdownLabel = nil
+
+local function loadKeyData()
+    if isfile and isfile(SAVE_FILE) then
+        local success, content = pcall(function() return readfile(SAVE_FILE) end)
+        if success and content and content ~= "" then
+            local success2, data = pcall(function() return HttpService:JSONDecode(content) end)
+            if success2 then activeKeys = data end
+        end
+    end
+end
+
+local function saveKeyData()
+    if writefile then
+        local success, json = pcall(function() return HttpService:JSONEncode(activeKeys) end)
+        if success then writefile(SAVE_FILE, json) end
+    end
+end
+
+local function getKeysFromFirebase()
+    local success, data = pcall(function() return game:HttpGet(FIREBASE_URL) end)
+    if success and data then
+        local success2, jsonData = pcall(function() return HttpService:JSONDecode(data) end)
+        if success2 and jsonData then
+            local keysArray = {}
+            for _, keyData in pairs(jsonData) do table.insert(keysArray, keyData) end
+            return keysArray
+        end
+    end
+    return nil
+end
+
+local function getTimeRemaining(expiryTimestamp)
+    local currentTime = os.time()
+    local remaining = expiryTimestamp - currentTime
+    if remaining <= 0 then return 0, 0, 0, 0, "EXPIRED" end
+    local days = math.floor(remaining / 86400)
+    local hours = math.floor((remaining % 86400) / 3600)
+    local minutes = math.floor((remaining % 3600) / 60)
+    local seconds = remaining % 60
+    return days, hours, minutes, seconds, string.format("%d Hari %02d Jam %02d Menit %02d Detik", days, hours, minutes, seconds)
+end
+
+local function checkKeyExpiry(inputKey)
+    loadKeyData()
+    local keysData = getKeysFromFirebase()
+    if not keysData then return false, "Gagal mengambil data server" end
+
+    local foundKey, expiryDays, keyJenisData = nil, nil, nil
+    for _, keyData in ipairs(keysData) do
+        if keyData.key == inputKey then
+            foundKey = keyData.key
+            keyJenisData = keyData.jenis or "1 HARI"
+            if keyData.jenis == "1 JAM" then expiryDays = 1/24
+            elseif keyData.jenis == "1 HARI" then expiryDays = 1
+            elseif keyData.jenis == "2 HARI" then expiryDays = 2
+            elseif keyData.jenis == "3 HARI" then expiryDays = 3
+            elseif keyData.jenis == "7 HARI" then expiryDays = 7
+            elseif keyData.jenis == "30 HARI" then expiryDays = 30
+            elseif keyData.jenis == "PERMANEN" then expiryDays = 9999999
+            else expiryDays = 1 end
+            break
+        end
+    end
+
+    if not foundKey then return false, "KEY TIDAK TERDAFTAR!" end
+    local currentTime = os.time()
+    local expiryTime = nil
+
+    if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
+        expiryTime = activeKeys[inputKey].expiryTime
+        if currentTime > expiryTime then return false, "KEY SUDAH EXPIRED!" end
+    else
+        expiryTime = currentTime + (expiryDays * 86400)
+        activeKeys[inputKey] = {
+            firstUsed = currentTime, key = inputKey, expiryDays = expiryDays,
+            expiryTime = expiryTime, jenis = keyJenisData
+        }
+        saveKeyData()
+    end
+
+    keyExpiryTime = expiryTime
+    keyJenis = keyJenisData
+    currentUserKey = inputKey
+    keyValidGlobal = true
+
+    local _, _, _, _, timeStr = getTimeRemaining(expiryTime)
+    return true, "VALID! Sisa: " .. timeStr
+end
+
+-- ================== VARIABEL FITUR ==================
+local espEnabled = false
+local lineEnabled = false
+local lineColor = Color3.fromRGB(0, 0, 0)
+local skeletonEnabled = false
+local ESPTable = {}
+local SkeletonESP = {}
+
+local playerCounterEnabled = false
+local enemyCountText = nil
+
+local flyEnabled = false
+local flyConnection = nil
+local flySpeed = 100
+local flyAutoForward = true
+local ctrl = {f = 0, b = 0, l = 0, r = 0}
+local speed = 0
+local flyTorso = nil
+
+local noclipEnabled = false
+local noclipConnection = nil
+
+local speedEnabled = false
+local normalSpeed = 16
+local fastSpeed = 60
+
+local jumpPowerEnabled = false
+local jumpPowerValue = 50
+local infinityJumpEnabled = false
+
+local antiDamageEnabled = false
+local antiDamageHeartbeat = nil
+
+local spinEnabled = false
+local spinSpeed = 50
+local spinConnection = nil
+local spinDirection = 1
+
+local invisibleEnabled = false
+local invisibleConnection = nil
+local invisibleParts = {}
+local invisibleRootPart = nil
+local invisibleHumanoid = nil
+
+local skeletonColor = Color3.fromRGB(0, 255, 0)
+local boxColor = Color3.fromRGB(0, 0, 0)
+local MAX_ESP_DISTANCE = 200000
+
+-- ================== ENGINE ACTIONS ==================
+local function startFlyMode()
+    local plr = LocalPlayer
+    if not plr.Character then return end
+    flyTorso = plr.Character:FindFirstChild("UpperTorso") or plr.Character:FindFirstChild("Torso") or plr.Character:FindFirstChild("HumanoidRootPart")
+    if not flyTorso then return end
+    ctrl = {f = 0, b = 0, l = 0, r = 0}
+    speed = 0
+    if plr.Character:FindFirstChildOfClass("Humanoid") then plr.Character:FindFirstChildOfClass("Humanoid").PlatformStand = true end
+
+    local flyBodyGyro = Instance.new("BodyGyro", flyTorso)
+    flyBodyGyro.Name = "FlyBG"
+    flyBodyGyro.P = 9e4
+    flyBodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+
+    local flyBodyVelocity = Instance.new("BodyVelocity", flyTorso)
+    flyBodyVelocity.Name = "FlyBV"
+    flyBodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+
+    flyConnection = RunService.RenderStepped:Connect(function()
+        if not flyEnabled or not plr.Character or not flyTorso:IsDescendantOf(workspace) then return end
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then ctrl.f = 1 else ctrl.f = 0 end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then ctrl.b = -1 else ctrl.b = 0 end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then ctrl.l = -1 else ctrl.l = 0 end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then ctrl.r = 1 else ctrl.r = 0 end
+
+        local forwardInput = (flyAutoForward and ctrl.f == 0 and ctrl.b == 0) and 1 or (ctrl.f + ctrl.b)
+        if forwardInput ~= 0 or ctrl.l + ctrl.r ~= 0 then
+            speed = math.min(speed + 1.5, flySpeed)
+            local camCF = Camera.CFrame
+            flyBodyVelocity.Velocity = ((camCF.LookVector * forwardInput) + (camCF.RightVector * (ctrl.l + ctrl.r))).Unit * speed
+        else
+            speed = math.max(speed - 2, 0)
+            flyBodyVelocity.Velocity = Vector3.new(0,0,0)
+        end
+        flyBodyGyro.CFrame = Camera.CFrame
+    end)
+end
+
+local function stopFlyMode()
+    flyEnabled = false
+    if flyConnection then flyConnection:Disconnect() flyConnection = nil end
+    local char = LocalPlayer.Character
+    if char then
+        if char:FindFirstChildOfClass("Humanoid") then char:FindFirstChildOfClass("Humanoid").PlatformStand = false end
+        local t = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("HumanoidRootPart")
+        if t then
+            if t:FindFirstChild("FlyBV") then t.FlyBV:Destroy() end
+            if t:FindFirstChild("FlyBG") then t.FlyBG:Destroy() end
+        end
+    end
+end
+
+local function startNoclip()
+    if noclipConnection then noclipConnection:Disconnect() end
+    noclipConnection = RunService.Stepped:Connect(function()
+        if noclipEnabled and LocalPlayer.Character then
+            for _, p in pairs(LocalPlayer.Character:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        end
+    end)
+end
+
+local function stopNoclip()
+    if noclipConnection then noclipConnection:Disconnect() noclipConnection = nil end
+end
+
+local function toggleSpin(state)
+    spinEnabled = state
+    if spinConnection then spinConnection:Disconnect() spinConnection = nil end
+    if state then
+        spinConnection = RunService.Heartbeat:Connect(function()
+            if spinEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(spinSpeed * spinDirection), 0)
+            end
+        end)
+    end
+end
+
+local function toggleInvisible(state)
+    invisibleEnabled = state
+    if invisibleConnection then invisibleConnection:Disconnect() invisibleConnection = nil end
+    if state and LocalPlayer.Character then
+        invisibleParts = {}
+        invisibleRootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        invisibleHumanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") and v.Transparency == 0 then
+                table.insert(invisibleParts, {part = v, origTrans = v.Transparency})
+                v.Transparency = 0.5
+            end
+        end
+        invisibleConnection = RunService.Heartbeat:Connect(function()
+            if invisibleEnabled and invisibleRootPart and invisibleHumanoid then
+                local oldCF = invisibleRootPart.CFrame
+                local oldOffset = invisibleHumanoid.CameraOffset
+                local hideCF = oldCF * CFrame.new(0, -500000, 0)
+                invisibleRootPart.CFrame = hideCF
+                invisibleHumanoid.CameraOffset = hideCF:ToObjectSpace(CFrame.new(oldCF.Position)).Position
+                RunService.RenderStepped:Wait()
+                invisibleRootPart.CFrame = oldCF
+                invisibleHumanoid.CameraOffset = oldOffset
+            end
+        end)
+    else
+        if LocalPlayer.Character then
+            for _, data in pairs(invisibleParts) do
+                pcall(function()
+                    if data.part and data.part.Parent then
+                        data.part.Transparency = data.origTrans
+                    end
+                end)
+            end
+            for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") and v.Transparency == 0.5 then v.Transparency = 0 end
+            end
+        end
+        invisibleParts = {}
+        invisibleRootPart = nil
+        invisibleHumanoid = nil
+    end
+end
+
+-- ================== GOD MODE ==================
+local function setupAntiDamage()
+    if antiDamageHeartbeat then
+        if type(antiDamageHeartbeat) == "table" and antiDamageHeartbeat._disconnect then
+            antiDamageHeartbeat:_disconnect()
+        elseif antiDamageHeartbeat.Disconnect then
+            antiDamageHeartbeat:Disconnect()
+        end
+        antiDamageHeartbeat = nil
+    end
+
+    local connections = {}
+
+    local function makeInvincible()
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum then return end
+        hum.Health = hum.MaxHealth
+        hum.BreakJointsOnDeath = false
+        if hum._godHealthConn then hum._godHealthConn:Disconnect() hum._godHealthConn = nil end
+        local healthConn = hum.HealthChanged:Connect(function(newHealth)
+            if antiDamageEnabled and newHealth < hum.MaxHealth then hum.Health = hum.MaxHealth end
+        end)
+        hum._godHealthConn = healthConn
+        table.insert(connections, healthConn)
+    end
+
+    local hbConn = RunService.Heartbeat:Connect(function()
+        if antiDamageEnabled and LocalPlayer.Character then
+            local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health < hum.MaxHealth then hum.Health = hum.MaxHealth end
+        end
+    end)
+    table.insert(connections, hbConn)
+    makeInvincible()
+
+    local charConn = LocalPlayer.CharacterAdded:Connect(function()
+        task.wait(0.2)
+        if antiDamageEnabled then makeInvincible() end
+    end)
+    table.insert(connections, charConn)
+
+    local godModeObject = {}
+    function godModeObject:Disconnect()
+        for _, conn in ipairs(connections) do pcall(function() conn:Disconnect() end) end
+        connections = {}
+        if LocalPlayer.Character then
+            local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum and hum._godHealthConn then hum._godHealthConn:Disconnect() hum._godHealthConn = nil end
+        end
+    end
+    function godModeObject:_disconnect() self:Disconnect() end
+    antiDamageHeartbeat = godModeObject
+end
+
+UserInputService.JumpRequest:Connect(function()
+    if infinityJumpEnabled and LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum and jumpPowerEnabled then
+            hum.UseJumpPower = true
+            hum.JumpPower = jumpPowerValue
+        end
+    end
+end)
+
+-- ================== ESP SYSTEM ==================
+local function createPlayerCounter()
+    if enemyCountText then pcall(function() enemyCountText:Remove() end) end
+    enemyCountText = Drawing.new("Text")
+    enemyCountText.Size = 22
+    enemyCountText.Color = Color3.fromRGB(255, 0, 0)
+    enemyCountText.Center = true
+    enemyCountText.Outline = true
+    enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 55)
+    enemyCountText.Visible = false
+    enemyCountText.Text = "PLAYERS: 0"
+end
+
+local function createESP(player)
+    if player == LocalPlayer then return end
+    local box = Drawing.new("Square") box.Thickness = 1.8 box.Filled = false box.Visible = false
+    local name = Drawing.new("Text") name.Size = 13 name.Center = true name.Outline = true name.Visible = false
+    local dist = Drawing.new("Text") dist.Size = 11 dist.Center = true dist.Outline = true dist.Visible = false
+    local line = Drawing.new("Line") line.Thickness = 1.8 line.Visible = false
+    local healthBg = Drawing.new("Square") healthBg.Filled = true healthBg.Visible = false
+    local healthFg = Drawing.new("Square") healthFg.Filled = true healthFg.Visible = false
+    ESPTable[player] = {box, name, dist, line, healthBg, healthFg}
+end
+
+local function createSkeleton(player)
+    if player == LocalPlayer then return end
+    local lines = {}
+    local joints = {
+        {"Head","UpperTorso"},{"UpperTorso","LowerTorso"},
+        {"UpperTorso","LeftUpperArm"},{"LeftUpperArm","LeftLowerArm"},
+        {"UpperTorso","RightUpperArm"},{"RightUpperArm","RightLowerArm"},
+        {"LowerTorso","LeftUpperLeg"},{"LeftUpperLeg","LeftLowerLeg"},
+        {"LowerTorso","RightUpperLeg"},{"RightUpperLeg","RightLowerLeg"}
+    }
+    for i=1, #joints do
+        local l = Drawing.new("Line") l.Thickness = 2 l.Color = skeletonColor l.Visible = false
+        table.insert(lines, {l, joints[i][1], joints[i][2]})
+    end
+    SkeletonESP[player] = lines
+end
+
+RunService.RenderStepped:Connect(function()
+    local myChar = LocalPlayer.Character
+    local myPos = myChar and myChar:FindFirstChild("HumanoidRootPart") and myChar.HumanoidRootPart.Position
+    local screenCount = 0
+
+    for player, esp in pairs(ESPTable) do
+        local box, name, distText, line, hBg, hFg = unpack(esp)
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Head") then
+            local hrp = char.HumanoidRootPart
+            local head = char.Head
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            local pos, visible = Camera:WorldToViewportPoint(hrp.Position)
+            local distance = myPos and (myPos - hrp.Position).Magnitude or 9999
+
+            if visible and distance <= MAX_ESP_DISTANCE then
+                screenCount = screenCount + 1
+                local top = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                local bottom = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+                local height = math.abs(top.Y - bottom.Y)
+                local width = height / 2
+
+                if espEnabled then
+                    box.Size = Vector2.new(width, height)
+                    box.Position = Vector2.new(pos.X - width/2, top.Y)
+                    box.Color = boxColor
+                    box.Visible = true
+                    name.Position = Vector2.new(pos.X, top.Y - 15)
+                    name.Text = player.DisplayName or player.Name
+                    name.Visible = true
+                    distText.Text = math.floor(distance).."m"
+                    distText.Position = Vector2.new(pos.X, bottom.Y + 3)
+                    distText.Visible = true
+
+                    if hum then
+                        local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+                        hBg.Size = Vector2.new(4, height)
+                        hBg.Position = Vector2.new(pos.X + width/2 + 3, top.Y)
+                        hBg.Color = Color3.fromRGB(40,40,40)
+                        hBg.Visible = true
+                        hFg.Size = Vector2.new(4, height * pct)
+                        hFg.Position = Vector2.new(pos.X + width/2 + 3, bottom.Y - (height * pct))
+                        hFg.Color = Color3.fromRGB(255*(1-pct), 255*pct, 0)
+                        hFg.Visible = true
+                    end
+                else
+                    box.Visible = false name.Visible = false distText.Visible = false hBg.Visible = false hFg.Visible = false
+                end
+            else
+                box.Visible = false name.Visible = false distText.Visible = false hBg.Visible = false hFg.Visible = false
+            end
+
+            if lineEnabled and visible then
+                line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                line.To = Vector2.new(pos.X, pos.Y)
+                line.Color = lineColor
+                line.Visible = true
+            else
+                line.Visible = false
             end
         end
     end
-    return TOTAL_DURATION
-end
 
--- Fungsi simpan sisa waktu
-local function saveRemainingTime(remaining)
-    if writefile then
-        pcall(function() writefile(TIMER_FILE, tostring(math.floor(remaining))) end)
+    if skeletonEnabled then
+        for player, lines in pairs(SkeletonESP) do
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") and myPos then
+                for _, lData in pairs(lines) do
+                    local l, p1, p2 = lData[1], char:FindFirstChild(lData[2]), char:FindFirstChild(lData[3])
+                    if p1 and p2 then
+                        local pos1, vis1 = Camera:WorldToViewportPoint(p1.Position)
+                        local pos2, vis2 = Camera:WorldToViewportPoint(p2.Position)
+                        if vis1 and vis2 then
+                            l.From = Vector2.new(pos1.X, pos1.Y)
+                            l.To = Vector2.new(pos2.X, pos2.Y)
+                            l.Visible = true
+                        else l.Visible = false end
+                    else l.Visible = false end
+                end
+            else
+                for _, ld in pairs(lines) do ld[1].Visible = false end
+            end
+        end
+    else
+        for _, lines in pairs(SkeletonESP) do for _, ld in pairs(lines) do ld[1].Visible = false end end
     end
-end
 
--- Variabel timer
-local remainingSeconds = loadRemainingTime()
-local timerRunning = (remainingSeconds > 0)
-local timerLabel = nil
-
--- Fungsi update timer
-local function updateTimerDisplay()
-    if not timerLabel then return end
-    
-    if remainingSeconds <= 0 then
-        timerLabel.Text = "✅ UPDATE SELESAI! Silakan ulangi lalu execute ulang"
-        timerLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
-        return
+    if playerCounterEnabled and enemyCountText then
+        enemyCountText.Text = "PLAYERS: " .. screenCount
+        enemyCountText.Visible = true
+    elseif enemyCountText then
+        enemyCountText.Visible = false
     end
-    
-    local hours = math.floor(remainingSeconds / 3600)
-    local minutes = math.floor((remainingSeconds % 3600) / 60)
-    local seconds = remainingSeconds % 60
-    
-    timerLabel.Text = string.format("⏳ Perkiraan selesai: %02d Jam %02d Menit %02d Detik", hours, minutes, seconds)
-    timerLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-end
+end)
 
--- Loop timer di background
+-- ================== COUNTDOWN KEY TIMER ==================
 task.spawn(function()
-    while timerRunning and remainingSeconds > 0 do
+    while true do
         task.wait(1)
-        remainingSeconds = remainingSeconds - 1
-        saveRemainingTime(remainingSeconds)
-        updateTimerDisplay()
-        
-        if remainingSeconds <= 0 then
-            timerRunning = false
-            updateTimerDisplay()
+        if keyValidGlobal and keyExpiryTime > 0 and infoKeyCountdownLabel then
+            local _, _, _, _, timeStr = getTimeRemaining(keyExpiryTime)
+            if os.time() > keyExpiryTime then
+                infoKeyCountdownLabel.Text = "Status Key: EXPIRED!"
+            else
+                infoKeyCountdownLabel.Text = "Sisa Durasi: " .. timeStr
+            end
         end
     end
 end)
 
--- ================== MAIN MENU (MAINTENANCE MODE) ==================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "DripClient"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- ================== MAIN RAYFIELD UI ==================
+local function loadMainScript()
+    createPlayerCounter()
 
-local mainFrame = Instance.new("Frame", ScreenGui)
-mainFrame.Size = UDim2.new(0, 390, 0, 450)
-mainFrame.Position = UDim2.new(0.5, -195, 0.5, -225)
-mainFrame.BackgroundColor3 = darkPurple
-mainFrame.Active = true
-mainFrame.Draggable = true
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 16)
+    local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
-local mainStroke = Instance.new("UIStroke", mainFrame)
-mainStroke.Color = themeColor
-mainStroke.Thickness = 2
+    local Window = Rayfield:CreateWindow({
+        Name = "Drip Client Premium",
+        LoadingTitle = "Drip Client",
+        LoadingSubtitle = "Premium v8.2",
+        Theme = "Amethyst",
+        DisableRayfieldPrompts = true,
+        DisableBuildWarnings = true,
+        ConfigurationSaving = {
+            Enabled = false,
+        },
+        KeySystem = false,
+    })
 
-local header = Instance.new("Frame", mainFrame)
-header.Size = UDim2.new(1, 0, 0, 60)
-header.BackgroundColor3 = themeColor
-header.BackgroundTransparency = 0.3
-Instance.new("UICorner", header).CornerRadius = UDim.new(0, 16)
+    -- ================== TAB MAIN ==================
+    local TabMain = Window:CreateTab("Main", "zap")
 
-local logoImage = Instance.new("ImageLabel", header)
-logoImage.Size = UDim2.new(0, 32, 0, 32)
-logoImage.Position = UDim2.new(0, 15, 0, 14)
-logoImage.BackgroundTransparency = 1
-logoImage.Image = "rbxassetid://72495850369898"
-logoImage.ScaleType = Enum.ScaleType.Fit
+    TabMain:CreateToggle({
+        Name = "Fly Mode",
+        CurrentValue = false,
+        Flag = "FlyMode",
+        Callback = function(state)
+            flyEnabled = state
+            if state then startFlyMode() else stopFlyMode() end
+        end,
+    })
 
-local title = Instance.new("TextLabel", header)
-title.Size = UDim2.new(1, -60, 0.5, 0)
-title.Position = UDim2.new(0, 60, 0, 10)
-title.BackgroundTransparency = 1
-title.Text = "DRIP CLIENT"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Font = Enum.Font.GothamBlack
-title.TextSize = 20
-title.TextXAlignment = Enum.TextXAlignment.Left
+    TabMain:CreateSlider({
+        Name = "Fly Speed",
+        Range = {10, 500},
+        Increment = 10,
+        Suffix = "",
+        CurrentValue = flySpeed,
+        Flag = "FlySpeed",
+        Callback = function(val)
+            flySpeed = val
+        end,
+    })
 
-local subtitle = Instance.new("TextLabel", header)
-subtitle.Size = UDim2.new(1, -60, 0.3, 0)
-subtitle.Position = UDim2.new(0, 60, 0, 34)
-subtitle.BackgroundTransparency = 1
-subtitle.Text = "MAINTENANCE MODE"
-subtitle.TextColor3 = Color3.fromRGB(255, 100, 100)
-subtitle.Font = Enum.Font.Gotham
-subtitle.TextSize = 11
-subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    TabMain:CreateToggle({
+        Name = "Auto Forward (Fly)",
+        CurrentValue = true,
+        Flag = "FlyAutoFwd",
+        Callback = function(state)
+            flyAutoForward = state
+        end,
+    })
 
-local tabBar = Instance.new("Frame", mainFrame)
-tabBar.Size = UDim2.new(0.94, 0, 0, 35)
-tabBar.Position = UDim2.new(0.03, 0, 0, 70)
-tabBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-Instance.new("UICorner", tabBar).CornerRadius = UDim.new(0, 6)
+    TabMain:CreateDivider()
 
--- Tab Informasi
-local tabInfoBtn = Instance.new("TextButton", tabBar)
-tabInfoBtn.Size = UDim2.new(1, -4, 1, -6)
-tabInfoBtn.Position = UDim2.new(0.02, 0, 0, 3)
-tabInfoBtn.BackgroundColor3 = themeColor
-tabInfoBtn.BackgroundTransparency = 0.2
-tabInfoBtn.Text = "INFORMASI"
-tabInfoBtn.TextColor3 = Color3.new(1, 1, 1)
-tabInfoBtn.Font = Enum.Font.GothamBold
-tabInfoBtn.TextSize = 12
-Instance.new("UICorner", tabInfoBtn).CornerRadius = UDim.new(0, 5)
+    TabMain:CreateToggle({
+        Name = "Speed Boost",
+        CurrentValue = false,
+        Flag = "SpeedBoost",
+        Callback = function(state)
+            speedEnabled = state
+            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = state and fastSpeed or normalSpeed end
+        end,
+    })
 
--- Content panel
-local contentInfo = Instance.new("ScrollingFrame", mainFrame)
-contentInfo.Size = UDim2.new(0.94, 0, 0, 300)
-contentInfo.Position = UDim2.new(0.03, 0, 0, 115)
-contentInfo.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-contentInfo.BackgroundTransparency = 0.4
-contentInfo.BorderSizePixel = 0
-contentInfo.ScrollBarThickness = 4
-contentInfo.ScrollBarImageColor3 = themeColor
-contentInfo.Visible = true
-contentInfo.AutomaticCanvasSize = Enum.AutomaticSize.Y
-Instance.new("UICorner", contentInfo).CornerRadius = UDim.new(0, 10)
+    TabMain:CreateSlider({
+        Name = "Walk Speed",
+        Range = {16, 500},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = fastSpeed,
+        Flag = "WalkSpeed",
+        Callback = function(val)
+            fastSpeed = val
+            if speedEnabled then
+                local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if hum then hum.WalkSpeed = val end
+            end
+        end,
+    })
 
-local infoLayout = Instance.new("UIListLayout", contentInfo)
-infoLayout.Padding = UDim.new(0, 10)
-infoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    TabMain:CreateDivider()
 
--- ================== BOX PESAN UTAMA (Teks Lo yang Dulu) ==================
-local messageBox = Instance.new("Frame", contentInfo)
-messageBox.Size = UDim2.new(0.96, 0, 0, 0)
-messageBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-messageBox.AutomaticSize = Enum.AutomaticSize.Y
-Instance.new("UICorner", messageBox).CornerRadius = UDim.new(0, 10)
+    TabMain:CreateToggle({
+        Name = "NoClip",
+        CurrentValue = false,
+        Flag = "NoClip",
+        Callback = function(state)
+            noclipEnabled = state
+            if state then startNoclip() else stopNoclip() end
+        end,
+    })
 
-local messageText = Instance.new("TextLabel", messageBox)
-messageText.Size = UDim2.new(1, -20, 0, 0)
-messageText.Position = UDim2.new(0, 10, 0, 10)
-messageText.BackgroundTransparency = 1
-messageText.Text = [[
-🔧 DRIP CLIENT - SEDANG DIUPDATE 🔧
-NOTIFICATION FROM DEVELOPER
+    TabMain:CreateToggle({
+        Name = "Infinity Jump",
+        CurrentValue = false,
+        Flag = "InfJump",
+        Callback = function(state)
+            infinityJumpEnabled = state
+        end,
+    })
 
-Mohon maaf atas ketidaknyamanannya.
+    TabMain:CreateToggle({
+        Name = "God Mode",
+        CurrentValue = false,
+        Flag = "GodMode",
+        Callback = function(state)
+            antiDamageEnabled = state
+            if state then
+                setupAntiDamage()
+            else
+                if antiDamageHeartbeat then antiDamageHeartbeat:Disconnect() end
+                antiDamageHeartbeat = nil
+            end
+        end,
+    })
 
-Saat ini developer sedang melakukan proses update pada script / fix error yang ada dan akan menambah fitur terbaru.
+    TabMain:CreateDivider()
 
-Script akan kembali aktif setelah proses update selesai.
+    TabMain:CreateToggle({
+        Name = "Spin Muter",
+        CurrentValue = false,
+        Flag = "Spin",
+        Callback = function(state)
+            toggleSpin(state)
+        end,
+    })
 
-Terima kasih atas pengertian dan dukungannya.
-]]
-messageText.TextColor3 = Color3.fromRGB(200, 210, 240)
-messageText.Font = Enum.Font.Gotham
-messageText.TextSize = 12
-messageText.TextWrapped = true
-messageText.TextYAlignment = Enum.TextYAlignment.Top
-messageText.TextXAlignment = Enum.TextXAlignment.Left
+    TabMain:CreateSlider({
+        Name = "Spin Speed",
+        Range = {1, 200},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = spinSpeed,
+        Flag = "SpinSpeed",
+        Callback = function(val)
+            spinSpeed = val
+        end,
+    })
 
-task.wait(0.1)
-messageBox.Size = UDim2.new(0.96, 0, 0, messageText.TextBounds.Y + 20)
+    TabMain:CreateToggle({
+        Name = "Invisible Mode",
+        CurrentValue = false,
+        Flag = "Invisible",
+        Callback = function(state)
+            toggleInvisible(state)
+        end,
+    })
 
--- ================== BOX TIMER (DI BAWAH PESAN) ==================
-local timerBox = Instance.new("Frame", contentInfo)
-timerBox.Size = UDim2.new(0.96, 0, 0, 50)
-timerBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-Instance.new("UICorner", timerBox).CornerRadius = UDim.new(0, 10)
+    -- ================== TAB ESP ==================
+    local TabESP = Window:CreateTab("ESP", "eye")
 
-timerLabel = Instance.new("TextLabel", timerBox)
-timerLabel.Size = UDim2.new(1, -20, 1, 0)
-timerLabel.Position = UDim2.new(0, 10, 0, 0)
-timerLabel.BackgroundTransparency = 1
-timerLabel.Text = ""
-timerLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-timerLabel.Font = Enum.Font.GothamBold
-timerLabel.TextSize = 11
-timerLabel.TextWrapped = true
-timerLabel.TextYAlignment = Enum.TextYAlignment.Center
+    TabESP:CreateToggle({
+        Name = "ESP Box",
+        CurrentValue = false,
+        Flag = "ESPBox",
+        Callback = function(state)
+            espEnabled = state
+        end,
+    })
 
--- Update tampilan timer pertama kali
-updateTimerDisplay()
+    TabESP:CreateToggle({
+        Name = "ESP Line",
+        CurrentValue = false,
+        Flag = "ESPLine",
+        Callback = function(state)
+            lineEnabled = state
+        end,
+    })
 
--- ================== BOX KONTAK DEVELOPER ==================
-local contactBox = Instance.new("Frame", contentInfo)
-contactBox.Size = UDim2.new(0.96, 0, 0, 0)
-contactBox.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-contactBox.AutomaticSize = Enum.AutomaticSize.Y
-Instance.new("UICorner", contactBox).CornerRadius = UDim.new(0, 10)
+    TabESP:CreateToggle({
+        Name = "ESP Skeleton",
+        CurrentValue = false,
+        Flag = "ESPSkeleton",
+        Callback = function(state)
+            skeletonEnabled = state
+        end,
+    })
 
-local contactText = Instance.new("TextLabel", contactBox)
-contactText.Size = UDim2.new(1, -20, 0, 0)
-contactText.Position = UDim2.new(0, 10, 0, 10)
-contactText.BackgroundTransparency = 1
-contactText.Text = [[
-📢 Pantau channel WhatsApp / Telegram untuk info update terbaru.
+    TabESP:CreateToggle({
+        Name = "Player Counter",
+        CurrentValue = false,
+        Flag = "PlayerCounter",
+        Callback = function(state)
+            playerCounterEnabled = state
+        end,
+    })
 
-💬 KONTAK DEVELOPER:
-   WhatsApp: 088976255131
-   TikTok: @putzz_mvpp
+    -- ================== TAB UTILITY ==================
+    local TabUtil = Window:CreateTab("Utility", "settings")
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⚠️ DRIP CLIENT - MAINTENANCE MODE ⚠️
-]]
-contactText.TextColor3 = Color3.fromRGB(200, 210, 240)
-contactText.Font = Enum.Font.Gotham
-contactText.TextSize = 12
-contactText.TextWrapped = true
-contactText.TextYAlignment = Enum.TextYAlignment.Top
-contactText.TextXAlignment = Enum.TextXAlignment.Left
-
-task.wait(0.1)
-contactBox.Size = UDim2.new(0.96, 0, 0, contactText.TextBounds.Y + 20)
-
--- ================== TOMBOL GESER (IMAGE) ==================
-local openBtn = Instance.new("ImageButton", ScreenGui)
-openBtn.Size = UDim2.new(0, 50, 0, 50)
-openBtn.Position = UDim2.new(0, 15, 0.5, -25)
-openBtn.BackgroundTransparency = 1
-openBtn.Image = "rbxassetid://72495850369898"
-openBtn.Active = true
-openBtn.Draggable = true
-Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0, 10)
-
-local btnStroke = Instance.new("UIStroke", openBtn)
-btnStroke.Color = Color3.new(1, 1, 1)
-btnStroke.Thickness = 1.2
-
-local menuOpen = true
-openBtn.MouseButton1Click:Connect(function()
-    menuOpen = not menuOpen
-    if menuOpen then
-        mainFrame.Visible = true
-        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -195, 0.5, -225)}):Play()
-    else
-        TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {Position = UDim2.new(0.5, -195, 1, 10)}):Play()
-        task.wait(0.2)
-        mainFrame.Visible = false
+    -- Teleport ke Player
+    local playerNames = {}
+    local function refreshPlayers()
+        playerNames = {}
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer then
+                table.insert(playerNames, p.Name)
+            end
+        end
+        if #playerNames == 0 then playerNames = {"(Tidak ada player lain)"} end
+        return playerNames
     end
-end)
+    refreshPlayers()
 
-print("DRIP CLIENT - MAINTENANCE MODE ACTIVE")
-print("Timer 5 jam berjalan. Sisa waktu tersimpan di file:", TIMER_FILE)
+    TabUtil:CreateDropdown({
+        Name = "Teleport ke Player",
+        Options = playerNames,
+        CurrentOption = {},
+        MultipleOptions = false,
+        Flag = "TeleportPlayer",
+        Callback = function(selected)
+            local targetName = selected
+            if type(selected) == "table" then targetName = selected[1] end
+            local target = Players:FindFirstChild(targetName)
+            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+               and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+                Rayfield:Notify({Title = "Teleport", Content = "Berhasil teleport ke " .. targetName, Duration = 2, Image = 4483362458})
+            end
+        end,
+    })
+
+    TabUtil:CreateButton({
+        Name = "Refresh Daftar Player",
+        Callback = function()
+            refreshPlayers()
+            Rayfield:Notify({Title = "Refresh", Content = "Daftar player diperbarui.", Duration = 2, Image = 4483362458})
+        end,
+    })
+
+    TabUtil:CreateDivider()
+
+    -- Freeze All
+    local freezeAllEnabled = false
+    TabUtil:CreateToggle({
+        Name = "Freeze All Player (Visual)",
+        CurrentValue = false,
+        Flag = "FreezeAll",
+        Callback = function(state)
+            freezeAllEnabled = state
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    for _, part in pairs(p.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            pcall(function() part.Anchored = state end)
+                        end
+                    end
+                end
+            end
+        end,
+    })
+
+    -- Freeze Diri
+    local freezeSelfEnabled = false
+    TabUtil:CreateToggle({
+        Name = "Freeze Diri Sendiri",
+        CurrentValue = false,
+        Flag = "FreezeSelf",
+        Callback = function(state)
+            freezeSelfEnabled = state
+            local myChar = LocalPlayer.Character
+            if myChar then
+                local hrp = myChar:FindFirstChild("HumanoidRootPart")
+                if hrp then hrp.Anchored = state end
+            end
+        end,
+    })
+
+    LocalPlayer.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        if freezeSelfEnabled then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then hrp.Anchored = true end
+        end
+        task.wait(1)
+        if noclipEnabled then startNoclip() end
+        if flyEnabled then startFlyMode() end
+    end)
+
+    -- ================== TAB INFO ==================
+    local TabInfo = Window:CreateTab("Info", "info")
+
+    TabInfo:CreateSection("Informasi Lisensi")
+
+    TabInfo:CreateLabel("Executor: " .. userExecutor)
+    TabInfo:CreateLabel("Paket: " .. keyJenis)
+
+    -- Label countdown
+    local countdownElement = TabInfo:CreateLabel("Menghubungkan sisa durasi server...")
+    
+    -- Update infoKeyCountdownLabel untuk countdown timer
+    infoKeyCountdownLabel = countdownElement
+
+    TabInfo:CreateDivider()
+    TabInfo:CreateSection("Developer")
+    TabInfo:CreateLabel("Developer: Putzzdev")
+    TabInfo:CreateLabel("WhatsApp: 088976255131")
+
+    TabInfo:CreateButton({
+        Name = "Salin Link Get Key",
+        Callback = function()
+            if setclipboard then
+                setclipboard(WEBSITE_URL)
+                Rayfield:Notify({Title = "Berhasil", Content = "Link key berhasil disalin!", Duration = 3, Image = 4483362458})
+            else
+                Rayfield:Notify({Title = "Info", Content = WEBSITE_URL, Duration = 5, Image = 4483362458})
+            end
+        end,
+    })
+end
+
+-- ================== KEY SYSTEM RAYFIELD ==================
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local KeyWindow = Rayfield:CreateWindow({
+    Name = "Drip Client - Verifikasi",
+    LoadingTitle = "Drip Client",
+    LoadingSubtitle = "Masukkan Key Premium Anda",
+    Theme = "Amethyst",
+    DisableRayfieldPrompts = true,
+    DisableBuildWarnings = true,
+    ConfigurationSaving = { Enabled = false },
+    KeySystem = false,
+})
+
+local KeyTab = KeyWindow:CreateTab("Key System", "key-round")
+KeyTab:CreateSection("Autentikasi Key Server")
+
+local statusLabel = KeyTab:CreateLabel("Menunggu verifikasi lisensi...")
+
+-- Variabel untuk menyimpan input key
+local inputKeyValue = ""
+
+KeyTab:CreateInput({
+    Name = "Masukkan Key Premium",
+    PlaceholderText = "Input key server di sini...",
+    RemoveTextAfterFocusLost = false,
+    Flag = "KeyInput",
+    Callback = function(text)
+        inputKeyValue = text  -- Simpan setiap kali user mengetik
+    end,
+})
+
+KeyTab:CreateButton({
+    Name = "AUTENTIKASI KEY",
+    Callback = function()
+        local inputKey = inputKeyValue  -- Ambil dari variabel
+        inputKey = tostring(inputKey):gsub("%s+", "")
+
+        if inputKey == "" then
+            pcall(function() statusLabel:Set("❌ Key tidak boleh kosong!") end)
+            Rayfield:Notify({Title = "Error", Content = "Key tidak boleh kosong!", Duration = 3, Image = 4483362458})
+            return
+        end
+
+        pcall(function() statusLabel:Set("🔄 Sedang verifikasi ke database server...") end)
+        Rayfield:Notify({Title = "Verifikasi", Content = "Mengecek key ke server...", Duration = 2, Image = 4483362458})
+
+        local isValid, message = checkKeyExpiry(inputKey)
+
+        if isValid then
+            pcall(function() statusLabel:Set("✅ Key Valid! Memuat interface...") end)
+            Rayfield:Notify({Title = "Sukses!", Content = "Key valid! Interface sedang dimuat.", Duration = 3, Image = 4483362458})
+            task.wait(1.5)
+            pcall(function() KeyWindow:Destroy() end)
+            task.wait(0.3)
+            loadMainScript()
+        else
+            pcall(function() statusLabel:Set("❌ " .. message) end)
+            Rayfield:Notify({Title = "Gagal", Content = message, Duration = 4, Image = 4483362458})
+        end
+    end,
+})
+
+KeyTab:CreateButton({
+    Name = "Ambil Key (Salin Link)",
+    Callback = function()
+        if setclipboard then
+            setclipboard(WEBSITE_URL)
+            Rayfield:Notify({Title = "Link Disalin", Content = "Buka browser dan paste link untuk mendapatkan key.", Duration = 4, Image = 4483362458})
+        else
+            Rayfield:Notify({Title = "Link Key", Content = WEBSITE_URL, Duration = 6, Image = 4483362458})
+        end
+    end,
+})
+
+-- ================== ESP PLAYER INIT ==================
+for _, p in pairs(Players:GetPlayers()) do createESP(p) createSkeleton(p) end
+Players.PlayerAdded:Connect(function(p) createESP(p) createSkeleton(p) end)
+Players.PlayerRemoving:Connect(function(p)
+    if ESPTable[p] then for _, d in pairs(ESPTable[p]) do pcall(function() d:Remove() end) end ESPTable[p] = nil end
+    if SkeletonESP[p] then for _, ld in pairs(SkeletonESP[p]) do pcall(function() ld[1]:Remove() end) end SkeletonESP[p] = nil end
+end)
