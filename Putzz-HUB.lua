@@ -398,8 +398,8 @@ end
 local function createESP(player)
     if player == LocalPlayer then return end
     local box = Drawing.new("Square") box.Thickness = 1.8 box.Filled = false box.Visible = false
-    local name = Drawing.new("Text") name.Size = 13 name.Center = true name.Outline = true name.Visible = false
-    local dist = Drawing.new("Text") dist.Size = 11 dist.Center = true dist.Outline = true dist.Visible = false
+    local name = Drawing.new("Text") name.Size = 13 name.Center = true name.Outline = true name.Visible = false name.Color = Color3.fromRGB(255,255,255)
+    local dist = Drawing.new("Text") dist.Size = 11 dist.Center = true dist.Outline = true dist.Visible = false dist.Color = Color3.fromRGB(255,255,255)
     local line = Drawing.new("Line") line.Thickness = 1.8 line.Visible = false
     local healthBg = Drawing.new("Square") healthBg.Filled = true healthBg.Visible = false
     local healthFg = Drawing.new("Square") healthFg.Filled = true healthFg.Visible = false
@@ -476,7 +476,7 @@ RunService.RenderStepped:Connect(function()
             end
 
             if lineEnabled and visible then
-                line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                line.From = Vector2.new(Camera.ViewportSize.X / 2, 0)
                 line.To = Vector2.new(pos.X, pos.Y)
                 line.Color = lineColor
                 line.Visible = true
