@@ -101,22 +101,6 @@ end)
 
 TabInfo:CreateDivider()
 
--- ================== INFO UPDATE (RINGKASAN) ==================
-TabInfo:CreateSection("📢 Info Update")
-
-local infoText = [[
-🔔 DRIP CLIENT sedang dalam MAINTENANCE.
-
-📱 Gabung Channel WhatsApp untuk info update:
-   https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R
-
-💡 Klik tab "Update Detail" untuk info lengkap!
-]]
-
-TabInfo:CreateParagraph(infoText)
-
-TabInfo:CreateDivider()
-
 -- ================== PESAN DARI DEVELOPER ==================
 TabInfo:CreateSection("Pesan Developer")
 
@@ -137,6 +121,8 @@ TabInfo:CreateDivider()
 -- ================== KONTAK DEVELOPER ==================
 TabInfo:CreateSection("Kontak Developer")
 
+TabInfo:CreateLabel("📢 Pantau channel WhatsApp untuk info update terbaru.")
+TabInfo:CreateLabel("")
 TabInfo:CreateLabel("💬 KONTAK DEVELOPER:")
 TabInfo:CreateLabel("   WhatsApp: 088976255131")
 TabInfo:CreateLabel("   TikTok: @putzz_mvpp")
@@ -185,10 +171,10 @@ TabInfo:CreateButton({
     end,
 })
 
--- ================== TAB UPDATE DETAIL (BARU) ==================
-local TabUpdateDetail = Window:CreateTab("Update Detail", "clipboard")
+-- ================== TAB SALURAN (BARU) ==================
+local TabSaluran = Window:CreateTab("Saluran", "message-circle")
 
-TabUpdateDetail:CreateSection("📢 Channel WhatsApp")
+TabSaluran:CreateSection("info update detail")
 
 local waText = [[
 📱 JOIN CHANNEL WHATSAPP RESMI:
@@ -204,9 +190,9 @@ local waText = [[
 💡 Bergabunglah agar tidak ketinggalan info terbaru!
 ]]
 
-TabUpdateDetail:CreateParagraph(waText)
+TabSaluran:CreateParagraph(waText)
 
-TabUpdateDetail:CreateButton({
+TabSaluran:CreateButton({
     Name = "📋 Salin Link Channel WhatsApp",
     Callback = function()
         local channelLink = "https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R"
@@ -229,9 +215,9 @@ TabUpdateDetail:CreateButton({
     end,
 })
 
-TabUpdateDetail:CreateDivider()
+TabSaluran:CreateDivider()
 
-TabUpdateDetail:CreateSection("📋 Changelog v8.3")
+TabSaluran:CreateSection("📋 Changelog v8.3")
 
 local changelog = [[
 📋 DAFTAR PERUBAHAN (UPDATE v8.3):
@@ -257,25 +243,19 @@ local changelog = [[
 
 📅 Tanggal Update: 17 Juni 2026
 ⏰ Waktu: 01:40 WIB
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📢 STATUS: MAINTENANCE BERJALAN
-   Perkiraan selesai dalam 5 jam.
-   Ikuti channel WhatsApp untuk notifikasi!
 ]]
 
-TabUpdateDetail:CreateParagraph(changelog)
+TabSaluran:CreateParagraph(changelog)
 
-TabUpdateDetail:CreateDivider()
+TabSaluran:CreateDivider()
 
-TabUpdateDetail:CreateSection("🚀 Update Selanjutnya")
+TabSaluran:CreateSection("🚀 Update Selanjutnya")
 
-TabUpdateDetail:CreateLabel("Fitur yang akan datang:")
-TabUpdateDetail:CreateLabel("   • Auto Farm (otomatis farming)")
-TabUpdateDetail:CreateLabel("   • Aim Assist (auto aim)")
-TabUpdateDetail:CreateLabel("   • Custom Theme (ganti tema)")
-TabUpdateDetail:CreateLabel("   • Anti Ban (perlindungan tambahan)")
+TabSaluran:CreateLabel("Fitur yang akan datang:")
+TabSaluran:CreateLabel("   • Auto Farm (otomatis farming)")
+TabSaluran:CreateLabel("   • Aim Assist (auto aim)")
+TabSaluran:CreateLabel("   • Custom Theme (ganti tema)")
+TabSaluran:CreateLabel("   • Anti Ban (perlindungan tambahan)")
 
 -- ================== TAB STATISTIK ==================
 local TabStats = Window:CreateTab("Statistik", "bar-chart")
