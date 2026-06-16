@@ -171,10 +171,10 @@ TabInfo:CreateButton({
     end,
 })
 
--- ================== TAB SALURAN (BARU) ==================
-local TabSaluran = Window:CreateTab("Saluran", "message-circle")
+-- ================== TAB UPDATE DETAIL ==================
+local TabUpdateDetail = Window:CreateTab("update detail", "clipboard")
 
-TabSaluran:CreateSection("info update detail")
+TabUpdateDetail:CreateSection("📢 Channel WhatsApp")
 
 local waText = [[
 📱 JOIN CHANNEL WHATSAPP RESMI:
@@ -190,9 +190,9 @@ local waText = [[
 💡 Bergabunglah agar tidak ketinggalan info terbaru!
 ]]
 
-TabSaluran:CreateParagraph(waText)
+TabUpdateDetail:CreateParagraph(waText)
 
-TabSaluran:CreateButton({
+TabUpdateDetail:CreateButton({
     Name = "📋 Salin Link Channel WhatsApp",
     Callback = function()
         local channelLink = "https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R"
@@ -215,9 +215,9 @@ TabSaluran:CreateButton({
     end,
 })
 
-TabSaluran:CreateDivider()
+TabUpdateDetail:CreateDivider()
 
-TabSaluran:CreateSection("📋 Changelog v8.3")
+TabUpdateDetail:CreateSection("📋 Changelog v8.3")
 
 local changelog = [[
 📋 DAFTAR PERUBAHAN (UPDATE v8.3):
@@ -245,17 +245,17 @@ local changelog = [[
 ⏰ Waktu: 01:40 WIB
 ]]
 
-TabSaluran:CreateParagraph(changelog)
+TabUpdateDetail:CreateParagraph(changelog)
 
-TabSaluran:CreateDivider()
+TabUpdateDetail:CreateDivider()
 
-TabSaluran:CreateSection("🚀 Update Selanjutnya")
+TabUpdateDetail:CreateSection("🚀 Update Selanjutnya")
 
-TabSaluran:CreateLabel("Fitur yang akan datang:")
-TabSaluran:CreateLabel("   • Auto Farm (otomatis farming)")
-TabSaluran:CreateLabel("   • Aim Assist (auto aim)")
-TabSaluran:CreateLabel("   • Custom Theme (ganti tema)")
-TabSaluran:CreateLabel("   • Anti Ban (perlindungan tambahan)")
+TabUpdateDetail:CreateLabel("Fitur yang akan datang:")
+TabUpdateDetail:CreateLabel("   • Auto Farm (otomatis farming)")
+TabUpdateDetail:CreateLabel("   • Aim Assist (auto aim)")
+TabUpdateDetail:CreateLabel("   • Custom Theme (ganti tema)")
+TabUpdateDetail:CreateLabel("   • Anti Ban (perlindungan tambahan)")
 
 -- ================== TAB STATISTIK ==================
 local TabStats = Window:CreateTab("Statistik", "bar-chart")
