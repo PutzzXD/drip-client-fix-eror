@@ -134,6 +134,32 @@ TabInfo:CreateLabel("")
 TabInfo:CreateLabel("💬 KONTAK DEVELOPER:")
 TabInfo:CreateLabel("   WhatsApp: 088976255131")
 TabInfo:CreateLabel("   TikTok: @putzz_mvpp")
+TabInfo:CreateLabel("")
+TabInfo:CreateLabel("📱 Channel WhatsApp:")
+
+-- Tombol Salin Link Channel WhatsApp
+TabInfo:CreateButton({
+    Name = "📋 Salin Link Channel WhatsApp",
+    Callback = function()
+        local channelLink = "https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R"
+        if setclipboard then
+            setclipboard(channelLink)
+            Rayfield:Notify({
+                Title = "Berhasil!",
+                Content = "Link Channel WhatsApp berhasil disalin!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
+                Title = "Info",
+                Content = channelLink,
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end,
+})
 
 TabInfo:CreateDivider()
 
@@ -247,30 +273,83 @@ TabStats:CreateLabel("Player: " .. LocalPlayer.Name)
 -- ================== TAB UPDATE LOG ==================
 local TabUpdate = Window:CreateTab("Update Log", "clipboard")
 
-TabUpdate:CreateSection("Changelog")
+TabUpdate:CreateSection("📢 Channel WhatsApp")
+
+TabUpdate:CreateParagraph("Gabung ke channel WhatsApp untuk info update terbaru!")
+
+TabUpdate:CreateButton({
+    Name = "📱 Buka Channel WhatsApp",
+    Callback = function()
+        local channelLink = "https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R"
+        if setclipboard then
+            setclipboard(channelLink)
+            Rayfield:Notify({
+                Title = "Link Disalin!",
+                Content = "Paste di browser untuk membuka channel",
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
+                Title = "Link Channel",
+                Content = channelLink,
+                Duration = 5,
+                Image = 4483362458
+            })
+        end
+    end,
+})
+
+TabUpdate:CreateDivider()
+
+TabUpdate:CreateSection("📋 Changelog v8.3")
 
 local changelog = [[
 📋 DAFTAR PERUBAHAN (UPDATE v8.3):
 
 ✅ FIX:
-   - Memperbaiki bug pada sistem key
-   - Memperbaiki ESP yang tidak stabil
-   - Optimasi performa UI
+   • Memperbaiki bug pada sistem key
+   • Memperbaiki ESP yang tidak stabil
+   • Optimasi performa UI
+   • Fix error pada sistem verifikasi
 
 ✨ FITUR BARU:
-   - Menambahkan sistem auto-update
-   - UI lebih responsif
-   - Fitur anti-kick
+   • Sistem auto-update maintenance
+   • UI lebih responsif dan modern
+   • Fitur anti-kick
+   • Full Bright & No Fog
+   • Rejoin & Server Hop
 
 🔄 DALAM PENGERJAAN:
-   - Aim assist
-   - Auto farm
-   - Custom theme
+   • Aim assist
+   • Auto farm
+   • Custom theme
+   • Fitur anti-ban
 
 📅 Tanggal Update: 16 Juni 2026
+⏰ Waktu: 22:30 WIB
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📢 INFO PENTING:
+   Script sedang dalam maintenance.
+   Ikuti channel WhatsApp untuk notifikasi
+   ketika update selesai!
+
+   🔗 https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R
 ]]
 
 TabUpdate:CreateParagraph(changelog)
+
+TabUpdate:CreateDivider()
+
+TabUpdate:CreateSection("Update Selanjutnya")
+
+TabUpdate:CreateLabel("🚀 Fitur yang akan datang:")
+TabUpdate:CreateLabel("   • Auto Farm (otomatis farming)")
+TabUpdate:CreateLabel("   • Aim Assist (auto aim)")
+TabUpdate:CreateLabel("   • Custom Theme (ganti tema)")
+TabUpdate:CreateLabel("   • Anti Ban (perlindungan tambahan)")
 
 -- ================== TAB SETTINGS ==================
 local TabSettings = Window:CreateTab("Settings", "settings")
