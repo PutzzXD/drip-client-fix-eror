@@ -519,15 +519,40 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- ================== COUNTDOWN KEY TIMER ==================
+-- Timer disimpan dan diupdate saat label sudah siap
 task.spawn(function()
     while true do
         task.wait(1)
-        if keyValidGlobal and keyExpiryTime > 0 and infoKeyCountdownLabel then
+        if keyValidGlobal and keyExpiryTime > 0 then
             local _, _, _, _, timeStr = getTimeRemaining(keyExpiryTime)
+            local displayText
             if os.time() > keyExpiryTime then
-                infoKeyCountdownLabel.Text = "Status Key: EXPIRED!"
+                displayText = "Status Key: EXPIRED!"
             else
-                infoKeyCountdownLabel.Text = "Sisa Durasi: " .. timeStr
+                displayText = "Sisa Durasi: " .. timeStr
+            end
+            -- Update label Rayfield jika sudah ada
+            if infoKeyCountdownLabel then
+                pcall(function()
+                    -- Rayfield label update via set method
+                    if infoKeyCountdownLabel.Set then
+                        infoKeyCountdownLabel:Set(displayText)
+                    elseif infoKeyCountdownLabel.UpdateLabel then
+                        infoKeyCountdownLabel:UpdateLabel(displayText)
+                    else
+                        -- Fallback: update TextLabel langsung di dalam frame
+                        for _, v in pairs(infoKeyCountdownLabel:GetDescendants and infoKeyCountdownLabel:GetDescendants() or {}) do
+                            if v:IsA("TextLabel") then
+                                v.Text = displayText
+                                break
+                            end
+                        end
+                    end
+                end)
+            end
+            -- Update Drawing text overlay sebagai fallback
+            if _G.DripCountdownText then
+                _G.DripCountdownText.Text = displayText
             end
         end
     end
@@ -820,13 +845,49 @@ local function loadMainScript()
     TabInfo:CreateSection("Informasi Lisensi")
 
     TabInfo:CreateLabel("Executor: " .. userExecutor)
-    TabInfo:CreateLabel("Paket: " .. keyJenis)
+    local keyPaketStr = keyJenis ~= "" and keyJenis or "Tidak diketahui"
+    local keyExpStr = ""
+    if keyValidGlobal and keyExpiryTime > 0 then
+        local d,h,m,_,_ = getTimeRemaining(keyExpiryTime)
+        keyExpStr = " | Sisa ~" .. d .. "h " .. h .. "j"
+    end
+    TabInfo:CreateLabel("Paket: " .. keyPaketStr .. keyExpStr)
 
-    -- Label countdown
-    local countdownElement = TabInfo:CreateLabel("Menghubungkan sisa durasi server...")
-    
-    -- Update infoKeyCountdownLabel untuk countdown timer
+    -- Label countdown - update langsung dari keyExpiryTime yang sudah tersimpan
+    local initCountdown = "Memuat..."
+    if keyValidGlobal and keyExpiryTime > 0 then
+        local _, _, _, _, ts = getTimeRemaining(keyExpiryTime)
+        initCountdown = os.time() > keyExpiryTime and "EXPIRED!" or "Sisa: " .. ts
+    end
+    local countdownElement = TabInfo:CreateLabel(initCountdown)
     infoKeyCountdownLabel = countdownElement
+
+    -- Spawn dedicated updater untuk label ini
+    task.spawn(function()
+        while true do
+            task.wait(1)
+            if not keyValidGlobal or keyExpiryTime <= 0 then task.wait(5); continue end
+            local _, _, _, _, ts = getTimeRemaining(keyExpiryTime)
+            local txt = os.time() > keyExpiryTime and "⛔ Key EXPIRED!" or ("⏳ Sisa: " .. ts)
+            pcall(function()
+                -- Cari TextLabel di dalam frame countdownElement
+                local found = false
+                if countdownElement and countdownElement.Set then
+                    countdownElement:Set(txt); found=true
+                end
+                if not found then
+                    -- Deep search TextLabel
+                    local function findLabel(inst)
+                        for _, v in pairs(inst:GetChildren()) do
+                            if v:IsA("TextLabel") then v.Text = txt; found=true; return end
+                            findLabel(v)
+                        end
+                    end
+                    if typeof(countdownElement) == "Instance" then findLabel(countdownElement) end
+                end
+            end)
+        end
+    end)
 
     TabInfo:CreateDivider()
     TabInfo:CreateSection("Developer")
