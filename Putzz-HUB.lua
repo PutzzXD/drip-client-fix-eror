@@ -48,6 +48,7 @@ local keyExpiryTime = 0
 local keyJenis = ""
 local keyValidGlobal = false
 local infoKeyCountdownLabel = nil
+local mainWindowLoaded = false
 
 local function loadKeyData()
     if isfile and isfile(SAVE_FILE) then
@@ -518,48 +519,11 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- ================== COUNTDOWN KEY TIMER ==================
--- Timer disimpan dan diupdate saat label sudah siap
-task.spawn(function()
-    while true do
-        task.wait(1)
-        if keyValidGlobal and keyExpiryTime > 0 then
-            local _, _, _, _, timeStr = getTimeRemaining(keyExpiryTime)
-            local displayText
-            if os.time() > keyExpiryTime then
-                displayText = "Status Key: EXPIRED!"
-            else
-                displayText = "Sisa Durasi: " .. timeStr
-            end
-            -- Update label Rayfield jika sudah ada
-            if infoKeyCountdownLabel then
-                pcall(function()
-                    -- Rayfield label update via set method
-                    if infoKeyCountdownLabel.Set then
-                        infoKeyCountdownLabel:Set(displayText)
-                    elseif infoKeyCountdownLabel.UpdateLabel then
-                        infoKeyCountdownLabel:UpdateLabel(displayText)
-                    else
-                        -- Fallback: update TextLabel langsung di dalam frame
-                        for _, v in pairs(infoKeyCountdownLabel:GetDescendants and infoKeyCountdownLabel:GetDescendants() or {}) do
-                            if v:IsA("TextLabel") then
-                                v.Text = displayText
-                                break
-                            end
-                        end
-                    end
-                end)
-            end
-            -- Update Drawing text overlay sebagai fallback
-            if _G.DripCountdownText then
-                _G.DripCountdownText.Text = displayText
-            end
-        end
-    end
-end)
-
 -- ================== MAIN RAYFIELD UI ==================
 local function loadMainScript()
+    if mainWindowLoaded then return end
+    mainWindowLoaded = true
+    
     createPlayerCounter()
 
     local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
@@ -846,46 +810,25 @@ local function loadMainScript()
 
     TabInfo:CreateLabel("Executor: " .. userExecutor)
     local keyPaketStr = keyJenis ~= "" and keyJenis or "Tidak diketahui"
-    local keyExpStr = ""
-    if keyValidGlobal and keyExpiryTime > 0 then
-        local d,h,m,_,_ = getTimeRemaining(keyExpiryTime)
-        keyExpStr = " | Sisa ~" .. d .. "h " .. h .. "j"
-    end
-    TabInfo:CreateLabel("Paket: " .. keyPaketStr .. keyExpStr)
+    TabInfo:CreateLabel("Paket: " .. keyPaketStr)
 
-    -- Label countdown - update langsung dari keyExpiryTime yang sudah tersimpan
-    local initCountdown = "Memuat..."
-    if keyValidGlobal and keyExpiryTime > 0 then
-        local _, _, _, _, ts = getTimeRemaining(keyExpiryTime)
-        initCountdown = os.time() > keyExpiryTime and "EXPIRED!" or "Sisa: " .. ts
-    end
-    local countdownElement = TabInfo:CreateLabel(initCountdown)
+    -- Label countdown
+    local countdownElement = TabInfo:CreateLabel("Memuat waktu...")
     infoKeyCountdownLabel = countdownElement
 
-    -- Spawn dedicated updater untuk label ini
+    -- Update countdown setiap detik
     task.spawn(function()
         while true do
             task.wait(1)
-            if not keyValidGlobal or keyExpiryTime <= 0 then task.wait(5); continue end
-            local _, _, _, _, ts = getTimeRemaining(keyExpiryTime)
-            local txt = os.time() > keyExpiryTime and "⛔ Key EXPIRED!" or ("⏳ Sisa: " .. ts)
-            pcall(function()
-                -- Cari TextLabel di dalam frame countdownElement
-                local found = false
-                if countdownElement and countdownElement.Set then
-                    countdownElement:Set(txt); found=true
-                end
-                if not found then
-                    -- Deep search TextLabel
-                    local function findLabel(inst)
-                        for _, v in pairs(inst:GetChildren()) do
-                            if v:IsA("TextLabel") then v.Text = txt; found=true; return end
-                            findLabel(v)
-                        end
+            if keyValidGlobal and keyExpiryTime > 0 then
+                local _, _, _, _, timeStr = getTimeRemaining(keyExpiryTime)
+                local txt = os.time() > keyExpiryTime and "⛔ Key EXPIRED!" or ("⏳ Sisa: " .. timeStr)
+                pcall(function()
+                    if countdownElement and countdownElement.Set then
+                        countdownElement:Set(txt)
                     end
-                    if typeof(countdownElement) == "Instance" then findLabel(countdownElement) end
-                end
-            end)
+                end)
+            end
         end
     end)
 
@@ -908,79 +851,81 @@ local function loadMainScript()
 end
 
 -- ================== KEY SYSTEM RAYFIELD ==================
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local function startKeySystem()
+    local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
-local KeyWindow = Rayfield:CreateWindow({
-    Name = "Drip Client - Verifikasi",
-    LoadingTitle = "Drip Client",
-    LoadingSubtitle = "Masukkan Key Premium Anda",
-    Theme = "Amethyst",
-    DisableRayfieldPrompts = true,
-    DisableBuildWarnings = true,
-    ConfigurationSaving = { Enabled = false },
-    KeySystem = false,
-})
+    local KeyWindow = Rayfield:CreateWindow({
+        Name = "Drip Client - Verifikasi",
+        LoadingTitle = "Drip Client",
+        LoadingSubtitle = "Masukkan Key Premium Anda",
+        Theme = "Amethyst",
+        DisableRayfieldPrompts = true,
+        DisableBuildWarnings = true,
+        ConfigurationSaving = { Enabled = false },
+        KeySystem = false,
+    })
 
-local KeyTab = KeyWindow:CreateTab("Key System", "key-round")
-KeyTab:CreateSection("Autentikasi Key Server")
+    local KeyTab = KeyWindow:CreateTab("Key System", "key-round")
+    KeyTab:CreateSection("Autentikasi Key Server")
 
-local statusLabel = KeyTab:CreateLabel("Menunggu verifikasi lisensi...")
+    local statusLabel = KeyTab:CreateLabel("Menunggu verifikasi lisensi...")
 
--- Variabel untuk menyimpan input key
-local inputKeyValue = ""
+    -- Variabel untuk menyimpan input key
+    local inputKeyValue = ""
 
-KeyTab:CreateInput({
-    Name = "Masukkan Key Premium",
-    PlaceholderText = "Input key server di sini...",
-    RemoveTextAfterFocusLost = false,
-    Flag = "KeyInput",
-    Callback = function(text)
-        inputKeyValue = text  -- Simpan setiap kali user mengetik
-    end,
-})
+    KeyTab:CreateInput({
+        Name = "Masukkan Key Premium",
+        PlaceholderText = "Input key server di sini...",
+        RemoveTextAfterFocusLost = false,
+        Flag = "KeyInput",
+        Callback = function(text)
+            inputKeyValue = text
+        end,
+    })
 
-KeyTab:CreateButton({
-    Name = "AUTENTIKASI KEY",
-    Callback = function()
-        local inputKey = inputKeyValue  -- Ambil dari variabel
-        inputKey = tostring(inputKey):gsub("%s+", "")
+    KeyTab:CreateButton({
+        Name = "AUTENTIKASI KEY",
+        Callback = function()
+            local inputKey = inputKeyValue
+            inputKey = tostring(inputKey):gsub("%s+", "")
 
-        if inputKey == "" then
-            pcall(function() statusLabel:Set("❌ Key tidak boleh kosong!") end)
-            Rayfield:Notify({Title = "Error", Content = "Key tidak boleh kosong!", Duration = 3, Image = 4483362458})
-            return
-        end
+            if inputKey == "" then
+                pcall(function() statusLabel:Set("❌ Key tidak boleh kosong!") end)
+                Rayfield:Notify({Title = "Error", Content = "Key tidak boleh kosong!", Duration = 3, Image = 4483362458})
+                return
+            end
 
-        pcall(function() statusLabel:Set("🔄 Sedang verifikasi ke database server...") end)
-        Rayfield:Notify({Title = "Verifikasi", Content = "Mengecek key ke server...", Duration = 2, Image = 4483362458})
+            pcall(function() statusLabel:Set("🔄 Sedang verifikasi ke database server...") end)
+            Rayfield:Notify({Title = "Verifikasi", Content = "Mengecek key ke server...", Duration = 2, Image = 4483362458})
 
-        local isValid, message = checkKeyExpiry(inputKey)
+            local isValid, message = checkKeyExpiry(inputKey)
 
-        if isValid then
-            pcall(function() statusLabel:Set("✅ Key Valid! Memuat interface...") end)
-            Rayfield:Notify({Title = "Sukses!", Content = "Key valid! Interface sedang dimuat.", Duration = 3, Image = 4483362458})
-            task.wait(1.5)
-            pcall(function() KeyWindow:Destroy() end)
-            task.wait(0.3)
-            loadMainScript()
-        else
-            pcall(function() statusLabel:Set("❌ " .. message) end)
-            Rayfield:Notify({Title = "Gagal", Content = message, Duration = 4, Image = 4483362458})
-        end
-    end,
-})
+            if isValid then
+                pcall(function() statusLabel:Set("✅ Key Valid! Memuat interface...") end)
+                Rayfield:Notify({Title = "Sukses!", Content = "Key valid! Interface sedang dimuat.", Duration = 3, Image = 4483362458})
+                task.wait(1.5)
+                pcall(function() KeyWindow:Destroy() end)
+                task.wait(0.3)
+                loadMainScript()
+            else
+                pcall(function() statusLabel:Set("❌ " .. message) end)
+                Rayfield:Notify({Title = "Gagal", Content = message, Duration = 4, Image = 4483362458})
+            end
+        end,
+    })
 
-KeyTab:CreateButton({
-    Name = "Ambil Key (Salin Link)",
-    Callback = function()
-        if setclipboard then
-            setclipboard(WEBSITE_URL)
-            Rayfield:Notify({Title = "Link Disalin", Content = "Buka browser dan paste link untuk mendapatkan key.", Duration = 4, Image = 4483362458})
-        else
-            Rayfield:Notify({Title = "Link Key", Content = WEBSITE_URL, Duration = 6, Image = 4483362458})
-        end
-    end,
-})
+    KeyTab:CreateButton({
+        Name = "Ambil Key (Salin Link)",
+        Callback = function()
+            if setclipboard then
+                setclipboard(WEBSITE_URL)
+                Rayfield:Notify({Title = "Link Disalin", Content = "Buka browser dan paste link untuk mendapatkan key.", Duration = 4, Image = 4483362458})
+            else
+                Rayfield:Notify({Title = "Link Key", Content = WEBSITE_URL, Duration = 6, Image = 4483362458})
+            end
+        end,
+    })
+end
 
 -- ================== ESP PLAYER INIT ==================
 for _, p in pairs(Players:GetPlayers()) do createESP(p) createSkeleton(p) end
@@ -989,3 +934,7 @@ Players.PlayerRemoving:Connect(function(p)
     if ESPTable[p] then for _, d in pairs(ESPTable[p]) do pcall(function() d:Remove() end) end ESPTable[p] = nil end
     if SkeletonESP[p] then for _, ld in pairs(SkeletonESP[p]) do pcall(function() ld[1]:Remove() end) end SkeletonESP[p] = nil end
 end)
+
+-- ================== START ==================
+-- Jalankan key system
+startKeySystem()
