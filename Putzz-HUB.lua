@@ -109,6 +109,32 @@ end)
 
 TabInfo:CreateDivider()
 
+-- ================== INFO UPDATE & CHANNEL WHATSAPP ==================
+TabInfo:CreateSection("📢 Info Update & Channel WhatsApp")
+
+local updateInfoText = [[
+🔔 PENTING!
+
+Script DRIP CLIENT saat ini sedang dalam tahap MAINTENANCE / UPDATE.
+
+Developer sedang melakukan perbaikan bug dan penambahan fitur-fitur terbaru.
+
+📱 JOIN CHANNEL WHATSAPP RESMI:
+   https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R
+
+📌 Dapatkan informasi terbaru mengenai:
+   • Progres update script
+   • Fitur-fitur baru
+   • Notifikasi ketika update selesai
+   • Info penting lainnya
+
+💡 Bergabunglah agar tidak ketinggalan info terbaru!
+]]
+
+TabInfo:CreateParagraph(updateInfoText)
+
+TabInfo:CreateDivider()
+
 -- ================== PESAN DARI DEVELOPER ==================
 TabInfo:CreateSection("Pesan Developer")
 
