@@ -1,404 +1,141 @@
--- ================== DRIP CLIENT - MAINTENANCE MODE (RAYFIELD UI) ==================
--- Script ini muncul saat developer sedang mengupdate script.
--- Timer 5 jam tersimpan secara lokal (tidak reset walau keluar game)
+-- ====================================================================
+-- DRIPT CLIENT PREMIUM — UNIVERSAL MAINTENANCE & COUNTDOWN SYSTEM
+-- ====================================================================
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-local HttpService = game:GetService("HttpService")
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- ================== LOAD RAYFIELD ==================
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-
--- ================== TIMER 5 JAM (TETAP TERSIMPAN) ==================
-local TIMER_FILE = "drip_timer_data.txt"
-local TOTAL_DURATION = 5 * 60 * 60 -- 5 jam dalam detik
-
--- Fungsi baca sisa waktu dari file
-local function loadRemainingTime()
-    if isfile and isfile(TIMER_FILE) then
-        local success, content = pcall(function() return readfile(TIMER_FILE) end)
-        if success and content then
-            local savedTime = tonumber(content)
-            if savedTime and savedTime > 0 then
-                return savedTime
-            end
-        end
-    end
-    return TOTAL_DURATION
-end
-
--- Fungsi simpan sisa waktu
-local function saveRemainingTime(remaining)
-    if writefile then
-        pcall(function() writefile(TIMER_FILE, tostring(math.floor(remaining))) end)
-    end
-end
-
--- Variabel timer
-local remainingSeconds = loadRemainingTime()
-local timerRunning = (remainingSeconds > 0)
-local timerLabel = nil
-
--- Fungsi format waktu
-local function formatTime(seconds)
-    if seconds <= 0 then return "00:00:00" end
-    local hours = math.floor(seconds / 3600)
-    local minutes = math.floor((seconds % 3600) / 60)
-    local secs = seconds % 60
-    return string.format("%02d:%02d:%02d", hours, minutes, secs)
-end
-
--- ================== BUAT WINDOW RAYFIELD ==================
 local Window = Rayfield:CreateWindow({
-    Name = "DRIP CLIENT - MAINTENANCE",
-    LoadingTitle = "DRIP CLIENT",
-    LoadingSubtitle = "Sedang dalam pemeliharaan...",
-    Theme = "Amethyst",
-    DisableRayfieldPrompts = true,
-    DisableBuildWarnings = true,
-    ConfigurationSaving = {
-        Enabled = false,
-    },
+   Name = "Dript Client Premium",
+   LoadingTitle = "Dript Client Premium Core Engine",
+   LoadingSubtitle = "by Putzzdev",
+   ConfigurationSaving = {
+      Enabled = false
+   },
+   Discord = {
+      Enabled = false
+   },
+   KeySystem = false
 })
 
--- ================== TAB INFORMASI ==================
-local TabInfo = Window:CreateTab("Informasi", "info")
+-- ====================================================================
+-- LOGIKA HITUNG MUNDUR (COUNTDOWN TIMER) 24 JAM
+-- ====================================================================
+local targetDuration = 86400 
+local startTime = os.time()
+local targetTime = startTime + targetDuration
 
--- Section Status
-TabInfo:CreateSection("Status Maintenance")
+-- TAB 1: INFORMASI
+local InfoTab = Window:CreateTab("Informasi", 4483362458)
 
--- Label status utama
-local statusLabel = TabInfo:CreateLabel("🔧 DRIP CLIENT - SEDANG DIUPDATE")
--- Label timer (akan diupdate setiap detik)
-timerLabel = TabInfo:CreateLabel("⏳ Perkiraan selesai: " .. formatTime(remainingSeconds))
-
--- Update timer setiap detik
-task.spawn(function()
-    while timerRunning and remainingSeconds > 0 do
-        task.wait(1)
-        remainingSeconds = remainingSeconds - 1
-        saveRemainingTime(remainingSeconds)
-        
-        if remainingSeconds <= 0 then
-            timerRunning = false
-            pcall(function() 
-                if timerLabel and timerLabel.Set then
-                    timerLabel:Set("✅ UPDATE SELESAI! Silakan execute ulang")
-                end
-            end)
-        else
-            pcall(function()
-                if timerLabel and timerLabel.Set then
-                    timerLabel:Set("⏳ Perkiraan selesai: " .. formatTime(remainingSeconds))
-                end
-            end)
-        end
-    end
-end)
-
-TabInfo:CreateDivider()
-
--- ================== PESAN DARI DEVELOPER ==================
-TabInfo:CreateSection("Pesan Developer")
-
-local messageText = [[
-Mohon maaf atas ketidaknyamanannya.
-
-Saat ini developer sedang melakukan proses update pada script / fix error yang ada dan akan menambah fitur terbaru.
-
-Script akan kembali aktif setelah proses update selesai.
-
-Terima kasih atas pengertian dan dukungannya.
-]]
-
-TabInfo:CreateParagraph(messageText)
-
-TabInfo:CreateDivider()
-
--- ================== KONTAK DEVELOPER ==================
-TabInfo:CreateSection("Kontak Developer")
-
-TabInfo:CreateLabel("📢 Pantau channel WhatsApp untuk info update terbaru.")
-TabInfo:CreateLabel("")
-TabInfo:CreateLabel("💬 KONTAK DEVELOPER:")
-TabInfo:CreateLabel("   WhatsApp: 088976255131")
-TabInfo:CreateLabel("   TikTok: @putzz_mvpp")
-
-TabInfo:CreateButton({
-    Name = "📋 Salin Nomor WhatsApp",
-    Callback = function()
-        if setclipboard then
-            setclipboard("088976255131")
-            Rayfield:Notify({
-                Title = "Berhasil!",
-                Content = "Nomor WhatsApp berhasil disalin!",
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Info",
-                Content = "088976255131",
-                Duration = 5,
-                Image = 4483362458
-            })
-        end
-    end,
+-- Pengumuman Rapat & Rahasia (Tanpa Bocoran Fitur)
+InfoTab:CreateParagraph({
+    Title = "⚠️ PEMBERITAHUAN: SYSTEM UNDER MAINTENANCE", 
+    Content = "Halo seluruh pengguna setia Dript Client Premium! Saat ini, core system kami sedang memasuki masa pemeliharaan wajib dan pengamanan database server secara berkala.\n\n" ..
+              "Tim developer sedang fokus melakukan perbaikan bug menyeluruh (fix bugs), melakukan optimalisasi sistem agar performa script jauh lebih ringan, serta menyuntikkan sistem perlindungan tambahan demi keamanan akun Anda.\n\n" ..
+              "Demi kenyamanan bersama, seluruh fungsi eksekusi dinonaktifkan sementara waktu sampai pembaruan ini selesai sepenuhnya."
 })
 
-TabInfo:CreateButton({
-    Name = "📋 Salin Username TikTok",
-    Callback = function()
-        if setclipboard then
-            setclipboard("@putzz_mvpp")
-            Rayfield:Notify({
-                Title = "Berhasil!",
-                Content = "Username TikTok berhasil disalin!",
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Info",
-                Content = "@putzz_mvpp",
-                Duration = 5,
-                Image = 4483362458
-            })
-        end
-    end,
+-- Label Real-time Countdown Timer
+local TimerLabel = InfoTab:CreateLabel("⏳ Sisa Waktu Pemeliharaan: Menghubungkan...")
+
+InfoTab:CreateButton({
+   Name = "Join Saluran WA untuk Info Live Update",
+   Callback = function()
+      setclipboard("https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R")
+      Rayfield:Notify({
+         Title = "Berhasil",
+         Content = "Link saluran WA sudah disalin ke clipboard",
+         Duration = 3,
+         Image = 4483362458
+      })
+   end,
 })
 
--- ================== TAB UPDATE DETAIL ==================
-local TabUpdateDetail = Window:CreateTab("update detail", "clipboard")
+InfoTab:CreateLabel("Script Status: [MAINTENANCE MODE]")
 
-TabUpdateDetail:CreateSection("📢 Channel WhatsApp")
+-- ====================================================================
+-- TAB 2: UPDATE DETAIL
+-- ====================================================================
+local UpdateTab = Window:CreateTab("Update Detail", 4483345875)
 
-local waText = [[
-📱 JOIN CHANNEL WHATSAPP RESMI:
-
-🔗 https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R
-
-📌 Dapatkan informasi terbaru mengenai:
-   • Progres update script
-   • Fitur-fitur baru
-   • Notifikasi ketika update selesai
-   • Info penting lainnya
-
-💡 Bergabunglah agar tidak ketinggalan info terbaru!
-]]
-
-TabUpdateDetail:CreateParagraph(waText)
-
-TabUpdateDetail:CreateButton({
-    Name = "📋 Salin Link Channel WhatsApp",
-    Callback = function()
-        local channelLink = "https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R"
-        if setclipboard then
-            setclipboard(channelLink)
-            Rayfield:Notify({
-                Title = "Berhasil!",
-                Content = "Link Channel WhatsApp berhasil disalin!",
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Info",
-                Content = channelLink,
-                Duration = 5,
-                Image = 4483362458
-            })
-        end
-    end,
+UpdateTab:CreateParagraph({
+    Title = "📢 Rencana Pengembangan Patch Terbaru", 
+    Content = "Kami sedang merombak struktur internal agar script menjadi jauh lebih stabil saat digunakan nanti. Anda dapat memantau info perilisan resmi melalui tautan di bawah."
 })
 
-TabUpdateDetail:CreateDivider()
+UpdateTab:CreateLabel("🌐 Tautan Komunitas Resmi:")
 
-TabUpdateDetail:CreateSection("📋 Changelog v8.3")
+UpdateTab:CreateButton({
+   Name = "Saluran WhatsApp",
+   Callback = function()
+      setclipboard("https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R")
+      Rayfield:Notify({
+         Title = "Link Di Copy",
+         Content = "Link WA Channel berhasil di copy",
+         Duration = 3,
+         Image = 4483362458
+      })
+   end,
+})
 
-local changelog = [[
-📋 DAFTAR PERUBAHAN (UPDATE v8.3):
+UpdateTab:CreateButton({
+   Name = "Buka Link di Browser",
+   Callback = function()
+      local req = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+      if req then
+         req({
+            Url = "https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R",
+            Method = "GET"
+         })
+      end
+      Rayfield:Notify({
+         Title = "Info Launcher",
+         Content = "Jika browser tidak terbuka otomatis, silakan tempel link yang sudah tersalin ke Google Chrome.",
+         Duration = 4,
+         Image = 4483362458
+      })
+      setclipboard("https://whatsapp.com/channel/0029VbD9AJ36rsQm4hMLqR1R")
+   end,
+})
 
-✅ FIX:
-   • Memperbaiki bug pada sistem key
-   • Memperbaiki ESP yang tidak stabil
-   • Optimasi performa UI
-   • Fix error pada sistem verifikasi
+UpdateTab:CreateDivider()
 
-✨ FITUR BARU:
-   • Sistem auto-update maintenance
-   • UI lebih responsif dan modern
-   • Fitur anti-kick
-   • Full Bright & No Fog
-   • Rejoin & Server Hop
+-- Changelog Rahasia (Tanpa Menyebutkan Nama Fiturnya)
+UpdateTab:CreateParagraph({
+    Title = "📝 Changelog v1.1.0 (Upcoming Patch)", 
+    Content = "[+] Added: Penambahan Fitur-Fitur Premium Terbaru\n" ..
+              "[*] Improved: Optimalisasi FPS & Manajemen Memori\n" ..
+              "[*] Improved: Peningkatan Sistem Keamanan Internal (Anti-Ban)\n" ..
+              "[!] Fixed: Pembersihan Masalah Crash Pada Beberapa Device\n" ..
+              "[!] Fixed: Perbaikan Bug Internal (Fix Bugs)"
+})
 
-🔄 DALAM PENGERJAAN:
-   • Aim assist
-   • Auto farm
-   • Custom theme
-   • Fitur anti-ban
+-- Notifikasi Mengambang Saat Script Dimuat Pertama Kali
+Rayfield:Notify({
+   Title = "Dript Client Core",
+   Content = "Sistem mendeteksi status pemeliharaan server. Silakan cek tab Informasi untuk sisa waktu.",
+   Duration = 7,
+   Image = 4483362458
+})
 
-📅 Tanggal Update: 17 Juni 2026
-⏰ Waktu: 01:40 WIB
-]]
-
-TabUpdateDetail:CreateParagraph(changelog)
-
-TabUpdateDetail:CreateDivider()
-
-TabUpdateDetail:CreateSection("🚀 Update Selanjutnya")
-
-TabUpdateDetail:CreateLabel("Fitur yang akan datang:")
-TabUpdateDetail:CreateLabel("   • Auto Farm (otomatis farming)")
-TabUpdateDetail:CreateLabel("   • Aim Assist (auto aim)")
-TabUpdateDetail:CreateLabel("   • Custom Theme (ganti tema)")
-TabUpdateDetail:CreateLabel("   • Anti Ban (perlindungan tambahan)")
-
--- ================== TAB STATISTIK ==================
-local TabStats = Window:CreateTab("Statistik", "bar-chart")
-
-TabStats:CreateSection("Informasi Timer")
-
--- Label info timer
-TabStats:CreateLabel("⏱️ Timer Maintenance")
-local timerInfoLabel = TabStats:CreateLabel("Sisa waktu: " .. formatTime(remainingSeconds))
-
--- Update timer info
+-- Thread Pembaruan Waktu Hitung Mundur 24 Jam secara Otomatis
 task.spawn(function()
     while true do
-        task.wait(1)
-        if remainingSeconds > 0 then
-            pcall(function()
-                if timerInfoLabel and timerInfoLabel.Set then
-                    timerInfoLabel:Set("Sisa waktu: " .. formatTime(remainingSeconds))
-                end
-            end)
+        local currentTime = os.time()
+        local timeLeft = targetTime - currentTime
+        
+        if timeLeft > 0 then
+            local hours = math.floor(timeLeft / 3600)
+            local minutes = math.floor((timeLeft % 3600) / 60)
+            local seconds = timeLeft % 60
+            
+            TimerLabel:Set(string.format("⏳ Sisa Waktu Pemeliharaan: %02d Jam %02d Menit %02d Detik", hours, minutes, seconds))
         else
-            pcall(function()
-                if timerInfoLabel and timerInfoLabel.Set then
-                    timerInfoLabel:Set("✅ Update selesai!")
-                end
-            end)
+            TimerLabel:Set("🎉 Pemeliharaan Selesai! Silakan Muat Ulang Script.")
             break
         end
+        task.wait(1)
     end
 end)
 
-TabStats:CreateDivider()
-
-TabStats:CreateSection("Informasi Sistem")
-
--- Executor info
-local function detectExecutor()
-    local executorName = "Unknown"
-    local executors = {
-        {name = "Delta", check = function() return syn and syn.request and syn.crypt end},
-        {name = "Arceus X", check = function() return game:GetService("CoreGui"):FindFirstChild("Arceus X V2") or (identifyexecutor and identifyexecutor() == "Arceus X") end},
-        {name = "CodeX", check = function() return CodeX and CodeX.Execute end},
-        {name = "Hydrogen", check = function() return isfile and readfile and writefile and (not syn) end},
-        {name = "Fluxus", check = function() return fluxus and fluxus.ismobile end},
-        {name = "Krnl", check = function() return krnl and krnl.loadlibrary end},
-        {name = "ScriptWare", check = function() return scriptware and scriptware.loader end},
-        {name = "Synapse X", check = function() return syn and syn.crypt and syn.request end},
-        {name = "Evon", check = function() return evon and evon.execute end},
-        {name = "Vega X", check = function() return game:GetService("CoreGui"):FindFirstChild("Vega Hub") end},
-    }
-    for _, exec in ipairs(executors) do
-        local success, result = pcall(exec.check)
-        if success and result then executorName = exec.name break end
-    end
-    local success, idName = pcall(function() if identifyexecutor then return identifyexecutor() end return nil end)
-    if success and idName and idName ~= "" then executorName = idName end
-    return executorName
-end
-
-TabStats:CreateLabel("Executor: " .. detectExecutor())
-TabStats:CreateLabel("Game: " .. game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name or "Unknown")
-TabStats:CreateLabel("Player: " .. LocalPlayer.Name)
-
--- ================== TAB SETTINGS ==================
-local TabSettings = Window:CreateTab("Settings", "settings")
-
-TabSettings:CreateSection("Pengaturan")
-
--- Toggle untuk notifikasi
-local notifEnabled = true
-TabSettings:CreateToggle({
-    Name = "Notifikasi",
-    CurrentValue = true,
-    Flag = "Notifikasi",
-    Callback = function(state)
-        notifEnabled = state
-        Rayfield:Notify({
-            Title = "Notifikasi",
-            Content = state and "Notifikasi diaktifkan" or "Notifikasi dinonaktifkan",
-            Duration = 2,
-            Image = 4483362458
-        })
-    end,
-})
-
-TabSettings:CreateDivider()
-
-TabSettings:CreateSection("Informasi File")
-
--- Tombol reset timer (hanya untuk debugging)
-TabSettings:CreateButton({
-    Name = "🔄 Reset Timer (Debug)",
-    Callback = function()
-        if writefile then
-            remainingSeconds = TOTAL_DURATION
-            timerRunning = true
-            saveRemainingTime(TOTAL_DURATION)
-            pcall(function()
-                if timerLabel and timerLabel.Set then
-                    timerLabel:Set("⏳ Perkiraan selesai: " .. formatTime(TOTAL_DURATION))
-                end
-                if timerInfoLabel and timerInfoLabel.Set then
-                    timerInfoLabel:Set("Sisa waktu: " .. formatTime(TOTAL_DURATION))
-                end
-            end)
-            Rayfield:Notify({
-                Title = "Timer Reset",
-                Content = "Timer telah direset ke 5 jam",
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Error",
-                Content = "Executor tidak support writefile!",
-                Duration = 3,
-                Image = 4483362458
-            })
-        end
-    end,
-})
-
-TabSettings:CreateButton({
-    Name = "ℹ️ Lokasi File Timer",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "Info",
-            Content = "File timer tersimpan di: " .. TIMER_FILE,
-            Duration = 4,
-            Image = 4483362458
-        })
-    end,
-})
-
--- ================== NOTIFIKASI AWAL ==================
-task.wait(0.5)
-Rayfield:Notify({
-    Title = "🔧 DRIP CLIENT",
-    Content = "Maintenance mode aktif. Timer: " .. formatTime(remainingSeconds),
-    Duration = 5,
-    Image = 4483362458
-})
-
-print("DRIP CLIENT - MAINTENANCE MODE ACTIVE (RAYFIELD UI)")
-print("Timer 5 jam berjalan. Sisa waktu tersimpan di file:", TIMER_FILE)
-print("Sisa waktu:", formatTime(remainingSeconds))
+Rayfield:LoadConfiguration()
