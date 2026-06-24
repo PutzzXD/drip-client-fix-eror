@@ -1275,8 +1275,7 @@ local function loadMainScript()
     TabInfo:CreateLabel("Display Name: " .. LocalPlayer.DisplayName)
     TabInfo:CreateLabel("User ID: " .. tostring(LocalPlayer.UserId))
 
-    -- Coba tampilkan avatar (floating card terpisah, TIDAK disuntik ke internal Rayfield
-    -- biar ga ganggu sistem show/hide window Rayfield)
+    -- Coba tampilkan avatar (best-effort, beberapa versi Rayfield support custom Image)
     task.spawn(function()
         local ok, content = pcall(function()
             local thumbType = Enum.ThumbnailType.HeadShot
@@ -1284,94 +1283,34 @@ local function loadMainScript()
             local c, isReady = Players:GetUserThumbnailAsync(LocalPlayer.UserId, thumbType, thumbSize)
             return c
         end)
-        if not (ok and content) then return end
+        if ok and content then
+            pcall(function()
+                -- Coba inject ImageLabel langsung ke halaman tab Info (best-effort, tergantung versi Rayfield)
+                local pageInstance = TabInfo.TabPage or TabInfo.Page or TabInfo.Container
+                if pageInstance then
+                    local avatarFrame = Instance.new("Frame")
+                    avatarFrame.Name = "AvatarCard"
+                    avatarFrame.Size = UDim2.new(0, 64, 0, 64)
+                    avatarFrame.BackgroundTransparency = 1
+                    avatarFrame.LayoutOrder = -10
+                    avatarFrame.Parent = pageInstance
 
-        pcall(function()
-            local AvatarGui = Instance.new("ScreenGui")
-            AvatarGui.Name = "DripAvatarCard"
-            AvatarGui.ResetOnSpawn = false
-            AvatarGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-            AvatarGui.Parent = game:GetService("CoreGui")
+                    local corner = Instance.new("UICorner")
+                    corner.CornerRadius = UDim.new(1, 0)
+                    corner.Parent = avatarFrame
 
-            local card = Instance.new("Frame")
-            card.Name = "Card"
-            card.Size = UDim2.new(0, 180, 0, 64)
-            card.Position = UDim2.new(1, -196, 0, 70)
-            card.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
-            card.BorderSizePixel = 0
-            card.Parent = AvatarGui
+                    local avatarImg = Instance.new("ImageLabel")
+                    avatarImg.Size = UDim2.new(1, 0, 1, 0)
+                    avatarImg.BackgroundTransparency = 1
+                    avatarImg.Image = content
+                    avatarImg.Parent = avatarFrame
 
-            local cardCorner = Instance.new("UICorner")
-            cardCorner.CornerRadius = UDim.new(0, 12)
-            cardCorner.Parent = card
-
-            local cardStroke = Instance.new("UIStroke")
-            cardStroke.Color = Color3.fromRGB(156, 39, 176)
-            cardStroke.Thickness = 1.2
-            cardStroke.Parent = card
-
-            local avatarFrame = Instance.new("Frame")
-            avatarFrame.Size = UDim2.new(0, 48, 0, 48)
-            avatarFrame.Position = UDim2.new(0, 8, 0.5, -24)
-            avatarFrame.BackgroundTransparency = 1
-            avatarFrame.Parent = card
-
-            local avatarImg = Instance.new("ImageLabel")
-            avatarImg.Size = UDim2.new(1, 0, 1, 0)
-            avatarImg.BackgroundTransparency = 1
-            avatarImg.Image = content
-            avatarImg.Parent = avatarFrame
-
-            local imgCorner = Instance.new("UICorner")
-            imgCorner.CornerRadius = UDim.new(1, 0)
-            imgCorner.Parent = avatarImg
-
-            local nameLbl = Instance.new("TextLabel")
-            nameLbl.Size = UDim2.new(1, -64, 0, 20)
-            nameLbl.Position = UDim2.new(0, 62, 0, 10)
-            nameLbl.BackgroundTransparency = 1
-            nameLbl.Text = LocalPlayer.DisplayName
-            nameLbl.TextColor3 = Color3.new(1,1,1)
-            nameLbl.Font = Enum.Font.GothamBold
-            nameLbl.TextSize = 13
-            nameLbl.TextXAlignment = Enum.TextXAlignment.Left
-            nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
-            nameLbl.Parent = card
-
-            local userLbl = Instance.new("TextLabel")
-            userLbl.Size = UDim2.new(1, -64, 0, 16)
-            userLbl.Position = UDim2.new(0, 62, 0, 32)
-            userLbl.BackgroundTransparency = 1
-            userLbl.Text = "@" .. LocalPlayer.Name
-            userLbl.TextColor3 = Color3.fromRGB(170,170,190)
-            userLbl.Font = Enum.Font.Gotham
-            userLbl.TextSize = 11
-            userLbl.TextXAlignment = Enum.TextXAlignment.Left
-            userLbl.TextTruncate = Enum.TextTruncate.AtEnd
-            userLbl.Parent = card
-
-            -- Drag card (klik+tahan geser, tidak konflik dengan klik biasa)
-            local dragging, dragStart, startPos = false, nil, nil
-            card.Active = true
-            card.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    dragging = true
-                    dragStart = input.Position
-                    startPos = card.Position
+                    local imgCorner = Instance.new("UICorner")
+                    imgCorner.CornerRadius = UDim.new(1, 0)
+                    imgCorner.Parent = avatarImg
                 end
             end)
-            card.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    dragging = false
-                end
-            end)
-            game:GetService("UserInputService").InputChanged:Connect(function(input)
-                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                    local delta = input.Position - dragStart
-                    card.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-                end
-            end)
-        end)
+        end
     end)
 
     TabInfo:CreateDivider()
