@@ -1275,7 +1275,7 @@ local function loadMainScript()
     TabInfo:CreateLabel("Display Name: " .. LocalPlayer.DisplayName)
     TabInfo:CreateLabel("User ID: " .. tostring(LocalPlayer.UserId))
 
-    -- Coba tampilkan avatar (best-effort, beberapa versi Rayfield support custom Image)
+    -- Coba tampilkan avatar (cari elemen UI lewat teks section yang sudah pasti muncul)
     task.spawn(function()
         local ok, content = pcall(function()
             local thumbType = Enum.ThumbnailType.HeadShot
@@ -1283,34 +1283,53 @@ local function loadMainScript()
             local c, isReady = Players:GetUserThumbnailAsync(LocalPlayer.UserId, thumbType, thumbSize)
             return c
         end)
-        if ok and content then
-            pcall(function()
-                -- Coba inject ImageLabel langsung ke halaman tab Info (best-effort, tergantung versi Rayfield)
-                local pageInstance = TabInfo.TabPage or TabInfo.Page or TabInfo.Container
-                if pageInstance then
-                    local avatarFrame = Instance.new("Frame")
-                    avatarFrame.Name = "AvatarCard"
-                    avatarFrame.Size = UDim2.new(0, 64, 0, 64)
-                    avatarFrame.BackgroundTransparency = 1
-                    avatarFrame.LayoutOrder = -10
-                    avatarFrame.Parent = pageInstance
+        if not (ok and content) then return end
 
-                    local corner = Instance.new("UICorner")
-                    corner.CornerRadius = UDim.new(1, 0)
-                    corner.Parent = avatarFrame
+        task.wait(1.5) -- tunggu Rayfield selesai render UI-nya
 
-                    local avatarImg = Instance.new("ImageLabel")
-                    avatarImg.Size = UDim2.new(1, 0, 1, 0)
-                    avatarImg.BackgroundTransparency = 1
-                    avatarImg.Image = content
-                    avatarImg.Parent = avatarFrame
+        local CoreGui = game:GetService("CoreGui")
 
-                    local imgCorner = Instance.new("UICorner")
-                    imgCorner.CornerRadius = UDim.new(1, 0)
-                    imgCorner.Parent = avatarImg
+        -- Cari TextLabel section "👤 Profil Akun" yang sudah kita buat, lalu cari parent halamannya
+        local function findSectionPage()
+            for _, v in pairs(CoreGui:GetDescendants()) do
+                if (v:IsA("TextLabel") or v:IsA("TextButton")) and v.Text and v.Text:find("Profil Akun") then
+                    -- Naik beberapa level cari ScrollingFrame (halaman tab)
+                    local node = v
+                    for _ = 1, 6 do
+                        if not node then break end
+                        node = node.Parent
+                        if node and node:IsA("ScrollingFrame") then
+                            return node
+                        end
+                    end
                 end
-            end)
+            end
+            return nil
         end
+
+        local page = findSectionPage()
+        if not page then return end
+
+        pcall(function()
+            local avatarFrame = Instance.new("Frame")
+            avatarFrame.Name = "AvatarCard"
+            avatarFrame.Size = UDim2.new(0, 64, 0, 64)
+            avatarFrame.BackgroundTransparency = 1
+            avatarFrame.LayoutOrder = -10
+            avatarFrame.ZIndex = 5
+            avatarFrame.Parent = page
+
+            local avatarImg = Instance.new("ImageLabel")
+            avatarImg.Size = UDim2.new(1, 0, 1, 0)
+            avatarImg.BackgroundTransparency = 1
+            avatarImg.Image = content
+            avatarImg.ZIndex = 5
+            avatarImg.Parent = avatarFrame
+
+            local imgCorner = Instance.new("UICorner")
+            imgCorner.CornerRadius = UDim.new(1, 0)
+            imgCorner.Parent = avatarImg
+        end)
     end)
 
     TabInfo:CreateDivider()
