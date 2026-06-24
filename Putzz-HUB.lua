@@ -1268,6 +1268,53 @@ local function loadMainScript()
     -- ================== TAB INFO ==================
     local TabInfo = Window:CreateTab("Info", "info")
 
+    -- ================== PROFIL AKUN ROBLOX ==================
+    TabInfo:CreateSection("👤 Profil Akun")
+
+    TabInfo:CreateLabel("Nama: " .. LocalPlayer.Name)
+    TabInfo:CreateLabel("Display Name: " .. LocalPlayer.DisplayName)
+    TabInfo:CreateLabel("User ID: " .. tostring(LocalPlayer.UserId))
+
+    -- Coba tampilkan avatar (best-effort, beberapa versi Rayfield support custom Image)
+    task.spawn(function()
+        local ok, content = pcall(function()
+            local thumbType = Enum.ThumbnailType.HeadShot
+            local thumbSize = Enum.ThumbnailSize.Size180x180
+            local c, isReady = Players:GetUserThumbnailAsync(LocalPlayer.UserId, thumbType, thumbSize)
+            return c
+        end)
+        if ok and content then
+            pcall(function()
+                -- Coba inject ImageLabel langsung ke halaman tab Info (best-effort, tergantung versi Rayfield)
+                local pageInstance = TabInfo.TabPage or TabInfo.Page or TabInfo.Container
+                if pageInstance then
+                    local avatarFrame = Instance.new("Frame")
+                    avatarFrame.Name = "AvatarCard"
+                    avatarFrame.Size = UDim2.new(0, 64, 0, 64)
+                    avatarFrame.BackgroundTransparency = 1
+                    avatarFrame.LayoutOrder = -10
+                    avatarFrame.Parent = pageInstance
+
+                    local corner = Instance.new("UICorner")
+                    corner.CornerRadius = UDim.new(1, 0)
+                    corner.Parent = avatarFrame
+
+                    local avatarImg = Instance.new("ImageLabel")
+                    avatarImg.Size = UDim2.new(1, 0, 1, 0)
+                    avatarImg.BackgroundTransparency = 1
+                    avatarImg.Image = content
+                    avatarImg.Parent = avatarFrame
+
+                    local imgCorner = Instance.new("UICorner")
+                    imgCorner.CornerRadius = UDim.new(1, 0)
+                    imgCorner.Parent = avatarImg
+                end
+            end)
+        end
+    end)
+
+    TabInfo:CreateDivider()
+
     TabInfo:CreateSection("Informasi Lisensi")
 
     TabInfo:CreateLabel("Executor: " .. userExecutor)
@@ -1307,6 +1354,12 @@ local function loadMainScript()
                 Rayfield:Notify({Title = "Info", Content = WEBSITE_URL, Duration = 5, Image = 4483362458})
             end
         end,
+    })
+
+    TabInfo:CreateDivider()
+    TabInfo:CreateParagraph({
+        Title = "💜 Terima Kasih",
+        Content = "Terima kasih telah menggunakan script Drip Client, jangan lupa support developer!",
     })
 end
 
