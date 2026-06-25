@@ -10,7 +10,7 @@ local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 -- ================== REAL-TIME TIMER CALCULATOR ==================
 local startTime = os.time()
 local targetTime = startTime + 27000 -- 7.5 Jam (27000 detik)
-local kickTimeout = 60 -- Waktu tunggu sebelum di-kick otomatis (60 detik)
+local kickTimeout = 20 -- Waktu tunggu sebelum di-kick otomatis (60 detik)
 
 local function getRemainingTime()
     local currentTime = os.time()
