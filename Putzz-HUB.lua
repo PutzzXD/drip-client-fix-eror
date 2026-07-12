@@ -228,56 +228,6 @@ local function stopNoclip()
     if noclipConnection then noclipConnection:Disconnect() noclipConnection = nil end
 end
 
-local function startAutoParry()
-    if parryConnection then parryConnection:Disconnect() end
-    
-    parryConnection = RunService.Heartbeat:Connect(function()
-        if not autoParryEnabled then return end
-        
-        local char = LocalPlayer.Character
-        if not char then return end
-        
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-        
-        for _, player in pairs(Players:GetPlayers()) do
-            if player == LocalPlayer then continue end
-            if not player.Character then continue end
-            
-            local targetHrp = player.Character:FindFirstChild("HumanoidRootPart")
-            if not targetHrp then continue end
-            
-            local dist = (hrp.Position - targetHrp.Position).Magnitude
-            if dist <= parryDistance then
-                local lookVec = targetHrp.CFrame.LookVector
-                local toPlayer = (hrp.Position - targetHrp.Position).Unit
-                local dot = lookVec:Dot(toPlayer)
-                
-                if dot > 0.3 then
-                    if tick() - lastParryTime > parryCooldown then
-                        lastParryTime = tick()
-                        pcall(function()
-                            VirtualUser:CaptureController()
-                            VirtualUser:ClickButton2(Vector2.new(0,0))
-                        end)
-                        break
-                    end
-                end
-            end
-        end
-    end)
-end
-
-local function stopAutoParry()
-    autoParryEnabled = false
-    if parryConnection then parryConnection:Disconnect() parryConnection = nil end
-end
-
-local function toggleAutoParry(state)
-    autoParryEnabled = state
-    if state then startAutoParry() else stopAutoParry() end
-end
-
 local function toggleSpin(state)
     spinEnabled = state
     if spinConnection then spinConnection:Disconnect() spinConnection = nil end
@@ -406,15 +356,23 @@ local function toggleFullBright(state)
         originalColorShift_Bottom = Lighting.ColorShift_Bottom
         originalColorShift_Top = Lighting.ColorShift_Top
         originalOutdoorAmbient = Lighting.OutdoorAmbient
-        
-        Lighting.Brightness = 10
+
+        -- Sedang saja, tidak terlalu menyilaukan
+        Lighting.Brightness = 2
         Lighting.ClockTime = 14
-        Lighting.Ambient = Color3.fromRGB(255, 255, 255)
-        Lighting.ColorShift_Bottom = Color3.fromRGB(255, 255, 255)
-        Lighting.ColorShift_Top = Color3.fromRGB(255, 255, 255)
-        Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+        Lighting.Ambient = Color3.fromRGB(178, 178, 178)
+        Lighting.ColorShift_Bottom = Color3.fromRGB(0, 0, 0)
+        Lighting.ColorShift_Top = Color3.fromRGB(0, 0, 0)
+        Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
         Lighting.GlobalShadows = false
         Lighting.FogEnd = 100000
+
+        -- Hapus efek Atmosphere dan ColorCorrectionEffect biar lebih bersih
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Atmosphere") or v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") then
+                v.Enabled = false
+            end
+        end
     else
         Lighting.Brightness = originalBrightness
         Lighting.ClockTime = originalClockTime
@@ -424,23 +382,47 @@ local function toggleFullBright(state)
         Lighting.OutdoorAmbient = originalOutdoorAmbient
         Lighting.GlobalShadows = true
         Lighting.FogEnd = originalFogEnd or 1000
+        -- Nyalakan kembali
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Atmosphere") or v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") then
+                v.Enabled = true
+            end
+        end
     end
 end
 
 -- NO FOG
+local originalAtmosphereDensity = nil
+local originalAtmosphereHaze = nil
+
 local function toggleNoFog(state)
     noFogEnabled = state
     if state then
         originalFogEnd = Lighting.FogEnd
         originalFogStart = Lighting.FogStart
         originalFogColor = Lighting.FogColor
-        Lighting.FogEnd = 100000
-        Lighting.FogStart = 100000
-        Lighting.FogColor = Color3.fromRGB(0, 0, 0)
+        -- Hapus fog lewat Lighting property
+        Lighting.FogEnd = 10000000
+        Lighting.FogStart = 10000000
+        -- Hapus Atmosphere juga (penyebab utama kabut di game modern)
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Atmosphere") then
+                originalAtmosphereDensity = v.Density
+                originalAtmosphereHaze = v.Haze
+                v.Density = 0
+                v.Haze = 0
+            end
+        end
     else
         Lighting.FogEnd = originalFogEnd or 1000
         Lighting.FogStart = originalFogStart or 0
         Lighting.FogColor = originalFogColor or Color3.fromRGB(127, 127, 127)
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Atmosphere") then
+                v.Density = originalAtmosphereDensity or 0.3
+                v.Haze = originalAtmosphereHaze or 0
+            end
+        end
     end
 end
 
@@ -741,35 +723,6 @@ local function loadMainScript()
 
     -- ================== TAB MAIN ==================
     local TabMain = Window:CreateTab("Main", "zap")
-
-    TabMain:CreateToggle({
-        Name = "Auto Parry",
-        CurrentValue = false,
-        Flag = "AutoParry",
-        Callback = function(state)
-            toggleAutoParry(state)
-            if Rayfield then
-                Rayfield:Notify({
-                    Title = "Auto Parry",
-                    Content = state and "Auto Parry DI-AKTIFKAN!" or "Auto Parry Dinonaktifkan",
-                    Duration = 2,
-                    Image = 4483362458
-                })
-            end
-        end,
-    })
-
-    TabMain:CreateSlider({
-        Name = "Parry Distance",
-        Range = {3, 20},
-        Increment = 1,
-        Suffix = " studs",
-        CurrentValue = parryDistance,
-        Flag = "ParryDistance",
-        Callback = function(val)
-            parryDistance = val
-        end,
-    })
 
     TabMain:CreateDivider()
 
