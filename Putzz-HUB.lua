@@ -145,7 +145,7 @@ end
 -- ================== VARIABEL FITUR ==================
 local espEnabled = false
 local lineEnabled = false
-local lineColor = Color3.fromRGB(0, 0, 0)
+local lineColor = Color3.fromRGB(255, 255, 255)  -- PUTIH
 local skeletonEnabled = false
 local ESPTable = {}
 local SkeletonESP = {}
@@ -193,7 +193,7 @@ local invisibleRootPart = nil
 local invisibleHumanoid = nil
 
 local skeletonColor = Color3.fromRGB(0, 255, 0)
-local boxColor = Color3.fromRGB(0, 0, 0)
+local boxColor = Color3.fromRGB(255, 255, 255)  -- PUTIH
 local MAX_ESP_DISTANCE = 200000
 
 -- FITUR BYPASS
@@ -357,7 +357,6 @@ local function toggleFullBright(state)
         originalColorShift_Top = Lighting.ColorShift_Top
         originalOutdoorAmbient = Lighting.OutdoorAmbient
 
-        -- Sedang saja, tidak terlalu menyilaukan
         Lighting.Brightness = 2
         Lighting.ClockTime = 14
         Lighting.Ambient = Color3.fromRGB(178, 178, 178)
@@ -367,7 +366,6 @@ local function toggleFullBright(state)
         Lighting.GlobalShadows = false
         Lighting.FogEnd = 100000
 
-        -- Hapus efek Atmosphere dan ColorCorrectionEffect biar lebih bersih
         for _, v in pairs(Lighting:GetChildren()) do
             if v:IsA("Atmosphere") or v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") then
                 v.Enabled = false
@@ -382,7 +380,6 @@ local function toggleFullBright(state)
         Lighting.OutdoorAmbient = originalOutdoorAmbient
         Lighting.GlobalShadows = true
         Lighting.FogEnd = originalFogEnd or 1000
-        -- Nyalakan kembali
         for _, v in pairs(Lighting:GetChildren()) do
             if v:IsA("Atmosphere") or v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") then
                 v.Enabled = true
@@ -401,10 +398,8 @@ local function toggleNoFog(state)
         originalFogEnd = Lighting.FogEnd
         originalFogStart = Lighting.FogStart
         originalFogColor = Lighting.FogColor
-        -- Hapus fog lewat Lighting property
         Lighting.FogEnd = 10000000
         Lighting.FogStart = 10000000
-        -- Hapus Atmosphere juga (penyebab utama kabut di game modern)
         for _, v in pairs(Lighting:GetChildren()) do
             if v:IsA("Atmosphere") then
                 originalAtmosphereDensity = v.Density
@@ -554,7 +549,7 @@ local function createPlayerCounter()
     if enemyCountText then pcall(function() enemyCountText:Remove() end) end
     enemyCountText = Drawing.new("Text")
     enemyCountText.Size = 22
-    enemyCountText.Color = Color3.fromRGB(255, 0, 0)
+    enemyCountText.Color = Color3.fromRGB(255, 255, 255)
     enemyCountText.Center = true
     enemyCountText.Outline = true
     enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 55)
@@ -565,11 +560,24 @@ end
 local function createESP(player)
     if player == LocalPlayer then return end
     local box = Drawing.new("Square") box.Thickness = 1.8 box.Filled = false box.Visible = false
-    local name = Drawing.new("Text") name.Size = 13 name.Center = true name.Outline = true name.Visible = false name.Color = Color3.fromRGB(255,255,255)
-    local dist = Drawing.new("Text") dist.Size = 11 dist.Center = true dist.Outline = true dist.Visible = false dist.Color = Color3.fromRGB(255,255,255)
+    box.Color = Color3.fromRGB(255, 255, 255)  -- PUTIH
+    
+    -- NAME (terpisah)
+    local name = Drawing.new("Text") name.Size = 14 name.Center = true name.Outline = true name.Visible = false
+    name.Color = Color3.fromRGB(255, 255, 255)  -- PUTIH
+    
+    -- DISTANCE (terpisah)
+    local dist = Drawing.new("Text") dist.Size = 12 dist.Center = true dist.Outline = true dist.Visible = false
+    dist.Color = Color3.fromRGB(200, 200, 200)  -- PUTIH MUDA
+    
+    -- LINE (terpisah, warna putih)
     local line = Drawing.new("Line") line.Thickness = 1.8 line.Visible = false
+    line.Color = Color3.fromRGB(255, 255, 255)  -- PUTIH
+    
+    -- HEALTH (terpisah, gradient hijau-merah)
     local healthBg = Drawing.new("Square") healthBg.Filled = true healthBg.Visible = false
     local healthFg = Drawing.new("Square") healthFg.Filled = true healthFg.Visible = false
+    
     ESPTable[player] = {box, name, dist, line, healthBg, healthFg}
 end
 
@@ -584,7 +592,7 @@ local function createSkeleton(player)
         {"LowerTorso","RightUpperLeg"},{"RightUpperLeg","RightLowerLeg"}
     }
     for i=1, #joints do
-        local l = Drawing.new("Line") l.Thickness = 2 l.Color = skeletonColor l.Visible = false
+        local l = Drawing.new("Line") l.Thickness = 2 l.Color = Color3.fromRGB(255, 255, 255) l.Visible = false
         table.insert(lines, {l, joints[i][1], joints[i][2]})
     end
     SkeletonESP[player] = lines
@@ -613,17 +621,25 @@ RunService.RenderStepped:Connect(function()
                 local width = height / 2
 
                 if espEnabled then
+                    -- BOX (putih)
                     box.Size = Vector2.new(width, height)
                     box.Position = Vector2.new(pos.X - width/2, top.Y)
-                    box.Color = boxColor
+                    box.Color = Color3.fromRGB(255, 255, 255)
                     box.Visible = true
-                    name.Position = Vector2.new(pos.X, top.Y - 15)
+                    
+                    -- NAME (putih, di atas box)
+                    name.Position = Vector2.new(pos.X, top.Y - 16)
                     name.Text = player.DisplayName or player.Name
+                    name.Color = Color3.fromRGB(255, 255, 255)
                     name.Visible = true
+                    
+                    -- DISTANCE (putih muda, di bawah box)
                     distText.Text = math.floor(distance).."m"
-                    distText.Position = Vector2.new(pos.X, bottom.Y + 3)
+                    distText.Position = Vector2.new(pos.X, bottom.Y + 4)
+                    distText.Color = Color3.fromRGB(200, 200, 200)
                     distText.Visible = true
 
+                    -- HEALTH (terpisah, gradient)
                     if hum then
                         local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
                         hBg.Size = Vector2.new(4, height)
@@ -642,10 +658,11 @@ RunService.RenderStepped:Connect(function()
                 box.Visible = false name.Visible = false distText.Visible = false hBg.Visible = false hFg.Visible = false
             end
 
+            -- LINE (putih, terpisah)
             if lineEnabled and visible then
                 line.From = Vector2.new(Camera.ViewportSize.X / 2, 0)
                 line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = lineColor
+                line.Color = Color3.fromRGB(255, 255, 255)
                 line.Visible = true
             else
                 line.Visible = false
@@ -665,6 +682,7 @@ RunService.RenderStepped:Connect(function()
                         if vis1 and vis2 then
                             l.From = Vector2.new(pos1.X, pos1.Y)
                             l.To = Vector2.new(pos2.X, pos2.Y)
+                            l.Color = Color3.fromRGB(255, 255, 255)
                             l.Visible = true
                         else l.Visible = false end
                     else l.Visible = false end
