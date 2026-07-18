@@ -145,8 +145,10 @@ end
 -- ================== VARIABEL FITUR ==================
 local espEnabled = false
 local lineEnabled = false
-local lineColor = Color3.fromRGB(255, 255, 255)  -- PUTIH
+local lineColor = Color3.fromRGB(255, 255, 255)
 local skeletonEnabled = false
+local espNameEnabled = false   -- Toggle ESP Nama
+local espHealthEnabled = false -- Toggle ESP Health
 local ESPTable = {}
 local SkeletonESP = {}
 
@@ -193,7 +195,7 @@ local invisibleRootPart = nil
 local invisibleHumanoid = nil
 
 local skeletonColor = Color3.fromRGB(0, 255, 0)
-local boxColor = Color3.fromRGB(255, 255, 255)  -- PUTIH
+local boxColor = Color3.fromRGB(255, 255, 255)
 local MAX_ESP_DISTANCE = 200000
 
 -- FITUR BYPASS
@@ -560,19 +562,19 @@ end
 local function createESP(player)
     if player == LocalPlayer then return end
     local box = Drawing.new("Square") box.Thickness = 1.8 box.Filled = false box.Visible = false
-    box.Color = Color3.fromRGB(255, 255, 255)  -- PUTIH
+    box.Color = Color3.fromRGB(255, 255, 255)
     
     -- NAME (terpisah)
     local name = Drawing.new("Text") name.Size = 14 name.Center = true name.Outline = true name.Visible = false
-    name.Color = Color3.fromRGB(255, 255, 255)  -- PUTIH
+    name.Color = Color3.fromRGB(255, 255, 255)
     
     -- DISTANCE (terpisah)
     local dist = Drawing.new("Text") dist.Size = 12 dist.Center = true dist.Outline = true dist.Visible = false
-    dist.Color = Color3.fromRGB(200, 200, 200)  -- PUTIH MUDA
+    dist.Color = Color3.fromRGB(200, 200, 200)
     
     -- LINE (terpisah, warna putih)
     local line = Drawing.new("Line") line.Thickness = 1.8 line.Visible = false
-    line.Color = Color3.fromRGB(255, 255, 255)  -- PUTIH
+    line.Color = Color3.fromRGB(255, 255, 255)
     
     -- HEALTH (terpisah, gradient hijau-merah)
     local healthBg = Drawing.new("Square") healthBg.Filled = true healthBg.Visible = false
@@ -627,20 +629,24 @@ RunService.RenderStepped:Connect(function()
                     box.Color = Color3.fromRGB(255, 255, 255)
                     box.Visible = true
                     
-                    -- NAME (putih, di atas box)
-                    name.Position = Vector2.new(pos.X, top.Y - 16)
-                    name.Text = player.DisplayName or player.Name
-                    name.Color = Color3.fromRGB(255, 255, 255)
-                    name.Visible = true
+                    -- NAME (jika toggle aktif)
+                    if espNameEnabled then
+                        name.Position = Vector2.new(pos.X, top.Y - 16)
+                        name.Text = player.DisplayName or player.Name
+                        name.Color = Color3.fromRGB(255, 255, 255)
+                        name.Visible = true
+                    else
+                        name.Visible = false
+                    end
                     
-                    -- DISTANCE (putih muda, di bawah box)
+                    -- DISTANCE (selalu tampil jika box aktif)
                     distText.Text = math.floor(distance).."m"
                     distText.Position = Vector2.new(pos.X, bottom.Y + 4)
                     distText.Color = Color3.fromRGB(200, 200, 200)
                     distText.Visible = true
 
-                    -- HEALTH (terpisah, gradient)
-                    if hum then
+                    -- HEALTH (jika toggle aktif)
+                    if espHealthEnabled and hum then
                         local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
                         hBg.Size = Vector2.new(4, height)
                         hBg.Position = Vector2.new(pos.X + width/2 + 3, top.Y)
@@ -650,6 +656,9 @@ RunService.RenderStepped:Connect(function()
                         hFg.Position = Vector2.new(pos.X + width/2 + 3, bottom.Y - (height * pct))
                         hFg.Color = Color3.fromRGB(255*(1-pct), 255*pct, 0)
                         hFg.Visible = true
+                    else
+                        hBg.Visible = false
+                        hFg.Visible = false
                     end
                 else
                     box.Visible = false name.Visible = false distText.Visible = false hBg.Visible = false hFg.Visible = false
@@ -842,6 +851,24 @@ local function loadMainScript()
         Flag = "ESPBox",
         Callback = function(state)
             espEnabled = state
+        end,
+    })
+
+    TabESP:CreateToggle({
+        Name = "ESP Name",
+        CurrentValue = false,
+        Flag = "ESPName",
+        Callback = function(state)
+            espNameEnabled = state
+        end,
+    })
+
+    TabESP:CreateToggle({
+        Name = "ESP Health",
+        CurrentValue = false,
+        Flag = "ESPHealth",
+        Callback = function(state)
+            espHealthEnabled = state
         end,
     })
 
