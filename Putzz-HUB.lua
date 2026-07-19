@@ -147,7 +147,7 @@ local espEnabled = false
 local lineEnabled = false
 local lineColor = Color3.fromRGB(255, 255, 255)
 local skeletonEnabled = false
-local espNameEnabled = false   -- Toggle ESP Nama
+local espNameEnabled = false   -- Toggle ESP Nama (RAINBOW)
 local espHealthEnabled = false -- Toggle ESP Health
 local ESPTable = {}
 local SkeletonESP = {}
@@ -564,9 +564,9 @@ local function createESP(player)
     local box = Drawing.new("Square") box.Thickness = 1.8 box.Filled = false box.Visible = false
     box.Color = Color3.fromRGB(255, 255, 255)
     
-    -- NAME (terpisah)
-    local name = Drawing.new("Text") name.Size = 14 name.Center = true name.Outline = true name.Visible = false
-    name.Color = Color3.fromRGB(255, 255, 255)
+    -- NAME (terpisah, rainbow color akan di-set di render)
+    local name = Drawing.new("Text") name.Size = 15 name.Center = true name.Outline = true name.Visible = false
+    name.Color = Color3.fromRGB(255, 0, 0) -- default, akan diubah rainbow
     
     -- DISTANCE (terpisah)
     local dist = Drawing.new("Text") dist.Size = 12 dist.Center = true dist.Outline = true dist.Visible = false
@@ -600,10 +600,18 @@ local function createSkeleton(player)
     SkeletonESP[player] = lines
 end
 
+-- ================== RAINBOW COLOR HELPER ==================
+local rainbowHue = 0
+local function getRainbowColor()
+    rainbowHue = (rainbowHue + 0.005) % 1
+    return Color3.fromHSV(rainbowHue, 1, 1)
+end
+
 RunService.RenderStepped:Connect(function()
     local myChar = LocalPlayer.Character
     local myPos = myChar and myChar:FindFirstChild("HumanoidRootPart") and myChar.HumanoidRootPart.Position
     local screenCount = 0
+    local rainbowColor = getRainbowColor()
 
     for player, esp in pairs(ESPTable) do
         local box, name, distText, line, hBg, hFg = unpack(esp)
@@ -629,23 +637,23 @@ RunService.RenderStepped:Connect(function()
                     box.Color = Color3.fromRGB(255, 255, 255)
                     box.Visible = true
                     
-                    -- NAME (jika toggle aktif)
-                    if espNameEnabled then
-                        name.Position = Vector2.new(pos.X, top.Y - 16)
-                        name.Text = player.DisplayName or player.Name
-                        name.Color = Color3.fromRGB(255, 255, 255)
-                        name.Visible = true
-                    else
-                        name.Visible = false
-                    end
-                    
-                    -- DISTANCE (selalu tampil jika box aktif)
+                    -- DISTANCE (putih muda, di bawah box)
                     distText.Text = math.floor(distance).."m"
                     distText.Position = Vector2.new(pos.X, bottom.Y + 4)
                     distText.Color = Color3.fromRGB(200, 200, 200)
                     distText.Visible = true
 
-                    -- HEALTH (jika toggle aktif)
+                    -- NAME (RAINBOW, terpisah dari box, di atas box)
+                    if espNameEnabled then
+                        name.Position = Vector2.new(pos.X, top.Y - 18)
+                        name.Text = player.DisplayName or player.Name
+                        name.Color = rainbowColor
+                        name.Visible = true
+                    else
+                        name.Visible = false
+                    end
+
+                    -- HEALTH (terpisah, gradient)
                     if espHealthEnabled and hum then
                         local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
                         hBg.Size = Vector2.new(4, height)
