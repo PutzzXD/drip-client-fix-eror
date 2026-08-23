@@ -85,14 +85,16 @@ local function getKeysFromFirebase()
 end
 
 local function getTimeRemaining(expiryTimestamp)
+    -- expiryTimestamp dalam DETIK (unix seconds)
     local currentTime = os.time()
     local remaining = expiryTimestamp - currentTime
     if remaining <= 0 then return 0, 0, 0, 0, "EXPIRED" end
-    local days = math.floor(remaining / 86400)
-    local hours = math.floor((remaining % 86400) / 3600)
+    local days    = math.floor(remaining / 86400)
+    local hours   = math.floor((remaining % 86400) / 3600)
     local minutes = math.floor((remaining % 3600) / 60)
     local seconds = remaining % 60
-    return days, hours, minutes, seconds, string.format("%d Hari %02d Jam %02d Menit %02d Detik", days, hours, minutes, seconds)
+    return days, hours, minutes, seconds,
+        string.format("%d Hari %02d Jam %02d Menit %02d Detik", days, hours, minutes, seconds)
 end
 
 local function checkKeyExpiry(inputKey)
@@ -100,49 +102,118 @@ local function checkKeyExpiry(inputKey)
     local keysData = getKeysFromFirebase()
     if not keysData then return false, "Gagal mengambil data server" end
 
-    local foundKey, expiryDays, keyJenisData = nil, nil, nil
+    -- Cari key di Firebase
+    local foundData = nil
     for _, keyData in ipairs(keysData) do
         if keyData.key == inputKey then
-            foundKey = keyData.key
-            keyJenisData = keyData.jenis or "1 HARI"
-            if keyData.jenis == "1 JAM" then expiryDays = 1/24
-            elseif keyData.jenis == "1 HARI" then expiryDays = 1
-            elseif keyData.jenis == "2 HARI" then expiryDays = 2
-            elseif keyData.jenis == "3 HARI" then expiryDays = 3
-            elseif keyData.jenis == "7 HARI" then expiryDays = 7
-            elseif keyData.jenis == "30 HARI" then expiryDays = 30
-            elseif keyData.jenis == "PERMANEN" then expiryDays = 9999999
-            else expiryDays = 1 end
+            foundData = keyData
             break
         end
     end
 
-    if not foundKey then return false, "KEY TIDAK TERDAFTAR!" end
-    local currentTime = os.time()
-    local expiryTime = nil
-
-    if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
-        expiryTime = activeKeys[inputKey].expiryTime
-        if currentTime > expiryTime then return false, "KEY SUDAH EXPIRED!" end
-    else
-        expiryTime = currentTime + (expiryDays * 86400)
-        activeKeys[inputKey] = {
-            firstUsed = currentTime, key = inputKey, expiryDays = expiryDays,
-            expiryTime = expiryTime, jenis = keyJenisData
-        }
-        saveKeyData()
+    if not foundData then return false, "KEY TIDAK TERDAFTAR!" end
+    if foundData.status and foundData.status ~= "aktif" then
+        return false, "KEY TIDAK AKTIF!"
     end
 
-    keyExpiryTime = expiryTime
-    keyJenis = keyJenisData
-    currentUserKey = inputKey
-    keyValidGlobal = true
+    local currentTime = os.time()
+    local expiryTime  = nil
+    local keyJenisData = foundData.jenis or "1 HARI"
+
+    -- ============================================================
+    -- PRIORITAS 1: Gunakan expiry_timestamp dari Firebase LANGSUNG
+    -- (disimpan website dalam ms → bagi 1000 → detik)
+    -- Ini yang bikin countdown SYNC PERSIS dengan website
+    -- ============================================================
+    if foundData.expiry_timestamp and foundData.expiry_timestamp ~= nil then
+        -- Website simpan dalam milliseconds, Lua butuh detik
+        expiryTime = math.floor(foundData.expiry_timestamp / 1000)
+
+        if currentTime > expiryTime then
+            return false, "KEY SUDAH EXPIRED!"
+        end
+
+    elseif keyJenisData == "PERMANEN" then
+        -- Key permanen tidak punya expiry_timestamp
+        expiryTime = math.huge
+
+    else
+        -- Fallback kalau expiry_timestamp tidak ada di Firebase
+        -- (key lama sebelum sistem diupdate)
+        if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
+            expiryTime = activeKeys[inputKey].expiryTime
+            if currentTime > expiryTime then
+                return false, "KEY SUDAH EXPIRED!"
+            end
+        else
+            -- Hitung lokal sebagai last resort
+            local expiryDays = 1
+            if keyJenisData == "1 JAM"   then expiryDays = 1/24
+            elseif keyJenisData == "1 HARI"  then expiryDays = 1
+            elseif keyJenisData == "2 HARI"  then expiryDays = 2
+            elseif keyJenisData == "3 HARI"  then expiryDays = 3
+            elseif keyJenisData == "7 HARI"  then expiryDays = 7
+            elseif keyJenisData == "30 HARI" then expiryDays = 30
+            end
+            expiryTime = currentTime + math.floor(expiryDays * 86400)
+        end
+    end
+
+    -- Simpan ke file lokal (cache) pakai expiry dari Firebase
+    activeKeys[inputKey] = {
+        firstUsed  = activeKeys[inputKey] and activeKeys[inputKey].firstUsed or currentTime,
+        key        = inputKey,
+        expiryTime = expiryTime,
+        jenis      = keyJenisData,
+        -- Simpan expiry_timestamp asli dari Firebase (ms) supaya bisa refresh sync nanti
+        expiry_timestamp_ms = foundData.expiry_timestamp,
+    }
+    saveKeyData()
+
+    keyExpiryTime    = expiryTime
+    keyJenis         = keyJenisData
+    currentUserKey   = inputKey
+    keyValidGlobal   = true
 
     local _, _, _, _, timeStr = getTimeRemaining(expiryTime)
     return true, "VALID! Sisa: " .. timeStr
 end
 
--- ================== VARIABEL FITUR ==================
+-- ================== AUTO RE-SYNC EXPIRY DARI FIREBASE ==================
+-- Setiap 60 detik ambil ulang expiry_timestamp dari Firebase
+-- supaya countdown di script SELALU persis sama dengan yang di website
+task.spawn(function()
+    while true do
+        task.wait(60)
+        if not keyValidGlobal or not currentUserKey then continue end
+
+        local ok, keysData = pcall(function() return getKeysFromFirebase() end)
+        if not (ok and keysData) then continue end
+
+        for _, keyData in ipairs(keysData) do
+            if keyData.key == currentUserKey then
+                if keyData.expiry_timestamp and keyData.expiry_timestamp ~= nil then
+                    -- Re-sync: update keyExpiryTime dari Firebase (ms → detik)
+                    local newExpiry = math.floor(keyData.expiry_timestamp / 1000)
+                    if newExpiry ~= keyExpiryTime then
+                        keyExpiryTime = newExpiry
+                        -- Update cache lokal juga
+                        if activeKeys[currentUserKey] then
+                            activeKeys[currentUserKey].expiryTime = newExpiry
+                            activeKeys[currentUserKey].expiry_timestamp_ms = keyData.expiry_timestamp
+                            pcall(saveKeyData)
+                        end
+                    end
+                end
+                -- Cek kalau key di-revoke/non-aktif
+                if keyData.status and keyData.status ~= "aktif" then
+                    keyValidGlobal = false
+                end
+                break
+            end
+        end
+    end
+end)
 local espEnabled = false
 local lineEnabled = false
 local lineColor = Color3.fromRGB(255, 255, 255)
