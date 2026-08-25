@@ -283,7 +283,7 @@ local originalFogEnd = Lighting.FogEnd
 local originalFogStart = Lighting.FogStart
 local originalFogColor = Lighting.FogColor
 
-local antiCheatBypassEnabled = false
+-- bypass dihapus
 
 -- ================== ENGINE ACTIONS ==================
 local function startNoclip()
@@ -580,25 +580,7 @@ local function toggleGodMode(state)
 end
 
 -- ANTI-CHEAT BYPASS
-local function toggleAntiCheatBypass(state)
-    antiCheatBypassEnabled = state
-    if state then
-        local rawmeta = getrawmetatable(game)
-        if setreadonly then setreadonly(rawmeta, false) end
-        local oldIndex = rawmeta.__index
-        
-        rawmeta.__index = newcclosure(function(self, key)
-            if antiCheatBypassEnabled and not checkcaller() then
-                if self:IsA("Humanoid") then
-                    if key == "WalkSpeed" then return 16 end
-                    if key == "JumpPower" then return 50 end
-                end
-            end
-            return oldIndex(self, key)
-        end)
-        if setreadonly then setreadonly(rawmeta, true) end
-    end
-end
+-- bypass dihapus
 
 UserInputService.JumpRequest:Connect(function()
     if infinityJumpEnabled and LocalPlayer.Character then
@@ -694,63 +676,83 @@ RunService.RenderStepped:Connect(function()
             local pos, visible = Camera:WorldToViewportPoint(hrp.Position)
             local distance = myPos and (myPos - hrp.Position).Magnitude or 9999
 
-            if visible and distance <= MAX_ESP_DISTANCE then
+            local vp = Camera.ViewportSize
+            -- Clamp screen position supaya tidak nempel di tepi layar saat jauh
+            local screenX = math.clamp(pos.X, 10, vp.X - 10)
+            local screenY = math.clamp(pos.Y, 10, vp.Y - 10)
+            local isOnScreen = visible and pos.Z > 0 -- Z > 0 = di depan kamera
+
+            if isOnScreen and distance <= MAX_ESP_DISTANCE then
                 screenCount = screenCount + 1
-                local top = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
-                local bottom = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+                local top    = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                local bottom = Camera:WorldToViewportPoint(hrp.Position  - Vector3.new(0, 3,   0))
                 local height = math.abs(top.Y - bottom.Y)
-                local width = height / 2
+                local width  = height / 2
+
+                -- Clamp ukuran minimum supaya tidak jadi noktah saat jauh
+                height = math.max(height, 10)
+                width  = math.max(width,  5)
+
+                -- Clamp posisi box supaya tidak keluar layar
+                local boxX = math.clamp(screenX - width/2, 2, vp.X - width - 2)
+                local boxTopY = math.clamp(top.Y, 2, vp.Y - height - 2)
 
                 if espEnabled then
                     -- BOX (putih)
-                    box.Size = Vector2.new(width, height)
-                    box.Position = Vector2.new(pos.X - width/2, top.Y)
-                    box.Color = Color3.fromRGB(255, 255, 255)
-                    box.Visible = true
-                    
-                    -- DISTANCE (putih muda, di bawah box)
-                    distText.Text = math.floor(distance).."m"
-                    distText.Position = Vector2.new(pos.X, bottom.Y + 4)
-                    distText.Color = Color3.fromRGB(200, 200, 200)
-                    distText.Visible = true
+                    box.Size     = Vector2.new(width, height)
+                    box.Position = Vector2.new(boxX, boxTopY)
+                    box.Color    = Color3.fromRGB(255, 255, 255)
+                    box.Visible  = true
 
-                    -- NAME (RAINBOW, terpisah dari box, di atas box)
+                    -- DISTANCE (putih muda, di bawah box)
+                    distText.Text     = math.floor(distance).."m"
+                    distText.Position = Vector2.new(screenX, boxTopY + height + 4)
+                    distText.Color    = Color3.fromRGB(200, 200, 200)
+                    distText.Visible  = true
+
+                    -- NAME (RAINBOW, di atas box, terpisah)
                     if espNameEnabled then
-                        name.Position = Vector2.new(pos.X, top.Y - 18)
-                        name.Text = player.DisplayName or player.Name
-                        name.Color = rainbowColor
-                        name.Visible = true
+                        name.Position = Vector2.new(screenX, boxTopY - 18)
+                        name.Text     = player.DisplayName or player.Name
+                        name.Color    = rainbowColor
+                        name.Visible  = true
                     else
                         name.Visible = false
                     end
 
-                    -- HEALTH (terpisah, gradient)
+                    -- HEALTH BAR (kanan box, gradient hijau-merah)
                     if espHealthEnabled and hum then
                         local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
-                        hBg.Size = Vector2.new(4, height)
-                        hBg.Position = Vector2.new(pos.X + width/2 + 3, top.Y)
-                        hBg.Color = Color3.fromRGB(40,40,40)
-                        hBg.Visible = true
-                        hFg.Size = Vector2.new(4, height * pct)
-                        hFg.Position = Vector2.new(pos.X + width/2 + 3, bottom.Y - (height * pct))
-                        hFg.Color = Color3.fromRGB(255*(1-pct), 255*pct, 0)
-                        hFg.Visible = true
+                        hBg.Size     = Vector2.new(4, height)
+                        hBg.Position = Vector2.new(boxX + width + 3, boxTopY)
+                        hBg.Color    = Color3.fromRGB(40, 40, 40)
+                        hBg.Visible  = true
+                        hFg.Size     = Vector2.new(4, height * pct)
+                        hFg.Position = Vector2.new(boxX + width + 3, boxTopY + height - (height * pct))
+                        hFg.Color    = Color3.fromRGB(255*(1-pct), 255*pct, 0)
+                        hFg.Visible  = true
                     else
                         hBg.Visible = false
                         hFg.Visible = false
                     end
                 else
-                    box.Visible = false name.Visible = false distText.Visible = false hBg.Visible = false hFg.Visible = false
+                    box.Visible = false; name.Visible = false; distText.Visible = false
+                    hBg.Visible = false; hFg.Visible = false
                 end
             else
-                box.Visible = false name.Visible = false distText.Visible = false hBg.Visible = false hFg.Visible = false
+                box.Visible = false; name.Visible = false; distText.Visible = false
+                hBg.Visible = false; hFg.Visible = false
             end
 
-            -- LINE (putih, terpisah)
-            if lineEnabled and visible then
-                line.From = Vector2.new(Camera.ViewportSize.X / 2, 0)
-                line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = Color3.fromRGB(255, 255, 255)
+            -- LINE: dari atas layar mengarah ke bagian ATAS box (bukan ke tengah body)
+            -- harus visible true dan pos.Z > 0 (di depan kamera) baru gambar line
+            if lineEnabled and visible and pos.Z > 0 and distance <= MAX_ESP_DISTANCE then
+                local top2 = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                local lineToX = math.clamp(top2.X, 2, vp.X - 2)
+                local lineToY = math.clamp(top2.Y, 2, vp.Y - 2)
+                line.From    = Vector2.new(vp.X / 2, 0)  -- dari atas tengah layar
+                line.To      = Vector2.new(lineToX, lineToY)  -- mengarah ke atas box/kepala
+                line.Color   = Color3.fromRGB(255, 255, 255)
                 line.Visible = true
             else
                 line.Visible = false
@@ -1223,23 +1225,124 @@ local function loadMainScript()
     -- ================== TAB SETTINGS ==================
     local TabSettings = Window:CreateTab("Settings", "settings")
 
-    TabSettings:CreateSection("🛡️ Anti-Cheat Bypass")
+    -- ================== AIMLOCK / AIMBOT ==================
+    TabSettings:CreateSection("🎯 Aimlock / Aimbot")
+
+    local aimlockEnabled  = false
+    local aimlockTarget   = "Player" -- "Player" atau "NPC"
+    local aimlockFOV      = 100      -- radius FOV (pixel)
+    local aimlockConn     = nil
+    local aimlockSmooth   = 0.1      -- 0 = instant, 1 = lambat
+
+    local function getNearestTarget()
+        local myChar = LocalPlayer.Character
+        local myHRP  = myChar and myChar:FindFirstChild("HumanoidRootPart")
+        if not myHRP then return nil end
+
+        local nearest, nearestDist = nil, math.huge
+        local vp = Camera.ViewportSize
+        local centerX, centerY = vp.X/2, vp.Y/2
+
+        -- Cari Player
+        if aimlockTarget == "Player" or aimlockTarget == "Both" then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p == LocalPlayer then continue end
+                local char = p.Character
+                local head = char and char:FindFirstChild("Head")
+                if not head then continue end
+                local sp, vis = Camera:WorldToViewportPoint(head.Position)
+                if not vis then continue end
+                local screenDist = math.sqrt((sp.X-centerX)^2 + (sp.Y-centerY)^2)
+                if screenDist < aimlockFOV and screenDist < nearestDist then
+                    nearestDist = screenDist
+                    nearest = head
+                end
+            end
+        end
+
+        -- Cari NPC (Humanoid di workspace bukan milik player)
+        if aimlockTarget == "NPC" or aimlockTarget == "Both" then
+            local playerChars = {}
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Character then playerChars[p.Character] = true end
+            end
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Model") and not playerChars[obj] then
+                    local hum = obj:FindFirstChildOfClass("Humanoid")
+                    local head = obj:FindFirstChild("Head")
+                    if hum and head and hum.Health > 0 then
+                        local sp, vis = Camera:WorldToViewportPoint(head.Position)
+                        if not vis then continue end
+                        local screenDist = math.sqrt((sp.X-centerX)^2 + (sp.Y-centerY)^2)
+                        if screenDist < aimlockFOV and screenDist < nearestDist then
+                            nearestDist = screenDist
+                            nearest = head
+                        end
+                    end
+                end
+            end
+        end
+
+        return nearest
+    end
+
+    local function startAimlock()
+        if aimlockConn then aimlockConn:Disconnect() end
+        aimlockConn = RunService.RenderStepped:Connect(function()
+            if not aimlockEnabled then return end
+            local target = getNearestTarget()
+            if not target then return end
+            -- Smooth lock: interpolasi CFrame kamera ke arah target
+            local targetCF = CFrame.new(Camera.CFrame.Position, target.Position)
+            Camera.CFrame = Camera.CFrame:Lerp(targetCF, math.clamp(1 - aimlockSmooth, 0.01, 1))
+        end)
+    end
+
 
     TabSettings:CreateToggle({
-        Name = "Universal Anti-Cheat Bypass",
+        Name = "Aimlock Aktif",
         CurrentValue = false,
-        Flag = "AC_Bypass",
+        Flag = "AimlockToggle",
         Callback = function(state)
-            toggleAntiCheatBypass(state)
-            if Rayfield then
-                Rayfield:Notify({
-                    Title = "Bypass System",
-                    Content = state and "Universal Bypass DI-AKTIFKAN!" or "Bypass dinonaktifkan.",
-                    Duration = 3,
-                    Image = 4483362458
-                })
+            aimlockEnabled = state
+            if state then
+                startAimlock()
+                Rayfield:Notify({Title="Aimlock", Content="Aktif! Target: "..aimlockTarget, Duration=2, Image=4483362458})
+            else
+                if aimlockConn then aimlockConn:Disconnect(); aimlockConn=nil end
+                Rayfield:Notify({Title="Aimlock", Content="Dinonaktifkan.", Duration=2, Image=4483362458})
             end
         end,
+    })
+
+    TabSettings:CreateDropdown({
+        Name = "Target Aimlock",
+        Options = {"Player", "NPC", "Both"},
+        CurrentOption = {"Player"},
+        Flag = "AimlockTarget",
+        Callback = function(selected)
+            aimlockTarget = type(selected)=="table" and selected[1] or selected
+        end,
+    })
+
+    TabSettings:CreateSlider({
+        Name = "FOV Radius (pixel)",
+        Range = {20, 400},
+        Increment = 10,
+        Suffix = "px",
+        CurrentValue = 100,
+        Flag = "AimlockFOV",
+        Callback = function(v) aimlockFOV = v end,
+    })
+
+    TabSettings:CreateSlider({
+        Name = "Smooth (0=Instant)",
+        Range = {0, 90},
+        Increment = 5,
+        Suffix = "%",
+        CurrentValue = 10,
+        Flag = "AimlockSmooth",
+        Callback = function(v) aimlockSmooth = v/100 end,
     })
 
     TabSettings:CreateDivider()
