@@ -85,7 +85,6 @@ local function getKeysFromFirebase()
 end
 
 local function getTimeRemaining(expiryTimestamp)
-    -- expiryTimestamp dalam DETIK (unix seconds)
     local currentTime = os.time()
     local remaining = expiryTimestamp - currentTime
     if remaining <= 0 then return 0, 0, 0, 0, "EXPIRED" end
@@ -102,7 +101,6 @@ local function checkKeyExpiry(inputKey)
     local keysData = getKeysFromFirebase()
     if not keysData then return false, "Gagal mengambil data server" end
 
-    -- Cari key di Firebase
     local foundData = nil
     for _, keyData in ipairs(keysData) do
         if keyData.key == inputKey then
@@ -120,33 +118,20 @@ local function checkKeyExpiry(inputKey)
     local expiryTime  = nil
     local keyJenisData = foundData.jenis or "1 HARI"
 
-    -- ============================================================
-    -- PRIORITAS 1: Gunakan expiry_timestamp dari Firebase LANGSUNG
-    -- (disimpan website dalam ms → bagi 1000 → detik)
-    -- Ini yang bikin countdown SYNC PERSIS dengan website
-    -- ============================================================
     if foundData.expiry_timestamp and foundData.expiry_timestamp ~= nil then
-        -- Website simpan dalam milliseconds, Lua butuh detik
         expiryTime = math.floor(foundData.expiry_timestamp / 1000)
-
         if currentTime > expiryTime then
             return false, "KEY SUDAH EXPIRED!"
         end
-
     elseif keyJenisData == "PERMANEN" then
-        -- Key permanen tidak punya expiry_timestamp
         expiryTime = math.huge
-
     else
-        -- Fallback kalau expiry_timestamp tidak ada di Firebase
-        -- (key lama sebelum sistem diupdate)
         if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
             expiryTime = activeKeys[inputKey].expiryTime
             if currentTime > expiryTime then
                 return false, "KEY SUDAH EXPIRED!"
             end
         else
-            -- Hitung lokal sebagai last resort
             local expiryDays = 1
             if keyJenisData == "1 JAM"   then expiryDays = 1/24
             elseif keyJenisData == "1 HARI"  then expiryDays = 1
@@ -159,13 +144,11 @@ local function checkKeyExpiry(inputKey)
         end
     end
 
-    -- Simpan ke file lokal (cache) pakai expiry dari Firebase
     activeKeys[inputKey] = {
         firstUsed  = activeKeys[inputKey] and activeKeys[inputKey].firstUsed or currentTime,
         key        = inputKey,
         expiryTime = expiryTime,
         jenis      = keyJenisData,
-        -- Simpan expiry_timestamp asli dari Firebase (ms) supaya bisa refresh sync nanti
         expiry_timestamp_ms = foundData.expiry_timestamp,
     }
     saveKeyData()
@@ -180,8 +163,6 @@ local function checkKeyExpiry(inputKey)
 end
 
 -- ================== AUTO RE-SYNC EXPIRY DARI FIREBASE ==================
--- Setiap 60 detik ambil ulang expiry_timestamp dari Firebase
--- supaya countdown di script SELALU persis sama dengan yang di website
 task.spawn(function()
     while true do
         task.wait(60)
@@ -193,11 +174,9 @@ task.spawn(function()
         for _, keyData in ipairs(keysData) do
             if keyData.key == currentUserKey then
                 if keyData.expiry_timestamp and keyData.expiry_timestamp ~= nil then
-                    -- Re-sync: update keyExpiryTime dari Firebase (ms → detik)
                     local newExpiry = math.floor(keyData.expiry_timestamp / 1000)
                     if newExpiry ~= keyExpiryTime then
                         keyExpiryTime = newExpiry
-                        -- Update cache lokal juga
                         if activeKeys[currentUserKey] then
                             activeKeys[currentUserKey].expiryTime = newExpiry
                             activeKeys[currentUserKey].expiry_timestamp_ms = keyData.expiry_timestamp
@@ -205,7 +184,6 @@ task.spawn(function()
                         end
                     end
                 end
-                -- Cek kalau key di-revoke/non-aktif
                 if keyData.status and keyData.status ~= "aktif" then
                     keyValidGlobal = false
                 end
@@ -214,12 +192,13 @@ task.spawn(function()
         end
     end
 end)
+
 local espEnabled = false
 local lineEnabled = false
 local lineColor = Color3.fromRGB(255, 255, 255)
 local skeletonEnabled = false
-local espNameEnabled = false   -- Toggle ESP Nama (RAINBOW)
-local espHealthEnabled = false -- Toggle ESP Health
+local espNameEnabled = false
+local espHealthEnabled = false
 local ESPTable = {}
 local SkeletonESP = {}
 
@@ -282,8 +261,6 @@ local noFogEnabled = false
 local originalFogEnd = Lighting.FogEnd
 local originalFogStart = Lighting.FogStart
 local originalFogColor = Lighting.FogColor
-
--- bypass dihapus
 
 -- ================== ENGINE ACTIONS ==================
 local function startNoclip()
@@ -525,12 +502,12 @@ local function serverHop()
         })
     end
     task.wait(1)
-    
+
     local success, err = pcall(function()
         local serverList = {}
         local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
         local decoded = HttpService:JSONDecode(req)
-        
+
         if decoded and decoded.data then
             for _, server in ipairs(decoded.data) do
                 if server.playing < server.maxPlayers and server.id ~= game.JobId then
@@ -538,14 +515,14 @@ local function serverHop()
                 end
             end
         end
-        
+
         if #serverList > 0 then
             TeleportService:TeleportToPlaceInstance(game.PlaceId, serverList[math.random(1, #serverList)], LocalPlayer)
         else
             error("Tidak menemukan server alternatif.")
         end
     end)
-    
+
     if not success then
         if Rayfield then
             Rayfield:Notify({
@@ -564,7 +541,7 @@ end
 local function toggleGodMode(state)
     antiDamageEnabled = state
     if antiDamageConnection then antiDamageConnection:Disconnect() antiDamageConnection = nil end
-    
+
     if state then
         antiDamageConnection = RunService.Heartbeat:Connect(function()
             if antiDamageEnabled and LocalPlayer.Character then
@@ -578,9 +555,6 @@ local function toggleGodMode(state)
         end)
     end
 end
-
--- ANTI-CHEAT BYPASS
--- bypass dihapus
 
 UserInputService.JumpRequest:Connect(function()
     if infinityJumpEnabled and LocalPlayer.Character then
@@ -615,24 +589,20 @@ end
 local function createESP(player)
     if player == LocalPlayer then return end
     local box = Drawing.new("Square") box.Thickness = 1.8 box.Filled = false box.Visible = false
-    box.Color = Color3.fromRGB(255, 255, 255)
-    
-    -- NAME (terpisah, rainbow color akan di-set di render)
+    box.Color = boxColor
+
     local name = Drawing.new("Text") name.Size = 15 name.Center = true name.Outline = true name.Visible = false
-    name.Color = Color3.fromRGB(255, 0, 0) -- default, akan diubah rainbow
-    
-    -- DISTANCE (terpisah)
+    name.Color = Color3.fromRGB(255, 0, 0)
+
     local dist = Drawing.new("Text") dist.Size = 12 dist.Center = true dist.Outline = true dist.Visible = false
     dist.Color = Color3.fromRGB(200, 200, 200)
-    
-    -- LINE (terpisah, warna putih)
+
     local line = Drawing.new("Line") line.Thickness = 1.8 line.Visible = false
-    line.Color = Color3.fromRGB(255, 255, 255)
-    
-    -- HEALTH (terpisah, gradient hijau-merah)
+    line.Color = lineColor
+
     local healthBg = Drawing.new("Square") healthBg.Filled = true healthBg.Visible = false
     local healthFg = Drawing.new("Square") healthFg.Filled = true healthFg.Visible = false
-    
+
     ESPTable[player] = {box, name, dist, line, healthBg, healthFg}
 end
 
@@ -677,10 +647,9 @@ RunService.RenderStepped:Connect(function()
             local distance = myPos and (myPos - hrp.Position).Magnitude or 9999
 
             local vp = Camera.ViewportSize
-            -- Clamp screen position supaya tidak nempel di tepi layar saat jauh
             local screenX = math.clamp(pos.X, 10, vp.X - 10)
             local screenY = math.clamp(pos.Y, 10, vp.Y - 10)
-            local isOnScreen = visible and pos.Z > 0 -- Z > 0 = di depan kamera
+            local isOnScreen = visible and pos.Z > 0
 
             if isOnScreen and distance <= MAX_ESP_DISTANCE then
                 screenCount = screenCount + 1
@@ -689,28 +658,23 @@ RunService.RenderStepped:Connect(function()
                 local height = math.abs(top.Y - bottom.Y)
                 local width  = height / 2
 
-                -- Clamp ukuran minimum supaya tidak jadi noktah saat jauh
                 height = math.max(height, 10)
                 width  = math.max(width,  5)
 
-                -- Clamp posisi box supaya tidak keluar layar
                 local boxX = math.clamp(screenX - width/2, 2, vp.X - width - 2)
                 local boxTopY = math.clamp(top.Y, 2, vp.Y - height - 2)
 
                 if espEnabled then
-                    -- BOX (putih)
                     box.Size     = Vector2.new(width, height)
                     box.Position = Vector2.new(boxX, boxTopY)
-                    box.Color    = Color3.fromRGB(255, 255, 255)
+                    box.Color    = boxColor
                     box.Visible  = true
 
-                    -- DISTANCE (putih muda, di bawah box)
                     distText.Text     = math.floor(distance).."m"
                     distText.Position = Vector2.new(screenX, boxTopY + height + 4)
                     distText.Color    = Color3.fromRGB(200, 200, 200)
                     distText.Visible  = true
 
-                    -- NAME (RAINBOW, di atas box, terpisah)
                     if espNameEnabled then
                         name.Position = Vector2.new(screenX, boxTopY - 18)
                         name.Text     = player.DisplayName or player.Name
@@ -720,7 +684,6 @@ RunService.RenderStepped:Connect(function()
                         name.Visible = false
                     end
 
-                    -- HEALTH BAR (kanan box, gradient hijau-merah)
                     if espHealthEnabled and hum then
                         local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
                         hBg.Size     = Vector2.new(4, height)
@@ -744,15 +707,13 @@ RunService.RenderStepped:Connect(function()
                 hBg.Visible = false; hFg.Visible = false
             end
 
-            -- LINE: dari atas layar mengarah ke bagian ATAS box (bukan ke tengah body)
-            -- harus visible true dan pos.Z > 0 (di depan kamera) baru gambar line
             if lineEnabled and visible and pos.Z > 0 and distance <= MAX_ESP_DISTANCE then
                 local top2 = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
                 local lineToX = math.clamp(top2.X, 2, vp.X - 2)
                 local lineToY = math.clamp(top2.Y, 2, vp.Y - 2)
-                line.From    = Vector2.new(vp.X / 2, 0)  -- dari atas tengah layar
-                line.To      = Vector2.new(lineToX, lineToY)  -- mengarah ke atas box/kepala
-                line.Color   = Color3.fromRGB(255, 255, 255)
+                line.From    = Vector2.new(vp.X / 2, 0)
+                line.To      = Vector2.new(lineToX, lineToY)
+                line.Color   = lineColor
                 line.Visible = true
             else
                 line.Visible = false
@@ -808,10 +769,9 @@ end)
 local function loadMainScript()
     if mainWindowLoaded then return end
     mainWindowLoaded = true
-    
+
     createPlayerCounter()
 
-    -- Load Rayfield (hanya 1 kali)
     if not Rayfield then
         Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
     end
@@ -997,231 +957,6 @@ local function loadMainScript()
         end,
     })
 
-    -- ================== TAB UTILITY ==================
-    local TabUtil = Window:CreateTab("Utility", "settings")
-
-    local playerNames = {}
-    local function refreshPlayers()
-        playerNames = {}
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer then
-                table.insert(playerNames, p.Name)
-            end
-        end
-        if #playerNames == 0 then playerNames = {"(Tidak ada player lain)"} end
-        return playerNames
-    end
-    refreshPlayers()
-
-    TabUtil:CreateDropdown({
-        Name = "Teleport ke Player",
-        Options = playerNames,
-        CurrentOption = {},
-        MultipleOptions = false,
-        Flag = "TeleportPlayer",
-        Callback = function(selected)
-            local targetName = selected
-            if type(selected) == "table" then targetName = selected[1] end
-            local target = Players:FindFirstChild(targetName)
-            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart")
-               and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
-                if Rayfield then
-                    Rayfield:Notify({Title = "Teleport", Content = "Berhasil teleport ke " .. targetName, Duration = 2, Image = 4483362458})
-                end
-            end
-        end,
-    })
-
-    TabUtil:CreateButton({
-        Name = "Refresh Daftar Player",
-        Callback = function()
-            refreshPlayers()
-            if Rayfield then
-                Rayfield:Notify({Title = "Refresh", Content = "Daftar player diperbarui.", Duration = 2, Image = 4483362458})
-            end
-        end,
-    })
-
-    TabUtil:CreateDivider()
-
-    local freezeAllEnabled = false
-    TabUtil:CreateToggle({
-        Name = "Freeze All Player",
-        CurrentValue = false,
-        Flag = "FreezeAll",
-        Callback = function(state)
-            freezeAllEnabled = state
-            for _, p in pairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then
-                    for _, part in pairs(p.Character:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            pcall(function() part.Anchored = state end)
-                        end
-                    end
-                end
-            end
-        end,
-    })
-
-    local freezeSelfEnabled = false
-    TabUtil:CreateToggle({
-        Name = "Freeze Diri Sendiri",
-        CurrentValue = false,
-        Flag = "FreezeSelf",
-        Callback = function(state)
-            freezeSelfEnabled = state
-            local myChar = LocalPlayer.Character
-            if myChar then
-                local hrp = myChar:FindFirstChild("HumanoidRootPart")
-                if hrp then hrp.Anchored = state end
-            end
-        end,
-    })
-
-    LocalPlayer.CharacterAdded:Connect(function(char)
-        task.wait(0.5)
-        if freezeSelfEnabled then
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if hrp then hrp.Anchored = true end
-        end
-        task.wait(1)
-        if noclipEnabled then startNoclip() end
-    end)
-
-    TabUtil:CreateDivider()
-    TabUtil:CreateSection("Spectator")
-
-    local spectateEnabled = false
-    local spectateTarget = nil
-    local spectateConn = nil
-    local spectateNames = {}
-
-    local function stopSpectate()
-        spectateEnabled = false
-        spectateTarget = nil
-        if spectateConn then spectateConn:Disconnect(); spectateConn = nil end
-        pcall(function()
-            Camera.CameraType = Enum.CameraType.Custom
-            Camera.CameraSubject = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") or nil
-        end)
-    end
-
-    local function startSpectate(targetPlayer)
-        if not targetPlayer or not targetPlayer.Character then
-            if Rayfield then
-                Rayfield:Notify({Title="Spectator", Content="Karakter player tidak ditemukan!", Duration=2, Image=4483362458})
-            end
-            return
-        end
-        spectateTarget = targetPlayer
-        spectateEnabled = true
-
-        pcall(function()
-            Camera.CameraType = Enum.CameraType.Custom
-            local targetHum = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if targetHum then Camera.CameraSubject = targetHum end
-        end)
-
-        if spectateConn then spectateConn:Disconnect() end
-        spectateConn = RunService.RenderStepped:Connect(function()
-            if not spectateEnabled or not spectateTarget then stopSpectate(); return end
-            local char = spectateTarget.Character
-            if not char then return end
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum then
-                pcall(function()
-                    Camera.CameraType = Enum.CameraType.Custom
-                    Camera.CameraSubject = hum
-                end)
-            end
-        end)
-
-        if Rayfield then
-            Rayfield:Notify({
-                Title = "Spectator",
-                Content = "Sekarang menonton: " .. targetPlayer.Name,
-                Duration = 3,
-                Image = 4483362458
-            })
-        end
-    end
-
-    local function refreshSpectateList()
-        spectateNames = {}
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer then
-                table.insert(spectateNames, p.Name)
-            end
-        end
-        if #spectateNames == 0 then spectateNames = {"(Tidak ada player)"} end
-        return spectateNames
-    end
-    refreshSpectateList()
-
-    TabUtil:CreateDropdown({
-        Name = "Pilih Target Spectator",
-        Options = spectateNames,
-        CurrentOption = {},
-        MultipleOptions = false,
-        Flag = "SpectateTarget",
-        Callback = function(selected)
-            local name = type(selected) == "table" and selected[1] or selected
-            local target = Players:FindFirstChild(name)
-            if spectateEnabled and target and target.Character then
-                spectateTarget = target
-                local hum = target.Character:FindFirstChildOfClass("Humanoid")
-                if hum then Camera.CameraSubject = hum end
-                if Rayfield then
-                    Rayfield:Notify({Title="Spectator", Content="Ganti target ke: "..name, Duration=2, Image=4483362458})
-                end
-            end
-        end,
-    })
-
-    TabUtil:CreateButton({
-        Name = "Refresh Daftar Spectator",
-        Callback = function()
-            refreshSpectateList()
-            if Rayfield then
-                Rayfield:Notify({Title="Refresh", Content="Daftar spectator diperbarui.", Duration=2, Image=4483362458})
-            end
-        end,
-    })
-
-    TabUtil:CreateToggle({
-        Name = "Aktifkan Spectator",
-        CurrentValue = false,
-        Flag = "SpectateToggle",
-        Callback = function(state)
-            if state then
-                local sel = spectateNames[1]
-                local target = Players:FindFirstChild(sel)
-                if target and sel ~= "(Tidak ada player)" then
-                    startSpectate(target)
-                else
-                    if Rayfield then
-                        Rayfield:Notify({Title="Spectator", Content="Pilih player dulu dari dropdown!", Duration=3, Image=4483362458})
-                    end
-                end
-            else
-                stopSpectate()
-                if Rayfield then
-                    Rayfield:Notify({Title="Spectator", Content="Spectator dinonaktifkan.", Duration=2, Image=4483362458})
-                end
-            end
-        end,
-    })
-
-    Players.PlayerRemoving:Connect(function(p)
-        if spectateTarget == p then
-            stopSpectate()
-            if Rayfield then
-                Rayfield:Notify({Title="Spectator", Content=p.Name.." keluar dari server!", Duration=3, Image=4483362458})
-            end
-        end
-    end)
-
     -- ================== TAB SETTINGS ==================
     local TabSettings = Window:CreateTab("Settings", "settings")
 
@@ -1229,10 +964,10 @@ local function loadMainScript()
     TabSettings:CreateSection("🎯 Aimlock / Aimbot")
 
     local aimlockEnabled  = false
-    local aimlockTarget   = "Player" -- "Player" atau "NPC"
-    local aimlockFOV      = 100      -- radius FOV (pixel)
+    local aimlockTarget   = "Player"
+    local aimlockFOV      = 100
     local aimlockConn     = nil
-    local aimlockSmooth   = 0.1      -- 0 = instant, 1 = lambat
+    local aimlockSmooth   = 0.1
 
     local function getNearestTarget()
         local myChar = LocalPlayer.Character
@@ -1243,7 +978,6 @@ local function loadMainScript()
         local vp = Camera.ViewportSize
         local centerX, centerY = vp.X/2, vp.Y/2
 
-        -- Cari Player
         if aimlockTarget == "Player" or aimlockTarget == "Both" then
             for _, p in pairs(Players:GetPlayers()) do
                 if p == LocalPlayer then continue end
@@ -1260,7 +994,6 @@ local function loadMainScript()
             end
         end
 
-        -- Cari NPC (Humanoid di workspace bukan milik player)
         if aimlockTarget == "NPC" or aimlockTarget == "Both" then
             local playerChars = {}
             for _, p in pairs(Players:GetPlayers()) do
@@ -1292,12 +1025,10 @@ local function loadMainScript()
             if not aimlockEnabled then return end
             local target = getNearestTarget()
             if not target then return end
-            -- Smooth lock: interpolasi CFrame kamera ke arah target
             local targetCF = CFrame.new(Camera.CFrame.Position, target.Position)
             Camera.CFrame = Camera.CFrame:Lerp(targetCF, math.clamp(1 - aimlockSmooth, 0.01, 1))
         end)
     end
-
 
     TabSettings:CreateToggle({
         Name = "Aimlock Aktif",
@@ -1345,6 +1076,87 @@ local function loadMainScript()
         Callback = function(v) aimlockSmooth = v/100 end,
     })
 
+    -- ================== ESP LINE COLOR ==================
+    TabSettings:CreateDivider()
+    TabSettings:CreateSection("🎨 ESP Line Color")
+
+    local lineR, lineG, lineB = 255, 255, 255
+
+    local function updateLineColor()
+        lineColor = Color3.fromRGB(lineR, lineG, lineB)
+    end
+
+    TabSettings:CreateSlider({
+        Name = "Line Red",
+        Range = {0, 255},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = 255,
+        Flag = "LineR",
+        Callback = function(v) lineR = v updateLineColor() end,
+    })
+
+    TabSettings:CreateSlider({
+        Name = "Line Green",
+        Range = {0, 255},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = 255,
+        Flag = "LineG",
+        Callback = function(v) lineG = v updateLineColor() end,
+    })
+
+    TabSettings:CreateSlider({
+        Name = "Line Blue",
+        Range = {0, 255},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = 255,
+        Flag = "LineB",
+        Callback = function(v) lineB = v updateLineColor() end,
+    })
+
+    -- ================== ESP BOX COLOR ==================
+    TabSettings:CreateDivider()
+    TabSettings:CreateSection("🎨 ESP Box Color")
+
+    local boxR, boxG, boxB = 255, 255, 255
+
+    local function updateBoxColor()
+        boxColor = Color3.fromRGB(boxR, boxG, boxB)
+    end
+
+    TabSettings:CreateSlider({
+        Name = "Box Red",
+        Range = {0, 255},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = 255,
+        Flag = "BoxR",
+        Callback = function(v) boxR = v updateBoxColor() end,
+    })
+
+    TabSettings:CreateSlider({
+        Name = "Box Green",
+        Range = {0, 255},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = 255,
+        Flag = "BoxG",
+        Callback = function(v) boxG = v updateBoxColor() end,
+    })
+
+    TabSettings:CreateSlider({
+        Name = "Box Blue",
+        Range = {0, 255},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = 255,
+        Flag = "BoxB",
+        Callback = function(v) boxB = v updateBoxColor() end,
+    })
+
+    -- ================== FULL BRIGHT ==================
     TabSettings:CreateDivider()
     TabSettings:CreateSection("🔆 Full Bright")
 
@@ -1365,6 +1177,7 @@ local function loadMainScript()
         end,
     })
 
+    -- ================== NO FOG ==================
     TabSettings:CreateDivider()
     TabSettings:CreateSection("🌫️ No Fog")
 
@@ -1385,6 +1198,7 @@ local function loadMainScript()
         end,
     })
 
+    -- ================== SERVER CONTROL ==================
     TabSettings:CreateDivider()
     TabSettings:CreateSection("🔄 Server Control")
 
@@ -1519,9 +1333,9 @@ local function startKeySystem()
                 pcall(function() statusLabel:Set("✅ Key Valid! Memuat interface...") end)
                 TempRayfield:Notify({Title = "Sukses!", Content = "Key valid! Interface sedang dimuat.", Duration = 3, Image = 4483362458})
                 task.wait(1.5)
-                pcall(function() 
-                    if keyWindowRef then 
-                        keyWindowRef:Destroy() 
+                pcall(function()
+                    if keyWindowRef then
+                        keyWindowRef:Destroy()
                         keyWindowRef = nil
                     end
                 end)
@@ -1548,13 +1362,13 @@ local function startKeySystem()
 end
 
 -- ================== ESP PLAYER INIT ==================
-for _, p in pairs(Players:GetPlayers()) do 
-    createESP(p) 
+for _, p in pairs(Players:GetPlayers()) do
+    createESP(p)
     createSkeleton(p)
 end
 
-Players.PlayerAdded:Connect(function(p) 
-    createESP(p) 
+Players.PlayerAdded:Connect(function(p)
+    createESP(p)
     createSkeleton(p)
     if chamsEnabled then
         task.wait(0.5)
@@ -1563,17 +1377,17 @@ Players.PlayerAdded:Connect(function(p)
 end)
 
 Players.PlayerRemoving:Connect(function(p)
-    if ESPTable[p] then 
-        for _, d in pairs(ESPTable[p]) do 
-            pcall(function() d:Remove() end) 
-        end 
-        ESPTable[p] = nil 
+    if ESPTable[p] then
+        for _, d in pairs(ESPTable[p]) do
+            pcall(function() d:Remove() end)
+        end
+        ESPTable[p] = nil
     end
-    if SkeletonESP[p] then 
-        for _, ld in pairs(SkeletonESP[p]) do 
-            pcall(function() ld[1]:Remove() end) 
-        end 
-        SkeletonESP[p] = nil 
+    if SkeletonESP[p] then
+        for _, ld in pairs(SkeletonESP[p]) do
+            pcall(function() ld[1]:Remove() end)
+        end
+        SkeletonESP[p] = nil
     end
     removeChams(p)
 end)
