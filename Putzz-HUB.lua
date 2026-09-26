@@ -212,7 +212,6 @@ local chamsConnections = {}
 local playerCounterEnabled = false
 local enemyCountText = nil
 
--- AUTO PARRY
 local autoParryEnabled = false
 local parryDistance = 8
 local parryCooldown = 0.5
@@ -1076,84 +1075,18 @@ local function loadMainScript()
         Callback = function(v) aimlockSmooth = v/100 end,
     })
 
-    -- ================== ESP LINE COLOR ==================
+    -- ================== ESP COLOR PICKER ==================
     TabSettings:CreateDivider()
-    TabSettings:CreateSection("🎨 ESP Line Color")
+    TabSettings:CreateSection("🎨 ESP Color (Line + Box)")
 
-    local lineR, lineG, lineB = 255, 255, 255
-
-    local function updateLineColor()
-        lineColor = Color3.fromRGB(lineR, lineG, lineB)
-    end
-
-    TabSettings:CreateSlider({
-        Name = "Line Red",
-        Range = {0, 255},
-        Increment = 1,
-        Suffix = "",
-        CurrentValue = 255,
-        Flag = "LineR",
-        Callback = function(v) lineR = v updateLineColor() end,
-    })
-
-    TabSettings:CreateSlider({
-        Name = "Line Green",
-        Range = {0, 255},
-        Increment = 1,
-        Suffix = "",
-        CurrentValue = 255,
-        Flag = "LineG",
-        Callback = function(v) lineG = v updateLineColor() end,
-    })
-
-    TabSettings:CreateSlider({
-        Name = "Line Blue",
-        Range = {0, 255},
-        Increment = 1,
-        Suffix = "",
-        CurrentValue = 255,
-        Flag = "LineB",
-        Callback = function(v) lineB = v updateLineColor() end,
-    })
-
-    -- ================== ESP BOX COLOR ==================
-    TabSettings:CreateDivider()
-    TabSettings:CreateSection("🎨 ESP Box Color")
-
-    local boxR, boxG, boxB = 255, 255, 255
-
-    local function updateBoxColor()
-        boxColor = Color3.fromRGB(boxR, boxG, boxB)
-    end
-
-    TabSettings:CreateSlider({
-        Name = "Box Red",
-        Range = {0, 255},
-        Increment = 1,
-        Suffix = "",
-        CurrentValue = 255,
-        Flag = "BoxR",
-        Callback = function(v) boxR = v updateBoxColor() end,
-    })
-
-    TabSettings:CreateSlider({
-        Name = "Box Green",
-        Range = {0, 255},
-        Increment = 1,
-        Suffix = "",
-        CurrentValue = 255,
-        Flag = "BoxG",
-        Callback = function(v) boxG = v updateBoxColor() end,
-    })
-
-    TabSettings:CreateSlider({
-        Name = "Box Blue",
-        Range = {0, 255},
-        Increment = 1,
-        Suffix = "",
-        CurrentValue = 255,
-        Flag = "BoxB",
-        Callback = function(v) boxB = v updateBoxColor() end,
+    TabSettings:CreateColorPicker({
+        Name = "ESP Line & Box Color",
+        Color = Color3.fromRGB(255, 255, 255),
+        Flag = "ESPColorPicker",
+        Callback = function(color)
+            lineColor = color
+            boxColor = color
+        end,
     })
 
     -- ================== FULL BRIGHT ==================
