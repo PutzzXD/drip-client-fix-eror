@@ -676,7 +676,7 @@ RunService.RenderStepped:Connect(function()
 
                     if espNameEnabled then
                         name.Position = Vector2.new(screenX, boxTopY - 18)
-                        name.Text     = player.DisplayName or player.Name
+                        name.Text     = "Putzzdev Xit"
                         name.Color    = rainbowColor
                         name.Visible  = true
                     else
