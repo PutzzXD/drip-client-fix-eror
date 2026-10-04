@@ -1,1 +1,1325 @@
-do local v0=game:GetService("Players");local v1=game:GetService("RunService");local v2=game:GetService("TweenService");local v3=game:GetService("UserInputService");local v4=workspace.CurrentCamera;local v5=v0.LocalPlayer;local v6=game:GetService("HttpService");local v7=game:GetService("Lighting");local v8=game:GetService("TeleportService");local v9=game:GetService("VirtualUser");local function v10() local v108="Unknown Executor";local v109={{name="Delta",check=function() return syn and syn.request and syn.crypt ;end},{name="Arceus X",check=function() return game:GetService("CoreGui"):FindFirstChild("Arceus X V2") or (identifyexecutor and (identifyexecutor()=="Arceus X")) ;end},{name="CodeX",check=function() return CodeX and CodeX.Execute ;end},{name="Hydrogen",check=function() return isfile and readfile and writefile and  not syn ;end},{name="Fluxus",check=function() return fluxus and fluxus.ismobile ;end},{name="Krnl",check=function() return krnl and krnl.loadlibrary ;end},{name="ScriptWare",check=function() return scriptware and scriptware.loader ;end},{name="Synapse X",check=function() return syn and syn.crypt and syn.request ;end},{name="Evon",check=function() return evon and evon.execute ;end},{name="Vega X",check=function() return game:GetService("CoreGui"):FindFirstChild("Vega Hub");end},{name="Swift",check=function() return Swift and Swift.Execute ;end},{name="Nexus",check=function() return Nexus and Nexus.Load ;end}};for v208,v209 in ipairs(v109) do local v210,v211=pcall(v209.check);if (v210 and v211) then v108=v209.name;break;end end local v110,v111=pcall(function() if identifyexecutor then return identifyexecutor();end return nil;end);if (v110 and v111 and (v111~="")) then v108=v111;end return v108;end local v11=v10();local v12="https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json";local v13="https://drip-client-get-key.vercel.app/";local v14="drip_key_data.txt";local v15={};local v16=nil;local v17=0 + 0 ;local v18="";local v19=false;local v20=nil;local v21=false;local v22=nil;local function v23() if (isfile and isfile(v14)) then local v275,v276=pcall(function() return readfile(v14);end);if (v275 and v276 and (v276~="")) then local v370=0;local v371;local v372;while true do if (v370==(0 + 0)) then v371,v372=pcall(function() return v6:JSONDecode(v276);end);if v371 then v15=v372;end break;end end end end end local function v24() if writefile then local v277=0 -0 ;local v278;local v279;while true do if (0==v277) then v278,v279=pcall(function() return v6:JSONEncode(v15);end);if v278 then writefile(v14,v279);end break;end end end end local function v25() local v112=0;local v113;local v114;local v115;while true do if (v112==1) then v115=nil;while true do if (v113==1) then return nil;end if (v113==0) then v114,v115=pcall(function() return game:HttpGet(v12);end);if (v114 and v115) then local v514=0;local v515;local v516;while true do if (v514==(0 -0)) then v515,v516=pcall(function() return v6:JSONDecode(v115);end);if (v515 and v516) then local v635=1739 -(404 + 1335) ;local v636;while true do if (v635==(406 -(183 + 223))) then v636={};for v686,v687 in pairs(v516) do table.insert(v636,v687);end v635=1 -0 ;end if (v635==1) then return v636;end end end break;end end end v113=1 + 0 ;end end break;end if (v112==(0 + 0)) then v113=337 -(10 + 327) ;v114=nil;v112=1 + 0 ;end end end local function v26(v116) local v117=338 -(118 + 220) ;local v118;local v119;local v120;local v121;local v122;local v123;while true do if (v117==(0 + 0)) then v118=os.time();v119=v116-v118 ;v117=450 -(108 + 341) ;end if (v117==(1 + 0)) then if (v119<=0) then return 0 -0 ,1493 -(711 + 782) ,0 -0 ,469 -(270 + 199) ,"EXPIRED";end v120=math.floor(v119/86400 );v117=1 + 1 ;end if (v117==(1821 -(580 + 1239))) then v121=math.floor((v119%(256848 -170448))/(3443 + 157) );v122=math.floor((v119%(130 + 3470))/(27 + 33) );v117=7 -4 ;end if (v117==3) then v123=v119%(38 + 22) ;return v120,v121,v122,v123,string.format("%d Hari %02d Jam %02d Menit %02d Detik",v120,v121,v122,v123);end end end local function v27(v124) v23();local v125=v25();if  not v125 then return false,"Gagal mengambil data server";end local v126=nil;for v212,v213 in ipairs(v125) do if (v213.key==v124) then v126=v213;break;end end if  not v126 then return false,"KEY TIDAK TERDAFTAR!";end if (v126.status and (v126.status~="aktif")) then return false,"KEY TIDAK AKTIF!";end local v127=os.time();local v128=nil;local v129=v126.jenis or "1 HARI" ;if (v126.expiry_timestamp and (v126.expiry_timestamp~=nil)) then local v280=0;while true do if (v280==(1167 -(645 + 522))) then v128=math.floor(v126.expiry_timestamp/1000 );if (v127>v128) then return false,"KEY SUDAH EXPIRED!";end break;end end elseif (v129=="PERMANEN") then v128=math.huge;elseif (v15[v124] and v15[v124].expiryTime) then local v447=1790 -(1010 + 780) ;while true do if (v447==(0 + 0)) then v128=v15[v124].expiryTime;if (v127>v128) then return false,"KEY SUDAH EXPIRED!";end break;end end else local v448=0 -0 ;local v449;while true do if (v448==(2 -1)) then v128=v127 + math.floor(v449 * 86400 ) ;break;end if (v448==0) then v449=1837 -(1045 + 791) ;if (v129=="1 JAM") then v449=(2 -1)/(36 -12) ;elseif (v129=="1 HARI") then v449=506 -(351 + 154) ;elseif (v129=="2 HARI") then v449=2;elseif (v129=="3 HARI") then v449=1577 -(1281 + 293) ;elseif (v129=="7 HARI") then v449=7;elseif (v129=="30 HARI") then v449=296 -(28 + 238) ;end v448=2 -1 ;end end end v15[v124]={firstUsed=(v15[v124] and v15[v124].firstUsed) or v127 ,key=v124,expiryTime=v128,jenis=v129,expiry_timestamp_ms=v126.expiry_timestamp};v24();v17=v128;v18=v129;v16=v124;v19=true;local v131,v131,v131,v131,v132=v26(v128);return true,"VALID! Sisa: "   .. v132 ;end task.spawn(function() while true do local v214=1559 -(1381 + 178) ;local v215;local v216;while true do if (v214==(0 + 0)) then task.wait(49 + 11 );if ( not v19 or  not v16) then continue;end v214=1 + 0 ;end if (v214==(3 -2)) then local v374=0 + 0 ;while true do if (v374==0) then v215,v216=pcall(function() return v25();end);if  not (v215 and v216) then continue;end v374=471 -(381 + 89) ;end if (v374==(1 + 0)) then v214=2 + 0 ;break;end end end if (v214==(2 -0)) then for v414,v415 in ipairs(v216) do if (v415.key==v16) then if (v415.expiry_timestamp and (v415.expiry_timestamp~=nil)) then local v548=math.floor(v415.expiry_timestamp/(2156 -(1074 + 82)) );if (v548~=v17) then local v587=0 -0 ;local v588;while true do if (v587==(1784 -(214 + 1570))) then v588=1455 -(990 + 465) ;while true do if (0==v588) then v17=v548;if v15[v16] then local v696=0 + 0 ;while true do if (v696==0) then v15[v16].expiryTime=v548;v15[v16].expiry_timestamp_ms=v415.expiry_timestamp;v696=1 + 0 ;end if (v696==(1 + 0)) then pcall(v24);break;end end end break;end end break;end end end end if (v415.status and (v415.status~="aktif")) then v19=false;end break;end end break;end end end end);local v28=false;local v29=false;local v30=Color3.fromRGB(1003 -748 ,1981 -(1668 + 58) ,881 -(512 + 114) );local v31=false;local v32=false;local v33=false;local v34={};local v35={};local v36=false;local v37=Color3.fromRGB(664 -409 ,0 -0 ,0 -0 );local v38={};local v39=93043 + 106957 ;local v40=false;local v41=Color3.fromRGB(0,48 + 207 ,0);local v42=0.2 + 0 ;local v43={};local v44={};local v45=false;local v46=nil;local v47=false;local v48=8;local v49=0.5 -0 ;local v50=1994 -(109 + 1885) ;local v51=nil;local v52=false;local v53=nil;local v54=false;local v55=1485 -(1269 + 200) ;local v56=60;local v57=false;local v58=95 -45 ;local v59=false;local v60=false;local v61=nil;local v62=false;local v63=865 -(98 + 717) ;local v64=nil;local v65=827 -(802 + 24) ;local v66=false;local v67=nil;local v68={};local v69=nil;local v70=nil;local v71=Color3.fromRGB(0,255,0 -0 );local v72=Color3.fromRGB(322 -67 ,38 + 217 ,196 + 59 );local v73=32851 + 167149 ;local v74=false;local v75=v7.Brightness;local v76=v7.ClockTime;local v77=v7.Ambient;local v78=v7.ColorShift_Bottom;local v79=v7.ColorShift_Top;local v80=v7.OutdoorAmbient;local v81=false;local v82=v7.FogEnd;local v83=v7.FogStart;local v84=v7.FogColor;local function v85() local v133=0 + 0 ;local v134;while true do if (v133==(0 -0)) then v134=0 -0 ;while true do if (v134==(0 + 0)) then if v53 then v53:Disconnect();end v53=v1.Stepped:Connect(function() if (v52 and v5.Character) then for v582,v583 in pairs(v5.Character:GetDescendants()) do if v583:IsA("BasePart") then v583.CanCollide=false;end end end end);break;end end break;end end end local function v86() if v53 then local v281=0;local v282;while true do if (v281==(0 + 0)) then v282=0 + 0 ;while true do if (v282==(0 + 0)) then v53:Disconnect();v53=nil;break;end end break;end end end end local function v87(v135) local v136=0;while true do if (v136==(0 + 0)) then v62=v135;if v64 then local v416=1433 -(797 + 636) ;while true do if (0==v416) then v64:Disconnect();v64=nil;break;end end end v136=4 -3 ;end if (v136==(1620 -(1427 + 192))) then if v135 then v64=v1.Heartbeat:Connect(function() if (v62 and v5.Character and v5.Character:FindFirstChild("HumanoidRootPart")) then v5.Character.HumanoidRootPart.CFrame*=CFrame.Angles(0,math.rad(v63 * v65 ),0) end end);end break;end end end local function v88(v137) v66=v137;if v67 then local v283=0;while true do if (v283==(0 + 0)) then v67:Disconnect();v67=nil;break;end end end if (v137 and v5.Character) then v68={};v69=v5.Character:FindFirstChild("HumanoidRootPart");v70=v5.Character:FindFirstChildOfClass("Humanoid");for v308,v309 in pairs(v5.Character:GetDescendants()) do if (v309:IsA("BasePart") and (v309.Transparency==(0 -0))) then local v417=0 + 0 ;while true do if (v417==(0 + 0)) then table.insert(v68,{part=v309,origTrans=v309.Transparency});v309.Transparency=326.5 -(192 + 134) ;break;end end end end v67=v1.Heartbeat:Connect(function() if (v66 and v69 and v70) then local v418=v69.CFrame;local v419=v70.CameraOffset;local v420=v418 * CFrame.new(1276 -(316 + 960) , -500000,0) ;v69.CFrame=v420;v70.CameraOffset=v420:ToObjectSpace(CFrame.new(v418.Position)).Position;v1.RenderStepped:Wait();v69.CFrame=v418;v70.CameraOffset=v419;end end);else if v5.Character then local v375=0 + 0 ;local v376;while true do if (v375==(0 + 0)) then v376=0 + 0 ;while true do if (v376==0) then for v589,v590 in pairs(v68) do pcall(function() if (v590.part and v590.part.Parent) then v590.part.Transparency=v590.origTrans;end end);end for v591,v592 in pairs(v5.Character:GetDescendants()) do if (v592:IsA("BasePart") and (v592.Transparency==0.5)) then v592.Transparency=0 -0 ;end end break;end end break;end end end v68={};v69=nil;v70=nil;end end local function v89(v138) local v139=551 -(83 + 468) ;local v140;while true do if (v139==(1806 -(1202 + 604))) then if (v138==v5) then return;end v140=v138.Character;v139=1;end if (v139==(4 -3)) then if  not v140 then return;end pcall(function() local v377=v140:FindFirstChild("ChamsHighlight");if v377 then v377:Destroy();end local v378=Instance.new("Highlight");v378.Name="ChamsHighlight";v378.FillColor=v41;v378.FillTransparency=v42;v378.OutlineColor=Color3.fromRGB(424 -169 ,255,255);v378.OutlineTransparency=0 -0 ;v378.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop;v378.Adornee=v140;v378.Parent=v140;v43[v138]=v378;end);break;end end end local function v90(v141) local v142=325 -(45 + 280) ;local v143;while true do if (v142==1) then if v143 then pcall(function() v143:Destroy();end);end v43[v141]=nil;v142=2;end if (v142==(2 + 0)) then if v141.Character then local v424=0 + 0 ;local v425;while true do if (v424==0) then v425=v141.Character:FindFirstChild("ChamsHighlight");if v425 then pcall(function() v425:Destroy();end);end break;end end end break;end if (v142==(0 + 0)) then if  not v141 then return;end v143=v43[v141];v142=1 + 0 ;end end end local function v91(v144) local v145=0;while true do if (v145==(0 + 0)) then v40=v144;if v144 then local v426=0;local v427;local v428;while true do if (v426==(1 -0)) then table.insert(v44,v427);v428=v0.PlayerRemoving:Connect(function(v549) v90(v549);end);v426=1913 -(340 + 1571) ;end if ((0 + 0)==v426) then for v550,v551 in pairs(v0:GetPlayers()) do if (v551~=v5) then v89(v551);end end v427=v0.PlayerAdded:Connect(function(v552) local v553=0;local v554;while true do if (v553==0) then v554=0;while true do if (v554==(1772 -(1733 + 39))) then v552.CharacterAdded:Connect(function() local v659=0 -0 ;local v660;while true do if (v659==(1034 -(125 + 909))) then v660=0;while true do if (v660==(1948 -(1096 + 852))) then task.wait(0.5);if (v40 and (v552~=v5)) then v89(v552);end break;end end break;end end end);if (v40 and (v552~=v5)) then local v688=0 + 0 ;while true do if (v688==(0 -0)) then task.wait(0.5);v89(v552);break;end end end break;end end break;end end end);v426=1 + 0 ;end if ((514 -(409 + 103))==v426) then table.insert(v44,v428);break;end end else local v429=236 -(46 + 190) ;while true do if (v429==1) then v44={};break;end if (v429==(95 -(51 + 44))) then for v555,v556 in pairs(v0:GetPlayers()) do v90(v556);end for v557,v558 in pairs(v44) do pcall(function() v558:Disconnect();end);end v429=1;end end end break;end end end local function v92(v146) v74=v146;if v146 then v75=v7.Brightness;v76=v7.ClockTime;v77=v7.Ambient;v78=v7.ColorShift_Bottom;v79=v7.ColorShift_Top;v80=v7.OutdoorAmbient;v7.Brightness=1 + 1 ;v7.ClockTime=1331 -(1114 + 203) ;v7.Ambient=Color3.fromRGB(178,904 -(228 + 498) ,178);v7.ColorShift_Bottom=Color3.fromRGB(0 + 0 ,0,0 + 0 );v7.ColorShift_Top=Color3.fromRGB(0,663 -(174 + 489) ,0 -0 );v7.OutdoorAmbient=Color3.fromRGB(178,178,2083 -(830 + 1075) );v7.GlobalShadows=false;v7.FogEnd=100524 -(303 + 221) ;for v313,v314 in pairs(v7:GetChildren()) do if (v314:IsA("Atmosphere") or v314:IsA("ColorCorrectionEffect") or v314:IsA("BlurEffect")) then v314.Enabled=false;end end else local v292=1269 -(231 + 1038) ;local v293;while true do if (0==v292) then v293=0;while true do if (v293==(2 + 0)) then v7.ColorShift_Top=v79;v7.OutdoorAmbient=v80;v293=1165 -(171 + 991) ;end if (v293==(0 -0)) then v7.Brightness=v75;v7.ClockTime=v76;v293=2 -1 ;end if (v293==(2 -1)) then v7.Ambient=v77;v7.ColorShift_Bottom=v78;v293=2 + 0 ;end if (3==v293) then v7.GlobalShadows=true;v7.FogEnd=v82 or (3505 -2505) ;v293=4;end if (v293==(11 -7)) then for v559,v560 in pairs(v7:GetChildren()) do if (v560:IsA("Atmosphere") or v560:IsA("ColorCorrectionEffect") or v560:IsA("BlurEffect")) then v560.Enabled=true;end end break;end end break;end end end end local v93=nil;local v94=nil;local function v95(v147) local v148=0 -0 ;while true do if (v148==(0 -0)) then v81=v147;if v147 then local v431=0;while true do if (v431==(1250 -(111 + 1137))) then v7.FogStart=10000158 -(91 + 67) ;for v561,v562 in pairs(v7:GetChildren()) do if v562:IsA("Atmosphere") then local v594=0 -0 ;while true do if (v594==(0 + 0)) then v93=v562.Density;v94=v562.Haze;v594=524 -(423 + 100) ;end if (v594==(1 + 0)) then v562.Density=0 -0 ;v562.Haze=0 + 0 ;break;end end end end break;end if (v431==0) then v82=v7.FogEnd;v83=v7.FogStart;v431=1;end if (v431==(772 -(326 + 445))) then v84=v7.FogColor;v7.FogEnd=10000000;v431=8 -6 ;end end else local v432=0 -0 ;while true do if (v432==(0 -0)) then v7.FogEnd=v82 or (1711 -(530 + 181)) ;v7.FogStart=v83 or 0 ;v432=1;end if (v432==(882 -(614 + 267))) then v7.FogColor=v84 or Color3.fromRGB(159 -(19 + 13) ,206 -79 ,295 -168 ) ;for v563,v564 in pairs(v7:GetChildren()) do if v564:IsA("Atmosphere") then local v595=0;local v596;while true do if (v595==0) then v596=0;while true do if (v596==(0 -0)) then v564.Density=v93 or (0.3 + 0) ;v564.Haze=v94 or 0 ;break;end end break;end end end end break;end end end break;end end end local function v96() local v149=0;local v150;while true do if (0==v149) then v150=0 -0 ;while true do if (v150==(1 -0)) then if ( #v0:GetPlayers()<=1) then local v534=0;local v535;while true do if (v534==(1812 -(1293 + 519))) then v535=0 -0 ;while true do if (v535==1) then v8:Teleport(game.PlaceId,v5);break;end if (v535==(0 -0)) then v5:Kick("\nRejoining...");task.wait(0.5 -0 );v535=1;end end break;end end else v8:TeleportToPlaceInstance(game.PlaceId,game.JobId,v5);end break;end if (v150==(0 -0)) then if Rayfield then Rayfield:Notify({Title="Rejoin",Content="Sedang merejoin server...",Duration=6 -3 ,Image=4483362458});end task.wait(1 + 0 );v150=1 + 0 ;end end break;end end end local function v97() local v151=0 -0 ;local v152;local v153;while true do if (v151==(0 + 0)) then if Rayfield then Rayfield:Notify({Title="Server Hop",Content="Mencari server baru...",Duration=1 + 2 ,Image=4483363554 -(709 + 387) });end task.wait(1);v151=1859 -(673 + 1185) ;end if (v151==(2 -1)) then v152,v153=pcall(function() local v389={};local v390=game:HttpGet("https://games.roblox.com/v1/games/"   .. game.PlaceId   .. "/servers/Public?sortOrder=Asc&limit=100" );local v391=v6:JSONDecode(v390);if (v391 and v391.data) then for v497,v498 in ipairs(v391.data) do if ((v498.playing<v498.maxPlayers) and (v498.id~=game.JobId)) then table.insert(v389,v498.id);end end end if ( #v389>(0 -0)) then v8:TeleportToPlaceInstance(game.PlaceId,v389[math.random(1 -0 , #v389)],v5);else error("Tidak menemukan server alternatif.");end end);if  not v152 then local v433=0 + 0 ;local v434;while true do if (v433==(0 + 0)) then v434=0;while true do if (v434==(1 -0)) then v8:Teleport(game.PlaceId,v5);break;end if (v434==(0 + 0)) then if Rayfield then Rayfield:Notify({Title="Server Hop",Content="Mencoba metode alternatif...",Duration=5 -2 ,Image=5159687788 -676325330 });end task.wait(2 -1 );v434=4 -3 ;end end break;end end end break;end end end local function v98(v154) local v155=0;while true do if (v155==0) then v60=v154;if v61 then local v435=0 -0 ;while true do if (v435==(1931 -(609 + 1322))) then v61:Disconnect();v61=nil;break;end end end v155=455 -(13 + 441) ;end if (v155==(3 -2)) then if v154 then v61=v1.Heartbeat:Connect(function() if (v60 and v5.Character) then local v536=0 -0 ;local v537;while true do if (v536==(0 -0)) then v537=v5.Character:FindFirstChildOfClass("Humanoid");if v537 then if ((v537.Health>(0 + 0)) and (v537.Health<v537.MaxHealth)) then v537.Health=v537.MaxHealth;end end break;end end end end);end break;end end end v3.JumpRequest:Connect(function() if (v59 and v5.Character) then local v294=0 -0 ;local v295;while true do if (v294==(0 + 0)) then v295=v5.Character:FindFirstChildOfClass("Humanoid");if v295 then v295:ChangeState(Enum.HumanoidStateType.Jumping);end break;end end end end);v1.Heartbeat:Connect(function() if v5.Character then local v296=0 + 0 ;local v297;while true do if (v296==(0 -0)) then v297=v5.Character:FindFirstChildOfClass("Humanoid");if (v297 and v57) then v297.UseJumpPower=true;v297.JumpPower=v58;end break;end end end end);local function v99() local v156=0 + 0 ;local v157;while true do if (v156==(0 -0)) then v157=0 + 0 ;while true do if (v157==2) then v46.Center=true;v46.Outline=true;v157=3;end if (v157==3) then v46.Position=Vector2.new(v4.ViewportSize.X/(2 + 0) ,40 + 15 );v46.Visible=false;v157=4;end if (v157==(0 + 0)) then if v46 then pcall(function() v46:Remove();end);end v46=Drawing.new("Text");v157=1;end if (v157==4) then v46.Text="PLAYERS: 0";break;end if (v157==(1 + 0)) then v46.Size=22;v46.Color=Color3.fromRGB(688 -(153 + 280) ,736 -481 ,255);v157=2;end end break;end end end local function v100(v158) local v159=0 + 0 ;local v160;local v161;local v162;local v163;local v164;local v165;while true do if (v159==8) then local v315=0 + 0 ;while true do if ((1 + 0)==v315) then v165.Filled=true;v159=9 + 0 ;break;end if ((0 + 0)==v315) then v164.Visible=false;v165=Drawing.new("Square");v315=1 -0 ;end end end if (v159==2) then v161=Drawing.new("Text");v161.Size=15;v161.Center=true;v159=3;end if (v159==(4 + 2)) then v163=Drawing.new("Line");v163.Thickness=1.8;v163.Visible=false;v159=674 -(89 + 578) ;end if (v159==9) then v165.Visible=false;v34[v158]={v160,v161,v162,v163,v164,v165};break;end if (v159==(1 + 3)) then local v322=0 + 0 ;while true do if (v322==0) then v162=Drawing.new("Text");v162.Size=12;v322=1;end if (1==v322) then v162.Center=true;v159=5;break;end end end if ((1 + 4)==v159) then v162.Outline=true;v162.Visible=false;v162.Color=Color3.fromRGB(200,286 -(84 + 2) ,329 -129 );v159=5 + 1 ;end if (v159==1) then v160.Filled=false;v160.Visible=false;v160.Color=v72;v159=844 -(497 + 345) ;end if (v159==3) then local v329=0;while true do if (v329==1) then v161.Color=Color3.fromRGB(7 + 248 ,0 + 0 ,1333 -(605 + 728) );v159=3 + 1 ;break;end if (0==v329) then v161.Outline=true;v161.Visible=false;v329=1 -0 ;end end end if (v159==(1 + 6)) then v163.Color=v30;v164=Drawing.new("Square");v164.Filled=true;v159=29 -21 ;end if (v159==(0 + 0)) then if (v158==v5) then return;end v160=Drawing.new("Square");v160.Thickness=2.8 -1 ;v159=1;end end end local function v101(v166) local v167=0 + 0 ;local v168;local v169;while true do if (v167==(491 -(457 + 32))) then v35[v166]=v168;break;end if (v167==(0 + 0)) then if (v166==v5) then return;end v168={};v167=1403 -(832 + 570) ;end if (v167==1) then v169={{"Head","UpperTorso"},{"UpperTorso","LowerTorso"},{"UpperTorso","LeftUpperArm"},{"LeftUpperArm","LeftLowerArm"},{"UpperTorso","RightUpperArm"},{"RightUpperArm","RightLowerArm"},{"LowerTorso","LeftUpperLeg"},{"LeftUpperLeg","LeftLowerLeg"},{"LowerTorso","RightUpperLeg"},{"RightUpperLeg","RightLowerLeg"}};for v392=2 -1 , #v169 do local v393=0;local v394;while true do if ((1 + 1)==v393) then table.insert(v168,{v394,v169[v392][1],v169[v392][2]});break;end if (v393==(255 -(79 + 175))) then v394.Color=Color3.fromRGB(255,255,402 -147 );v394.Visible=false;v393=2;end if (v393==(0 + 0)) then v394=Drawing.new("Line");v394.Thickness=5 -3 ;v393=1 -0 ;end end end v167=901 -(503 + 396) ;end end end local function v102(v170) local v171=181 -(92 + 89) ;local v172;local v173;local v174;while true do if (v171==2) then for v395,v396 in pairs(v172:GetChildren()) do if v396:IsA("Tool") then local v464=0 -0 ;local v465;while true do if (v464==(0 + 0)) then v465=string.lower(v396.Name);if (string.find(v465,"knife") or string.find(v465,"weapon") or string.find(v465,"blade") or string.find(v465,"sword")) then return true;end break;end end end end if v170.Team then local v436=0;local v437;while true do if (v436==0) then v437=string.lower(v170.Team.Name);if (string.find(v437,"killer") or string.find(v437,"murder")) then return true;end break;end end end v174=workspace:FindFirstChild("Killers") or workspace:FindFirstChild("Killer") ;v171=2 + 1 ;end if (3==v171) then if v174 then for v466,v467 in pairs(v174:GetChildren()) do if ((v467.Name==v170.Name) or (v467.Name==tostring(v170.UserId))) then return true;end end end return false;end if (v171==(0 -0)) then local v334=0 + 0 ;while true do if (v334==(0 -0)) then if ( not v170 or (v170==v5)) then return false;end v172=v170.Character;v334=1;end if (v334==(1 + 0)) then if  not v172 then return false;end v171=1 + 0 ;break;end end end if (1==v171) then v173=v172:GetAttribute("Role") or v170:GetAttribute("Role") ;if v173 then local v438=0 -0 ;local v439;while true do if (v438==0) then v439=string.lower(tostring(v173));if (string.find(v439,"killer") or string.find(v439,"murder")) then return true;end break;end end end for v397,v398 in pairs(v172:GetChildren()) do if (v398:IsA("ObjectValue") or v398:IsA("StringValue") or v398:IsA("BoolValue")) then local v469=0;local v470;while true do if (v469==(0 + 0)) then v470=string.lower(v398.Name);if (string.find(v470,"role") or string.find(v470,"killer")) then local v597=0 -0 ;local v598;while true do if (v597==(1244 -(485 + 759))) then v598=0 -0 ;while true do if (v598==(1190 -(442 + 747))) then if (v398:IsA("BoolValue") and v398.Value and string.find(v470,"killer")) then return true;end break;end if ((1135 -(832 + 303))==v598) then if (v398:IsA("ObjectValue") and (v398.Value==v170)) then return true;end if (v398:IsA("StringValue") and string.find(string.lower(v398.Value),"killer")) then return true;end v598=1;end end break;end end end break;end end end end v171=2;end end end local function v103(v175) local v176=946 -(88 + 858) ;local v177;local v178;while true do if (v176==(2 + 2)) then v38[v175]={line=v177,nameTag=v178};break;end if (v176==(2 + 0)) then v178=Drawing.new("Text");v178.Size=1 + 13 ;v178.Center=true;v176=792 -(766 + 23) ;end if (3==v176) then v178.Outline=true;v178.Color=v37;v178.Visible=false;v176=4;end if (v176==0) then if (v175==v5) then return;end if v38[v175] then return;end v177=Drawing.new("Line");v176=1;end if (v176==(4 -3)) then v177.Thickness=2.2 -0 ;v177.Color=v37;v177.Visible=false;v176=2;end end end local v104=0 -0 ;local function v105() v104=(v104 + (0.005 -0))%(1074 -(1036 + 37)) ;return Color3.fromHSV(v104,1 + 0 ,1 -0 );end v1.RenderStepped:Connect(function() local v179=v5.Character;local v180=v179 and v179:FindFirstChild("HumanoidRootPart") and v179.HumanoidRootPart.Position ;local v181=0 + 0 ;local v182=v105();for v217,v218 in pairs(v34) do local v219=1480 -(641 + 839) ;local v220;local v221;local v222;local v223;local v224;local v225;local v226;while true do if (v219==(914 -(910 + 3))) then if (v226 and v226:FindFirstChild("HumanoidRootPart") and v226:FindFirstChild("Head")) then local v471=0;local v472;local v473;local v474;local v475;local v476;local v477;local v478;local v479;local v480;local v481;while true do if (v471==(2 -1)) then local v565=0;while true do if (v565==(1684 -(1466 + 218))) then v475,v476=v4:WorldToViewportPoint(v472.Position);v477=(v180 and (v180-v472.Position).Magnitude) or (4596 + 5403) ;v565=1149 -(556 + 592) ;end if (v565==(1 + 0)) then v478=v4.ViewportSize;v471=810 -(329 + 479) ;break;end end end if (v471==(857 -(174 + 680))) then if (v481 and (v477<=v73)) then v181=v181 + 1 ;local v599=v4:WorldToViewportPoint(v473.Position + Vector3.new(0 -0 ,0.5,0 -0 ) );local v600=v4:WorldToViewportPoint(v472.Position-Vector3.new(0 + 0 ,742 -(396 + 343) ,0 + 0 ) );local v601=math.abs(v599.Y-v600.Y );local v602=v601/2 ;v601=math.max(v601,10);v602=math.max(v602,1482 -(29 + 1448) );local v603=math.clamp(v479-(v602/(1391 -(135 + 1254))) ,7 -5 ,(v478.X-v602) -(9 -7) );local v604=math.clamp(v599.Y,2 + 0 ,(v478.Y-v601) -(1529 -(389 + 1138)) );if v28 then local v638=574 -(102 + 472) ;while true do if (v638==0) then v220.Size=Vector2.new(v602,v601);v220.Position=Vector2.new(v603,v604);v638=1 + 0 ;end if (2==v638) then v222.Text=math.floor(v477)   .. "m" ;v222.Position=Vector2.new(v479,v604 + v601 + 3 + 1 );v638=3 + 0 ;end if (v638==(1546 -(320 + 1225))) then v220.Color=v72;v220.Visible=true;v638=2 -0 ;end if (v638==(3 + 1)) then if v32 then local v691=1464 -(157 + 1307) ;while true do if ((1859 -(821 + 1038))==v691) then v221.Position=Vector2.new(v479,v604-(44 -26) );v221.Text="Putzzdev Xit";v691=1 + 0 ;end if ((1 -0)==v691) then v221.Color=v182;v221.Visible=true;break;end end else v221.Visible=false;end if (v33 and v474) then local v693=0 + 0 ;local v694;while true do if (v693==(2 -1)) then v224.Position=Vector2.new(v603 + v602 + (1029 -(834 + 192)) ,v604);v224.Color=Color3.fromRGB(3 + 37 ,40,40);v693=1 + 1 ;end if ((1 + 1)==v693) then v224.Visible=true;v225.Size=Vector2.new(5 -1 ,v601 * v694 );v693=307 -(300 + 4) ;end if (v693==(0 + 0)) then v694=math.clamp(v474.Health/v474.MaxHealth ,0 -0 ,363 -(112 + 250) );v224.Size=Vector2.new(4,v601);v693=1;end if (v693==3) then v225.Position=Vector2.new(v603 + v602 + 2 + 1 ,(v604 + v601) -(v601 * v694) );v225.Color=Color3.fromRGB(255 * (1 -v694) ,255 * v694 ,0 -0 );v693=3 + 1 ;end if (v693==(3 + 1)) then v225.Visible=true;break;end end else local v695=0;while true do if (v695==(0 + 0)) then v224.Visible=false;v225.Visible=false;break;end end end break;end if (v638==(2 + 1)) then v222.Color=Color3.fromRGB(149 + 51 ,200,200);v222.Visible=true;v638=1418 -(1001 + 413) ;end end else local v639=0;while true do if (v639==1) then v222.Visible=false;v224.Visible=false;v639=4 -2 ;end if (2==v639) then v225.Visible=false;break;end if (v639==(882 -(244 + 638))) then v220.Visible=false;v221.Visible=false;v639=1;end end end else v220.Visible=false;v221.Visible=false;v222.Visible=false;v224.Visible=false;v225.Visible=false;end if (v29 and v476 and (v475.Z>(693 -(627 + 66))) and (v477<=v73)) then local v610=0 -0 ;local v611;local v612;local v613;while true do if (2==v610) then v223.To=Vector2.new(v612,v613);v223.Color=v30;v610=3;end if (v610==(602 -(512 + 90))) then v611=v4:WorldToViewportPoint(v473.Position + Vector3.new(1906 -(1665 + 241) ,717.5 -(373 + 344) ,0) );v612=math.clamp(v611.X,1 + 1 ,v478.X-(1 + 1) );v610=2 -1 ;end if (1==v610) then v613=math.clamp(v611.Y,2 -0 ,v478.Y-(1101 -(35 + 1064)) );v223.From=Vector2.new(v478.X/(2 + 0) ,0 -0 );v610=1 + 1 ;end if (v610==3) then v223.Visible=true;break;end end else v223.Visible=false;end break;end if ((1236 -(298 + 938))==v471) then local v566=1259 -(233 + 1026) ;while true do if (v566==(1666 -(636 + 1030))) then v472=v226.HumanoidRootPart;v473=v226.Head;v566=1 + 0 ;end if (v566==(1 + 0)) then v474=v226:FindFirstChildOfClass("Humanoid");v471=1 + 0 ;break;end end end if (v471==(1 + 1)) then local v567=221 -(55 + 166) ;while true do if (v567==1) then v481=v476 and (v475.Z>0) ;v471=3;break;end if (v567==(0 + 0)) then v479=math.clamp(v475.X,10,v478.X-10 );v480=math.clamp(v475.Y,10,v478.Y-(2 + 8) );v567=1;end end end end end break;end if (v219==(0 -0)) then v220,v221,v222,v223,v224,v225=unpack(v218);v226=v217.Character;v219=1;end end end if v36 then for v344,v345 in pairs(v38) do local v346=297 -(36 + 261) ;local v347;local v348;local v349;local v350;local v351;while true do if ((3 -1)==v346) then v351=v349 and v349:FindFirstChild("Head") ;if (v349 and v350 and v351 and v102(v344)) then local v538=1368 -(34 + 1334) ;local v539;local v540;local v541;while true do if (1==v538) then if (v541 and (v540.Z>(0 + 0)) and (v539<=v39)) then local v640=0 + 0 ;local v641;while true do if (v640==(1284 -(1035 + 248))) then v347.To=Vector2.new(v540.X,v540.Y);v347.Color=v37;v640=2;end if (v640==(25 -(20 + 1))) then v348.Visible=true;break;end if (v640==(2 + 1)) then v348.Position=Vector2.new(v540.X,v540.Y-20 );v348.Color=v37;v640=323 -(134 + 185) ;end if (v640==0) then local v679=1133 -(549 + 584) ;while true do if (v679==(686 -(314 + 371))) then v640=3 -2 ;break;end if ((968 -(478 + 490))==v679) then v641=v4.ViewportSize;v347.From=Vector2.new(v641.X/(2 + 0) ,v641.Y);v679=1173 -(786 + 386) ;end end end if (v640==2) then v347.Visible=true;v348.Text="KILLER | "   .. v344.Name   .. " ["   .. math.floor(v539)   .. "m]" ;v640=9 -6 ;end end else local v642=0;while true do if (v642==(1379 -(1055 + 324))) then v347.Visible=false;v348.Visible=false;break;end end end break;end if (0==v538) then local v615=1340 -(1093 + 247) ;while true do if (v615==(1 + 0)) then v538=1 + 0 ;break;end if (0==v615) then v539=(v180 and (v180-v350.Position).Magnitude) or (39697 -29698) ;v540,v541=v4:WorldToViewportPoint(v351.Position);v615=1;end end end end else local v542=0 -0 ;while true do if (v542==(0 -0)) then v347.Visible=false;v348.Visible=false;break;end end end break;end if ((2 -1)==v346) then local v482=0 + 0 ;while true do if (v482==(3 -2)) then v346=6 -4 ;break;end if (v482==(0 + 0)) then v349=v344.Character;v350=v349 and v349:FindFirstChild("HumanoidRootPart") ;v482=2 -1 ;end end end if (v346==(688 -(364 + 324))) then local v483=0;while true do if (v483==1) then v346=2 -1 ;break;end if (v483==(0 -0)) then v347=v345.line;v348=v345.nameTag;v483=1 + 0 ;end end end end end else for v352,v353 in pairs(v38) do v353.line.Visible=false;v353.nameTag.Visible=false;end end if v31 then for v356,v357 in pairs(v35) do local v358=0 -0 ;local v359;while true do if (v358==(0 -0)) then v359=v356.Character;if (v359 and v359:FindFirstChild("HumanoidRootPart") and v180) then for v571,v572 in pairs(v357) do local v573,v574,v575=v572[1],v359:FindFirstChild(v572[5 -3 ]),v359:FindFirstChild(v572[1271 -(1249 + 19) ]);if (v574 and v575) then local v618=0;local v619;local v620;local v621;local v622;while true do if (v618==1) then if (v620 and v622) then local v684=0 + 0 ;while true do if (v684==(0 -0)) then v573.From=Vector2.new(v619.X,v619.Y);v573.To=Vector2.new(v621.X,v621.Y);v684=1;end if (1==v684) then v573.Color=Color3.fromRGB(255,255,1341 -(686 + 400) );v573.Visible=true;break;end end else v573.Visible=false;end break;end if (v618==0) then v619,v620=v4:WorldToViewportPoint(v574.Position);v621,v622=v4:WorldToViewportPoint(v575.Position);v618=1;end end else v573.Visible=false;end end else for v576,v577 in pairs(v357) do v577[1 + 0 ].Visible=false;end end break;end end end else for v360,v361 in pairs(v35) do for v400,v401 in pairs(v361) do v401[230 -(73 + 156) ].Visible=false;end end end if (v45 and v46) then local v298=0;while true do if (v298==(0 + 0)) then v46.Text="PLAYERS: "   .. v181 ;v46.Visible=true;break;end end elseif v46 then v46.Visible=false;end end);task.spawn(function() while true do local v227=0;while true do if (v227==0) then task.wait(5);for v442,v443 in pairs(v43) do if ( not v442 or  not v442.Parent) then v43[v442]=nil;end end break;end end end end);local function v106() if v21 then return;end v21=true;v99();if  not Rayfield then Rayfield=loadstring(game:HttpGet("https://sirius.menu/rayfield"))();end local v183=Rayfield:CreateWindow({Name="Putzzdev XIT",LoadingTitle="Drip Client",LoadingSubtitle="Premium v8.3",Theme="Amethyst",DisableRayfieldPrompts=true,DisableBuildWarnings=true,ConfigurationSaving={Enabled=false},KeySystem=false});local v184=v183:CreateTab("Main","zap");v184:CreateDivider();v184:CreateToggle({Name="Speed Boost",CurrentValue=false,Flag="SpeedBoost",Callback=function(v228) local v229=811 -(721 + 90) ;local v230;while true do if (v229==(1 + 0)) then if v230 then v230.WalkSpeed=(v228 and v56) or v55 ;end break;end if (v229==(0 -0)) then v54=v228;v230=v5.Character and v5.Character:FindFirstChildOfClass("Humanoid") ;v229=471 -(224 + 246) ;end end end});v184:CreateSlider({Name="Walk Speed",Range={16,91 + 409 },Increment=1,Suffix="",CurrentValue=v56,Flag="WalkSpeed",Callback=function(v231) local v232=0 + 0 ;while true do if (0==v232) then v56=v231;if v54 then local v486=0 + 0 ;local v487;while true do if ((0 -0)==v486) then v487=v5.Character and v5.Character:FindFirstChildOfClass("Humanoid") ;if v487 then v487.WalkSpeed=v231;end break;end end end break;end end end});v184:CreateDivider();v184:CreateToggle({Name="NoClip",CurrentValue=false,Flag="NoClip",Callback=function(v233) local v234=0 -0 ;while true do if (v234==0) then v52=v233;if v233 then v85();else v86();end break;end end end});v184:CreateToggle({Name="Infinity Jump",CurrentValue=false,Flag="InfJump",Callback=function(v235) v59=v235;end});v184:CreateToggle({Name="God Mode",CurrentValue=false,Flag="GodMode",Callback=function(v236) v98(v236);end});v184:CreateDivider();v184:CreateToggle({Name="Spin Muter",CurrentValue=false,Flag="Spin",Callback=function(v237) v87(v237);end});v184:CreateSlider({Name="Spin Speed",Range={1994 -(1238 + 755) ,200},Increment=1 + 0 ,Suffix="",CurrentValue=v63,Flag="SpinSpeed",Callback=function(v238) v63=v238;end});v184:CreateToggle({Name="Invisible Mode",CurrentValue=false,Flag="Invisible",Callback=function(v239) v88(v239);end});local v185=v183:CreateTab("ESP","eye");v185:CreateToggle({Name="ESP Box",CurrentValue=false,Flag="ESPBox",Callback=function(v240) v28=v240;end});v185:CreateToggle({Name="ESP Name",CurrentValue=false,Flag="ESPName",Callback=function(v241) v32=v241;end});v185:CreateToggle({Name="ESP Health",CurrentValue=false,Flag="ESPHealth",Callback=function(v242) v33=v242;end});v185:CreateToggle({Name="ESP Line",CurrentValue=false,Flag="ESPLine",Callback=function(v243) v29=v243;end});v185:CreateToggle({Name="ESP Skeleton",CurrentValue=false,Flag="ESPSkeleton",Callback=function(v244) v31=v244;end});v185:CreateToggle({Name="Player Counter",CurrentValue=false,Flag="PlayerCounter",Callback=function(v245) v45=v245;end});v185:CreateToggle({Name="ESP Killer",CurrentValue=false,Flag="ESPKiller",Callback=function(v246) v36=v246;if v246 then for v404,v405 in pairs(v0:GetPlayers()) do if (v405~=v5) then v103(v405);end end end end});v185:CreateColorPicker({Name="ESP Killer Color",Color=Color3.fromRGB(255,1534 -(709 + 825) ,0 -0 ),Flag="ESPKillerColor",Callback=function(v247) local v248=0 -0 ;local v249;while true do if (v248==(864 -(196 + 668))) then v249=0 -0 ;while true do if (v249==(0 -0)) then v37=v247;for v543,v544 in pairs(v38) do local v545=833 -(171 + 662) ;while true do if (v545==(93 -(4 + 89))) then v544.line.Color=v247;v544.nameTag.Color=v247;break;end end end break;end end break;end end end});v185:CreateToggle({Name="HOLOGRAM",CurrentValue=false,Flag="Hologram",Callback=function(v250) local v251=0 -0 ;local v252;while true do if (v251==(0 + 0)) then v252=0;while true do if ((0 -0)==v252) then v91(v250);if Rayfield then Rayfield:Notify({Title="Hologram",Content=(v250 and "Hologram DI-AKTIFKAN") or "Hologram Dinonaktifkan" ,Duration=1 + 1 ,Image=4483362458});end break;end end break;end end end});local v186=v183:CreateTab("Settings","settings");v186:CreateSection("🎯 Aimlock / Aimbot");local v187=false;local v188="Player";local v189=100;local v190=nil;local v191=0.1;local function v192() local v253=v5.Character;local v254=v253 and v253:FindFirstChild("HumanoidRootPart") ;if  not v254 then return nil;end local v255,v256=nil,math.huge;local v257=v4.ViewportSize;local v258,v259=v257.X/(1488 -(35 + 1451)) ,v257.Y/(1455 -(28 + 1425)) ;if ((v188=="Player") or (v188=="Both")) then for v406,v407 in pairs(v0:GetPlayers()) do local v408=0;local v409;local v410;local v411;local v412;local v413;while true do if (1==v408) then local v505=0;while true do if (v505==(1993 -(941 + 1052))) then v410=v409 and v409:FindFirstChild("Head") ;if  not v410 then continue;end v505=1 + 0 ;end if (v505==(1515 -(822 + 692))) then v408=2;break;end end end if (v408==2) then local v506=0 -0 ;while true do if (0==v506) then v411,v412=v4:WorldToViewportPoint(v410.Position);if  not v412 then continue;end v506=1 + 0 ;end if (v506==1) then v408=300 -(45 + 252) ;break;end end end if (v408==(3 + 0)) then v413=math.sqrt(((v411.X-v258)^(1 + 1)) + ((v411.Y-v259)^(4 -2)) );if ((v413<v189) and (v413<v256)) then v256=v413;v255=v410;end break;end if (v408==(433 -(114 + 319))) then if (v407==v5) then continue;end v409=v407.Character;v408=1;end end end end if ((v188=="NPC") or (v188=="Both")) then local v362=0 -0 ;local v363;while true do if ((0 -0)==v362) then local v488=0 + 0 ;while true do if (v488==0) then v363={};for v584,v585 in pairs(v0:GetPlayers()) do if v585.Character then v363[v585.Character]=true;end end v488=1 -0 ;end if (v488==(1 -0)) then v362=1964 -(556 + 1407) ;break;end end end if (v362==(1207 -(741 + 465))) then for v508,v509 in pairs(workspace:GetDescendants()) do if (v509:IsA("Model") and  not v363[v509]) then local v579=465 -(170 + 295) ;local v580;local v581;while true do if (v579==(0 + 0)) then local v633=0 + 0 ;while true do if (v633==(2 -1)) then v579=1 + 0 ;break;end if (v633==0) then v580=v509:FindFirstChildOfClass("Humanoid");v581=v509:FindFirstChild("Head");v633=1 + 0 ;end end end if (v579==(1 + 0)) then if (v580 and v581 and (v580.Health>(1230 -(957 + 273)))) then local v653=0;local v654;local v655;local v656;while true do if (v653==0) then v654,v655=v4:WorldToViewportPoint(v581.Position);if  not v655 then continue;end v653=1;end if (v653==(1 + 0)) then v656=math.sqrt(((v654.X-v258)^2) + ((v654.Y-v259)^(1 + 1)) );if ((v656<v189) and (v656<v256)) then local v703=0 -0 ;while true do if (v703==(0 -0)) then v256=v656;v255=v581;break;end end end break;end end end break;end end end end break;end end end return v255;end local function v193() if v190 then v190:Disconnect();end v190=v1.RenderStepped:Connect(function() local v299=0;local v300;local v301;local v302;while true do if (1==v299) then v302=nil;while true do if (v300==(2 -1)) then if  not v301 then return;end v302=CFrame.new(v4.CFrame.Position,v301.Position);v300=2;end if (v300==(9 -7)) then v4.CFrame=v4.CFrame:Lerp(v302,math.clamp((1781 -(389 + 1391)) -v191 ,0.01,1 + 0 ));break;end if ((0 + 0)==v300) then if  not v187 then return;end v301=v192();v300=1;end end break;end if ((0 -0)==v299) then v300=0;v301=nil;v299=952 -(783 + 168) ;end end end);end v186:CreateToggle({Name="Aimlock Aktif",CurrentValue=false,Flag="AimlockToggle",Callback=function(v260) v187=v260;if v260 then local v364=0;local v365;while true do if (v364==(0 -0)) then v365=0 + 0 ;while true do if ((311 -(309 + 2))==v365) then v193();Rayfield:Notify({Title="Aimlock",Content="Aktif! Target: "   .. v188 ,Duration=5 -3 ,Image=4483363670 -(1090 + 122) });break;end end break;end end else local v366=0 + 0 ;local v367;while true do if ((0 -0)==v366) then v367=0 + 0 ;while true do if (v367==(1118 -(628 + 490))) then if v190 then local v627=0 + 0 ;while true do if ((0 -0)==v627) then v190:Disconnect();v190=nil;break;end end end Rayfield:Notify({Title="Aimlock",Content="Dinonaktifkan.",Duration=9 -7 ,Image=4483363232 -(431 + 343) });break;end end break;end end end end});v186:CreateDropdown({Name="Target Aimlock",Options={"Player","NPC","Both"},CurrentOption={"Player"},Flag="AimlockTarget",Callback=function(v261) v188=((type(v261)=="table") and v261[1]) or v261 ;end});v186:CreateSlider({Name="FOV Radius (pixel)",Range={20,2095 -(556 + 1139) },Increment=10,Suffix="px",CurrentValue=115 -(6 + 9) ,Flag="AimlockFOV",Callback=function(v262) v189=v262;end});v186:CreateSlider({Name="Smooth (0=Instant)",Range={0 + 0 ,90},Increment=5,Suffix="%",CurrentValue=10,Flag="AimlockSmooth",Callback=function(v263) v191=v263/100 ;end});v186:CreateDivider();v186:CreateSection("🎨 ESP Color (Line + Box)");v186:CreateColorPicker({Name="ESP Line & Box Color",Color=Color3.fromRGB(255,99 + 156 ,314 -59 ),Flag="ESPColorPicker",Callback=function(v264) local v265=0 + 0 ;while true do if (v265==0) then v30=v264;v72=v264;break;end end end});v186:CreateDivider();v186:CreateSection("🔆 Full Bright");v186:CreateToggle({Name="Full Bright",CurrentValue=false,Flag="FullBright",Callback=function(v266) local v267=0;while true do if (v267==(1317 -(486 + 831))) then v92(v266);if Rayfield then Rayfield:Notify({Title="Full Bright",Content=(v266 and "Full Bright diaktifkan") or "Full Bright dinonaktifkan" ,Duration=5 -3 ,Image=4483362458 -0 });end break;end end end});v186:CreateDivider();v186:CreateSection("🌫️ No Fog");v186:CreateToggle({Name="No Fog",CurrentValue=false,Flag="NoFog",Callback=function(v268) local v269=0 + 0 ;while true do if (v269==(0 -0)) then v95(v268);if Rayfield then Rayfield:Notify({Title="No Fog",Content=(v268 and "No Fog diaktifkan") or "No Fog dinonaktifkan" ,Duration=1265 -(668 + 595) ,Image=4483363425 -(772 + 195) });end break;end end end});v186:CreateDivider();v186:CreateSection("🔄 Server Control");v186:CreateButton({Name="🔄 Rejoin Server",Callback=function() v96();end});v186:CreateButton({Name="🚀 Server Hop",Callback=function() v97();end});v186:CreateDivider();v186:CreateSection("⚠️ Informasi");v186:CreateLabel("Bypass direkomendasikan diaktifkan");local v194=v183:CreateTab("Info","info");v194:CreateSection("👤 Profil Akun");v194:CreateLabel("Nama: "   .. v5.Name );v194:CreateLabel("Display Name: "   .. v5.DisplayName );v194:CreateLabel("User ID: "   .. tostring(v5.UserId) );v194:CreateDivider();v194:CreateSection("Informasi Lisensi");v194:CreateLabel("Executor: "   .. v11 );local v195=((v18~="") and v18) or "Tidak diketahui" ;v194:CreateLabel("Paket: "   .. v195 );local v196=v194:CreateLabel("Memuat waktu...");v20=v196;task.spawn(function() while true do local v303=0 -0 ;while true do if (v303==0) then task.wait(1);if (v19 and (v17>0)) then local v510=290 -(23 + 267) ;local v511;local v512;local v513;while true do if (v510==(1945 -(1129 + 815))) then pcall(function() if (v196 and v196.Set) then v196:Set(v513);end end);break;end if (v510==0) then v511,v511,v511,v511,v512=v26(v17);v513=((os.time()>v17) and "⛔ Key EXPIRED!") or ("⏳ Sisa: "   .. v512) ;v510=388 -(371 + 16) ;end end end break;end end end end);v194:CreateDivider();v194:CreateSection("Developer");v194:CreateLabel("Developer: Putzzdev");v194:CreateLabel("WhatsApp: 088976255131");v194:CreateButton({Name="Salin Link Get Key",Callback=function() if setclipboard then local v368=1750 -(1326 + 424) ;while true do if (0==v368) then setclipboard(v13);if Rayfield then Rayfield:Notify({Title="Berhasil",Content="Link key berhasil disalin!",Duration=3,Image=4483362458});end break;end end elseif Rayfield then Rayfield:Notify({Title="Info",Content=v13,Duration=9 -4 ,Image=4483362458});end end});v194:CreateDivider();v194:CreateParagraph({Title="💜 Terima Kasih",Content="Terima kasih telah menggunakan script Drip Client, jangan lupa support developer!"});end local function v107() local v197=loadstring(game:HttpGet("https://sirius.menu/rayfield"))();v22=v197:CreateWindow({Name="Drip Client - Verifikasi",LoadingTitle="Drip Client",LoadingSubtitle="Masukkan Key Anda",Theme="Amethyst",DisableRayfieldPrompts=true,DisableBuildWarnings=true,ConfigurationSaving={Enabled=false},KeySystem=false});local v198=v22:CreateTab("Key System","key-round");v198:CreateSection("Autentikasi Key Server");local v199=v198:CreateLabel("Menunggu verifikasi lisensi...");local v200="";v198:CreateInput({Name="Masukkan Key Premium",PlaceholderText="Input key server di sini...",RemoveTextAfterFocusLost=false,Flag="KeyInput",Callback=function(v270) v200=v270;end});v198:CreateButton({Name="AUTENTIKASI KEY",Callback=function() local v271=0 -0 ;local v272;local v273;local v274;while true do if (v271==(121 -(88 + 30))) then if v273 then local v489=0;while true do if (v489==2) then task.wait(0.3);v106();break;end if (v489==(771 -(720 + 51))) then pcall(function() v199:Set("✅ Key Valid! Memuat interface...");end);v197:Notify({Title="Sukses!",Content="Key valid! Interface sedang dimuat.",Duration=6 -3 ,Image=4483364234 -(421 + 1355) });v489=1 -0 ;end if (v489==(1 + 0)) then task.wait(1084.5 -(286 + 797) );pcall(function() if v22 then local v634=0 -0 ;while true do if (v634==0) then v22:Destroy();v22=nil;break;end end end end);v489=2 -0 ;end end else local v490=439 -(397 + 42) ;while true do if (v490==(0 + 0)) then pcall(function() v199:Set("❌ "   .. v274 );end);v197:Notify({Title="Gagal",Content=v274,Duration=804 -(24 + 776) ,Image=4483362458});break;end end end break;end if (v271==0) then v272=v200;v272=tostring(v272):gsub("%s+","");v271=1 -0 ;end if (v271==(787 -(222 + 563))) then v197:Notify({Title="Verifikasi",Content="Mengecek key ke server...",Duration=2,Image=4483362458});v273,v274=v27(v272);v271=6 -3 ;end if (v271==1) then if (v272=="") then local v491=0;local v492;while true do if (v491==0) then v492=0;while true do local v586=0 + 0 ;while true do if (v586==(190 -(23 + 167))) then if (v492==0) then pcall(function() v199:Set("❌ Key tidak boleh kosong!");end);v197:Notify({Title="Error",Content="Key tidak boleh kosong!",Duration=3,Image=4483364256 -(690 + 1108) });v492=1 + 0 ;end if (v492==1) then return;end break;end end end break;end end end pcall(function() v199:Set("🔄 Sedang verifikasi ke database server...");end);v271=2;end end end});v198:CreateButton({Name="Ambil Key (Salin Link)",Callback=function() if setclipboard then local v369=0 + 0 ;while true do if (v369==(848 -(40 + 808))) then setclipboard(v13);v197:Notify({Title="Link Disalin",Content="Buka browser dan paste link untuk mendapatkan key.",Duration=4,Image=4483362458 -0 });break;end end else v197:Notify({Title="Link Key",Content=v13,Duration=17 -11 ,Image=4483363029 -(47 + 524) });end end});end for v201,v202 in pairs(v0:GetPlayers()) do local v203=0 + 0 ;while true do if (v203==(2 -1)) then v103(v202);break;end if (v203==(0 -0)) then v100(v202);v101(v202);v203=2 -1 ;end end end v0.PlayerAdded:Connect(function(v204) local v205=1726 -(1165 + 561) ;local v206;while true do if (v205==0) then v206=0 + 0 ;while true do if (v206==1) then v103(v204);if v40 then task.wait(0.5 -0 );v89(v204);end break;end if (v206==(0 + 0)) then v100(v204);v101(v204);v206=480 -(341 + 138) ;end end break;end end end);v0.PlayerRemoving:Connect(function(v207) if v34[v207] then local v304=0;while true do if (v304==(0 + 0)) then for v493,v494 in pairs(v34[v207]) do pcall(function() v494:Remove();end);end v34[v207]=nil;break;end end end if v35[v207] then local v305=0 -0 ;while true do if (v305==(326 -(89 + 237))) then for v495,v496 in pairs(v35[v207]) do pcall(function() v496[3 -2 ]:Remove();end);end v35[v207]=nil;break;end end end if v38[v207] then local v306=0;while true do if (v306==1) then v38[v207]=nil;break;end if (v306==(0 -0)) then pcall(function() v38[v207].line:Remove();end);pcall(function() v38[v207].nameTag:Remove();end);v306=1;end end end v90(v207);end);v107(); end
+-- ================== DRIP CLIENT V8.2 PREMIUM - RAYFIELD UI ==================
+-- Modified: ESP Name warna putih (bukan rainbow)
+
+-- ================== LOAD SERVICES ==================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+local TeleportService = game:GetService("TeleportService")
+local VirtualUser = game:GetService("VirtualUser")
+
+-- ================== DETEKSI NAMA EXECUTOR ==================
+local function detectExecutor()
+    local executorName = "Unknown Executor"
+    local executors = {
+        {name = "Delta", check = function() return syn and syn.request and syn.crypt end},
+        {name = "Arceus X", check = function() return game:GetService("CoreGui"):FindFirstChild("Arceus X V2") or (identifyexecutor and identifyexecutor() == "Arceus X") end},
+        {name = "CodeX", check = function() return CodeX and CodeX.Execute end},
+        {name = "Hydrogen", check = function() return isfile and readfile and writefile and (not syn) end},
+        {name = "Fluxus", check = function() return fluxus and fluxus.ismobile end},
+        {name = "Krnl", check = function() return krnl and krnl.loadlibrary end},
+        {name = "ScriptWare", check = function() return scriptware and scriptware.loader end},
+        {name = "Synapse X", check = function() return syn and syn.crypt and syn.request end},
+        {name = "Evon", check = function() return evon and evon.execute end},
+        {name = "Vega X", check = function() return game:GetService("CoreGui"):FindFirstChild("Vega Hub") end},
+        {name = "Swift", check = function() return Swift and Swift.Execute end},
+        {name = "Nexus", check = function() return Nexus and Nexus.Load end}
+    }
+    for _, exec in ipairs(executors) do
+        local success, result = pcall(exec.check)
+        if success and result then executorName = exec.name break end
+    end
+    local success, idName = pcall(function() if identifyexecutor then return identifyexecutor() end return nil end)
+    if success and idName and idName ~= "" then executorName = idName end
+    return executorName
+end
+
+local userExecutor = detectExecutor()
+
+-- ================== GLOBAL STATE & FILE SAVING SYSTEM ==================
+local FIREBASE_URL = "https://key-database-701af-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json"
+local WEBSITE_URL = "https://drip-client-get-key.vercel.app/"
+local SAVE_FILE = "drip_key_data.txt"
+
+local activeKeys = {}
+local currentUserKey = nil
+local keyExpiryTime = 0
+local keyJenis = ""
+local keyValidGlobal = false
+local infoKeyCountdownLabel = nil
+local mainWindowLoaded = false
+local keyWindowRef = nil
+
+local function loadKeyData()
+    if isfile and isfile(SAVE_FILE) then
+        local success, content = pcall(function() return readfile(SAVE_FILE) end)
+        if success and content and content ~= "" then
+            local success2, data = pcall(function() return HttpService:JSONDecode(content) end)
+            if success2 then activeKeys = data end
+        end
+    end
+end
+
+local function saveKeyData()
+    if writefile then
+        local success, json = pcall(function() return HttpService:JSONEncode(activeKeys) end)
+        if success then writefile(SAVE_FILE, json) end
+    end
+end
+
+local function getKeysFromFirebase()
+    local success, data = pcall(function() return game:HttpGet(FIREBASE_URL) end)
+    if success and data then
+        local success2, jsonData = pcall(function() return HttpService:JSONDecode(data) end)
+        if success2 and jsonData then
+            local keysArray = {}
+            for _, keyData in pairs(jsonData) do table.insert(keysArray, keyData) end
+            return keysArray
+        end
+    end
+    return nil
+end
+
+local function getTimeRemaining(expiryTimestamp)
+    local currentTime = os.time()
+    local remaining = expiryTimestamp - currentTime
+    if remaining <= 0 then return 0, 0, 0, 0, "EXPIRED" end
+    local days    = math.floor(remaining / 86400)
+    local hours   = math.floor((remaining % 86400) / 3600)
+    local minutes = math.floor((remaining % 3600) / 60)
+    local seconds = remaining % 60
+    return days, hours, minutes, seconds,
+        string.format("%d Hari %02d Jam %02d Menit %02d Detik", days, hours, minutes, seconds)
+end
+
+local function checkKeyExpiry(inputKey)
+    loadKeyData()
+    local keysData = getKeysFromFirebase()
+    if not keysData then return false, "Gagal mengambil data server" end
+
+    local foundData = nil
+    for _, keyData in ipairs(keysData) do
+        if keyData.key == inputKey then
+            foundData = keyData
+            break
+        end
+    end
+
+    if not foundData then return false, "KEY TIDAK TERDAFTAR!" end
+    if foundData.status and foundData.status ~= "aktif" then
+        return false, "KEY TIDAK AKTIF!"
+    end
+
+    local currentTime = os.time()
+    local expiryTime  = nil
+    local keyJenisData = foundData.jenis or "1 HARI"
+
+    if foundData.expiry_timestamp and foundData.expiry_timestamp ~= nil then
+        expiryTime = math.floor(foundData.expiry_timestamp / 1000)
+        if currentTime > expiryTime then
+            return false, "KEY SUDAH EXPIRED!"
+        end
+    elseif keyJenisData == "PERMANEN" then
+        expiryTime = math.huge
+    else
+        if activeKeys[inputKey] and activeKeys[inputKey].expiryTime then
+            expiryTime = activeKeys[inputKey].expiryTime
+            if currentTime > expiryTime then
+                return false, "KEY SUDAH EXPIRED!"
+            end
+        else
+            local expiryDays = 1
+            if keyJenisData == "1 JAM"   then expiryDays = 1/24
+            elseif keyJenisData == "1 HARI"  then expiryDays = 1
+            elseif keyJenisData == "2 HARI"  then expiryDays = 2
+            elseif keyJenisData == "3 HARI"  then expiryDays = 3
+            elseif keyJenisData == "7 HARI"  then expiryDays = 7
+            elseif keyJenisData == "30 HARI" then expiryDays = 30
+            end
+            expiryTime = currentTime + math.floor(expiryDays * 86400)
+        end
+    end
+
+    activeKeys[inputKey] = {
+        firstUsed  = activeKeys[inputKey] and activeKeys[inputKey].firstUsed or currentTime,
+        key        = inputKey,
+        expiryTime = expiryTime,
+        jenis      = keyJenisData,
+        expiry_timestamp_ms = foundData.expiry_timestamp,
+    }
+    saveKeyData()
+
+    keyExpiryTime    = expiryTime
+    keyJenis         = keyJenisData
+    currentUserKey   = inputKey
+    keyValidGlobal   = true
+
+    local _, _, _, _, timeStr = getTimeRemaining(expiryTime)
+    return true, "VALID! Sisa: " .. timeStr
+end
+
+-- ================== AUTO RE-SYNC EXPIRY DARI FIREBASE ==================
+task.spawn(function()
+    while true do
+        task.wait(60)
+        if not keyValidGlobal or not currentUserKey then continue end
+
+        local ok, keysData = pcall(function() return getKeysFromFirebase() end)
+        if not (ok and keysData) then continue end
+
+        for _, keyData in ipairs(keysData) do
+            if keyData.key == currentUserKey then
+                if keyData.expiry_timestamp and keyData.expiry_timestamp ~= nil then
+                    local newExpiry = math.floor(keyData.expiry_timestamp / 1000)
+                    if newExpiry ~= keyExpiryTime then
+                        keyExpiryTime = newExpiry
+                        if activeKeys[currentUserKey] then
+                            activeKeys[currentUserKey].expiryTime = newExpiry
+                            activeKeys[currentUserKey].expiry_timestamp_ms = keyData.expiry_timestamp
+                            pcall(saveKeyData)
+                        end
+                    end
+                end
+                if keyData.status and keyData.status ~= "aktif" then
+                    keyValidGlobal = false
+                end
+                break
+            end
+        end
+    end
+end)
+
+local espEnabled = false
+local lineEnabled = false
+local lineColor = Color3.fromRGB(255, 255, 255)
+local skeletonEnabled = false
+local espNameEnabled = false
+local espHealthEnabled = false
+local ESPTable = {}
+local SkeletonESP = {}
+
+-- ================== ESP NAME COLOR ==================
+local espNameColor = Color3.fromRGB(255, 255, 255) -- putih
+
+-- HOLOGRAM CHAMS
+local chamsEnabled = false
+local chamsColor = Color3.fromRGB(0, 255, 0)
+local chamsTransparency = 0.2
+local chamsParts = {}
+local chamsConnections = {}
+
+local playerCounterEnabled = false
+local enemyCountText = nil
+
+local autoParryEnabled = false
+local parryDistance = 8
+local parryCooldown = 0.5
+local lastParryTime = 0
+local parryConnection = nil
+
+local noclipEnabled = false
+local noclipConnection = nil
+
+local speedEnabled = false
+local normalSpeed = 16
+local fastSpeed = 60
+
+local jumpPowerEnabled = false
+local jumpPowerValue = 50
+local infinityJumpEnabled = false
+
+local antiDamageEnabled = false
+local antiDamageConnection = nil
+
+local spinEnabled = false
+local spinSpeed = 50
+local spinConnection = nil
+local spinDirection = 1
+
+local invisibleEnabled = false
+local invisibleConnection = nil
+local invisibleParts = {}
+local invisibleRootPart = nil
+local invisibleHumanoid = nil
+
+local skeletonColor = Color3.fromRGB(0, 255, 0)
+local boxColor = Color3.fromRGB(255, 255, 255)
+local MAX_ESP_DISTANCE = 200000
+
+-- FITUR BYPASS
+local fullBrightEnabled = false
+local originalBrightness = Lighting.Brightness
+local originalClockTime = Lighting.ClockTime
+local originalAmbient = Lighting.Ambient
+local originalColorShift_Bottom = Lighting.ColorShift_Bottom
+local originalColorShift_Top = Lighting.ColorShift_Top
+local originalOutdoorAmbient = Lighting.OutdoorAmbient
+
+local noFogEnabled = false
+local originalFogEnd = Lighting.FogEnd
+local originalFogStart = Lighting.FogStart
+local originalFogColor = Lighting.FogColor
+
+-- ================== ENGINE ACTIONS ==================
+local function startNoclip()
+    if noclipConnection then noclipConnection:Disconnect() end
+    noclipConnection = RunService.Stepped:Connect(function()
+        if noclipEnabled and LocalPlayer.Character then
+            for _, p in pairs(LocalPlayer.Character:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        end
+    end)
+end
+
+local function stopNoclip()
+    if noclipConnection then noclipConnection:Disconnect() noclipConnection = nil end
+end
+
+local function toggleSpin(state)
+    spinEnabled = state
+    if spinConnection then spinConnection:Disconnect() spinConnection = nil end
+    if state then
+        spinConnection = RunService.Heartbeat:Connect(function()
+            if spinEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(spinSpeed * spinDirection), 0)
+            end
+        end)
+    end
+end
+
+local function toggleInvisible(state)
+    invisibleEnabled = state
+    if invisibleConnection then invisibleConnection:Disconnect() invisibleConnection = nil end
+    if state and LocalPlayer.Character then
+        invisibleParts = {}
+        invisibleRootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        invisibleHumanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") and v.Transparency == 0 then
+                table.insert(invisibleParts, {part = v, origTrans = v.Transparency})
+                v.Transparency = 0.5
+            end
+        end
+        invisibleConnection = RunService.Heartbeat:Connect(function()
+            if invisibleEnabled and invisibleRootPart and invisibleHumanoid then
+                local oldCF = invisibleRootPart.CFrame
+                local oldOffset = invisibleHumanoid.CameraOffset
+                local hideCF = oldCF * CFrame.new(0, -500000, 0)
+                invisibleRootPart.CFrame = hideCF
+                invisibleHumanoid.CameraOffset = hideCF:ToObjectSpace(CFrame.new(oldCF.Position)).Position
+                RunService.RenderStepped:Wait()
+                invisibleRootPart.CFrame = oldCF
+                invisibleHumanoid.CameraOffset = oldOffset
+            end
+        end)
+    else
+        if LocalPlayer.Character then
+            for _, data in pairs(invisibleParts) do
+                pcall(function()
+                    if data.part and data.part.Parent then
+                        data.part.Transparency = data.origTrans
+                    end
+                end)
+            end
+            for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") and v.Transparency == 0.5 then v.Transparency = 0 end
+            end
+        end
+        invisibleParts = {}
+        invisibleRootPart = nil
+        invisibleHumanoid = nil
+    end
+end
+
+-- HOLOGRAM CHAMS
+local function applyChams(player)
+    if player == LocalPlayer then return end
+    local char = player.Character
+    if not char then return end
+
+    pcall(function()
+        local old = char:FindFirstChild("ChamsHighlight")
+        if old then old:Destroy() end
+
+        local hl = Instance.new("Highlight")
+        hl.Name = "ChamsHighlight"
+        hl.FillColor = chamsColor
+        hl.FillTransparency = chamsTransparency
+        hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+        hl.OutlineTransparency = 0
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        hl.Adornee = char
+        hl.Parent = char
+        chamsParts[player] = hl
+    end)
+end
+
+local function removeChams(player)
+    if not player then return end
+    local hl = chamsParts[player]
+    if hl then pcall(function() hl:Destroy() end) end
+    chamsParts[player] = nil
+    if player.Character then
+        local stray = player.Character:FindFirstChild("ChamsHighlight")
+        if stray then pcall(function() stray:Destroy() end) end
+    end
+end
+
+local function toggleChams(state)
+    chamsEnabled = state
+    if state then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then applyChams(player) end
+        end
+        local conn = Players.PlayerAdded:Connect(function(player)
+            player.CharacterAdded:Connect(function()
+                task.wait(0.5)
+                if chamsEnabled and player ~= LocalPlayer then applyChams(player) end
+            end)
+            if chamsEnabled and player ~= LocalPlayer then
+                task.wait(0.5)
+                applyChams(player)
+            end
+        end)
+        table.insert(chamsConnections, conn)
+        local conn2 = Players.PlayerRemoving:Connect(function(player)
+            removeChams(player)
+        end)
+        table.insert(chamsConnections, conn2)
+    else
+        for _, player in pairs(Players:GetPlayers()) do removeChams(player) end
+        for _, conn in pairs(chamsConnections) do pcall(function() conn:Disconnect() end) end
+        chamsConnections = {}
+    end
+end
+
+-- FULL BRIGHT
+local function toggleFullBright(state)
+    fullBrightEnabled = state
+    if state then
+        originalBrightness = Lighting.Brightness
+        originalClockTime = Lighting.ClockTime
+        originalAmbient = Lighting.Ambient
+        originalColorShift_Bottom = Lighting.ColorShift_Bottom
+        originalColorShift_Top = Lighting.ColorShift_Top
+        originalOutdoorAmbient = Lighting.OutdoorAmbient
+
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.Ambient = Color3.fromRGB(178, 178, 178)
+        Lighting.ColorShift_Bottom = Color3.fromRGB(0, 0, 0)
+        Lighting.ColorShift_Top = Color3.fromRGB(0, 0, 0)
+        Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 100000
+
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Atmosphere") or v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") then
+                v.Enabled = false
+            end
+        end
+    else
+        Lighting.Brightness = originalBrightness
+        Lighting.ClockTime = originalClockTime
+        Lighting.Ambient = originalAmbient
+        Lighting.ColorShift_Bottom = originalColorShift_Bottom
+        Lighting.ColorShift_Top = originalColorShift_Top
+        Lighting.OutdoorAmbient = originalOutdoorAmbient
+        Lighting.GlobalShadows = true
+        Lighting.FogEnd = originalFogEnd or 1000
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Atmosphere") or v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") then
+                v.Enabled = true
+            end
+        end
+    end
+end
+
+-- NO FOG
+local originalAtmosphereDensity = nil
+local originalAtmosphereHaze = nil
+
+local function toggleNoFog(state)
+    noFogEnabled = state
+    if state then
+        originalFogEnd = Lighting.FogEnd
+        originalFogStart = Lighting.FogStart
+        originalFogColor = Lighting.FogColor
+        Lighting.FogEnd = 10000000
+        Lighting.FogStart = 10000000
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Atmosphere") then
+                originalAtmosphereDensity = v.Density
+                originalAtmosphereHaze = v.Haze
+                v.Density = 0
+                v.Haze = 0
+            end
+        end
+    else
+        Lighting.FogEnd = originalFogEnd or 1000
+        Lighting.FogStart = originalFogStart or 0
+        Lighting.FogColor = originalFogColor or Color3.fromRGB(127, 127, 127)
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("Atmosphere") then
+                v.Density = originalAtmosphereDensity or 0.3
+                v.Haze = originalAtmosphereHaze or 0
+            end
+        end
+    end
+end
+
+-- REJOIN SERVER
+local function rejoinServer()
+    if Rayfield then
+        Rayfield:Notify({
+            Title = "Rejoin",
+            Content = "Sedang merejoin server...",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+    task.wait(1)
+    if #Players:GetPlayers() <= 1 then
+        LocalPlayer:Kick("\nRejoining...")
+        task.wait(0.5)
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+    else
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end
+end
+
+-- SERVER HOP
+local function serverHop()
+    if Rayfield then
+        Rayfield:Notify({
+            Title = "Server Hop",
+            Content = "Mencari server baru...",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+    task.wait(1)
+
+    local success, err = pcall(function()
+        local serverList = {}
+        local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+        local decoded = HttpService:JSONDecode(req)
+
+        if decoded and decoded.data then
+            for _, server in ipairs(decoded.data) do
+                if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                    table.insert(serverList, server.id)
+                end
+            end
+        end
+
+        if #serverList > 0 then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, serverList[math.random(1, #serverList)], LocalPlayer)
+        else
+            error("Tidak menemukan server alternatif.")
+        end
+    end)
+
+    if not success then
+        if Rayfield then
+            Rayfield:Notify({
+                Title = "Server Hop",
+                Content = "Mencoba metode alternatif...",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+        task.wait(1)
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+    end
+end
+
+-- GOD MODE
+local function toggleGodMode(state)
+    antiDamageEnabled = state
+    if antiDamageConnection then antiDamageConnection:Disconnect() antiDamageConnection = nil end
+
+    if state then
+        antiDamageConnection = RunService.Heartbeat:Connect(function()
+            if antiDamageEnabled and LocalPlayer.Character then
+                local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    if humanoid.Health > 0 and humanoid.Health < humanoid.MaxHealth then
+                        humanoid.Health = humanoid.MaxHealth
+                    end
+                end
+            end
+        end)
+    end
+end
+
+UserInputService.JumpRequest:Connect(function()
+    if infinityJumpEnabled and LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum and jumpPowerEnabled then
+            hum.UseJumpPower = true
+            hum.JumpPower = jumpPowerValue
+        end
+    end
+end)
+
+-- ================== ESP SYSTEM ==================
+local function createPlayerCounter()
+    if enemyCountText then pcall(function() enemyCountText:Remove() end) end
+    enemyCountText = Drawing.new("Text")
+    enemyCountText.Size = 22
+    enemyCountText.Color = Color3.fromRGB(255, 255, 255)
+    enemyCountText.Center = true
+    enemyCountText.Outline = true
+    enemyCountText.Position = Vector2.new(Camera.ViewportSize.X / 2, 55)
+    enemyCountText.Visible = false
+    enemyCountText.Text = "PLAYERS: 0"
+end
+
+local function createESP(player)
+    if player == LocalPlayer then return end
+    local box = Drawing.new("Square") box.Thickness = 1.8 box.Filled = false box.Visible = false
+    box.Color = boxColor
+
+    local name = Drawing.new("Text") name.Size = 15 name.Center = true name.Outline = true name.Visible = false
+    name.Color = espNameColor
+
+    local dist = Drawing.new("Text") dist.Size = 12 dist.Center = true dist.Outline = true dist.Visible = false
+    dist.Color = Color3.fromRGB(200, 200, 200)
+
+    local line = Drawing.new("Line") line.Thickness = 1.8 line.Visible = false
+    line.Color = lineColor
+
+    local healthBg = Drawing.new("Square") healthBg.Filled = true healthBg.Visible = false
+    local healthFg = Drawing.new("Square") healthFg.Filled = true healthFg.Visible = false
+
+    ESPTable[player] = {box, name, dist, line, healthBg, healthFg}
+end
+
+local function createSkeleton(player)
+    if player == LocalPlayer then return end
+    local lines = {}
+    local joints = {
+        {"Head","UpperTorso"},{"UpperTorso","LowerTorso"},
+        {"UpperTorso","LeftUpperArm"},{"LeftUpperArm","LeftLowerArm"},
+        {"UpperTorso","RightUpperArm"},{"RightUpperArm","RightLowerArm"},
+        {"LowerTorso","LeftUpperLeg"},{"LeftUpperLeg","LeftLowerLeg"},
+        {"LowerTorso","RightUpperLeg"},{"RightUpperLeg","RightLowerLeg"}
+    }
+    for i=1, #joints do
+        local l = Drawing.new("Line") l.Thickness = 2 l.Color = Color3.fromRGB(255, 255, 255) l.Visible = false
+        table.insert(lines, {l, joints[i][1], joints[i][2]})
+    end
+    SkeletonESP[player] = lines
+end
+
+RunService.RenderStepped:Connect(function()
+    local myChar = LocalPlayer.Character
+    local myPos = myChar and myChar:FindFirstChild("HumanoidRootPart") and myChar.HumanoidRootPart.Position
+    local screenCount = 0
+
+    for player, esp in pairs(ESPTable) do
+        local box, name, distText, line, hBg, hFg = unpack(esp)
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Head") then
+            local hrp = char.HumanoidRootPart
+            local head = char.Head
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            local pos, visible = Camera:WorldToViewportPoint(hrp.Position)
+            local distance = myPos and (myPos - hrp.Position).Magnitude or 9999
+
+            local vp = Camera.ViewportSize
+            local screenX = math.clamp(pos.X, 10, vp.X - 10)
+            local screenY = math.clamp(pos.Y, 10, vp.Y - 10)
+            local isOnScreen = visible and pos.Z > 0
+
+            if isOnScreen and distance <= MAX_ESP_DISTANCE then
+                screenCount = screenCount + 1
+                local top    = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                local bottom = Camera:WorldToViewportPoint(hrp.Position  - Vector3.new(0, 3,   0))
+                local height = math.abs(top.Y - bottom.Y)
+                local width  = height / 2
+
+                height = math.max(height, 10)
+                width  = math.max(width,  5)
+
+                local boxX = math.clamp(screenX - width/2, 2, vp.X - width - 2)
+                local boxTopY = math.clamp(top.Y, 2, vp.Y - height - 2)
+
+                if espEnabled then
+                    box.Size     = Vector2.new(width, height)
+                    box.Position = Vector2.new(boxX, boxTopY)
+                    box.Color    = boxColor
+                    box.Visible  = true
+
+                    distText.Text     = math.floor(distance).."m"
+                    distText.Position = Vector2.new(screenX, boxTopY + height + 4)
+                    distText.Color    = Color3.fromRGB(200, 200, 200)
+                    distText.Visible  = true
+
+                    if espNameEnabled then
+                        name.Position = Vector2.new(screenX, boxTopY - 18)
+                        name.Text     = "Putzzdev Xit"
+                        name.Color    = espNameColor
+                        name.Visible  = true
+                    else
+                        name.Visible = false
+                    end
+
+                    if espHealthEnabled and hum then
+                        local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+                        hBg.Size     = Vector2.new(4, height)
+                        hBg.Position = Vector2.new(boxX + width + 3, boxTopY)
+                        hBg.Color    = Color3.fromRGB(40, 40, 40)
+                        hBg.Visible  = true
+                        hFg.Size     = Vector2.new(4, height * pct)
+                        hFg.Position = Vector2.new(boxX + width + 3, boxTopY + height - (height * pct))
+                        hFg.Color    = Color3.fromRGB(255*(1-pct), 255*pct, 0)
+                        hFg.Visible  = true
+                    else
+                        hBg.Visible = false
+                        hFg.Visible = false
+                    end
+                else
+                    box.Visible = false; name.Visible = false; distText.Visible = false
+                    hBg.Visible = false; hFg.Visible = false
+                end
+            else
+                box.Visible = false; name.Visible = false; distText.Visible = false
+                hBg.Visible = false; hFg.Visible = false
+            end
+
+            if lineEnabled and visible and pos.Z > 0 and distance <= MAX_ESP_DISTANCE then
+                local top2 = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                local lineToX = math.clamp(top2.X, 2, vp.X - 2)
+                local lineToY = math.clamp(top2.Y, 2, vp.Y - 2)
+                line.From    = Vector2.new(vp.X / 2, 0)
+                line.To      = Vector2.new(lineToX, lineToY)
+                line.Color   = lineColor
+                line.Visible = true
+            else
+                line.Visible = false
+            end
+        end
+    end
+
+    if skeletonEnabled then
+        for player, lines in pairs(SkeletonESP) do
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") and myPos then
+                for _, lData in pairs(lines) do
+                    local l, p1, p2 = lData[1], char:FindFirstChild(lData[2]), char:FindFirstChild(lData[3])
+                    if p1 and p2 then
+                        local pos1, vis1 = Camera:WorldToViewportPoint(p1.Position)
+                        local pos2, vis2 = Camera:WorldToViewportPoint(p2.Position)
+                        if vis1 and vis2 then
+                            l.From = Vector2.new(pos1.X, pos1.Y)
+                            l.To = Vector2.new(pos2.X, pos2.Y)
+                            l.Color = Color3.fromRGB(255, 255, 255)
+                            l.Visible = true
+                        else l.Visible = false end
+                    else l.Visible = false end
+                end
+            else
+                for _, ld in pairs(lines) do ld[1].Visible = false end
+            end
+        end
+    else
+        for _, lines in pairs(SkeletonESP) do for _, ld in pairs(lines) do ld[1].Visible = false end end
+    end
+
+    if playerCounterEnabled and enemyCountText then
+        enemyCountText.Text = "PLAYERS: " .. screenCount
+        enemyCountText.Visible = true
+    elseif enemyCountText then
+        enemyCountText.Visible = false
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(5)
+        for part, _ in pairs(chamsParts) do
+            if not part or not part.Parent then
+                chamsParts[part] = nil
+            end
+        end
+    end
+end)
+
+-- ================== MAIN RAYFIELD UI ==================
+local function loadMainScript()
+    if mainWindowLoaded then return end
+    mainWindowLoaded = true
+
+    createPlayerCounter()
+
+    if not Rayfield then
+        Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+    end
+
+    local Window = Rayfield:CreateWindow({
+        Name = "Putzzdev XIT",
+        LoadingTitle = "Drip Client",
+        LoadingSubtitle = "Premium v8.2",
+        Theme = "Amethyst",
+        DisableRayfieldPrompts = true,
+        DisableBuildWarnings = true,
+        ConfigurationSaving = {
+            Enabled = false,
+        },
+        KeySystem = false,
+    })
+
+    -- ================== TAB MAIN ==================
+    local TabMain = Window:CreateTab("Main", "zap")
+
+    TabMain:CreateDivider()
+
+    TabMain:CreateToggle({
+        Name = "Speed Boost",
+        CurrentValue = false,
+        Flag = "SpeedBoost",
+        Callback = function(state)
+            speedEnabled = state
+            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = state and fastSpeed or normalSpeed end
+        end,
+    })
+
+    TabMain:CreateSlider({
+        Name = "Walk Speed",
+        Range = {16, 500},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = fastSpeed,
+        Flag = "WalkSpeed",
+        Callback = function(val)
+            fastSpeed = val
+            if speedEnabled then
+                local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if hum then hum.WalkSpeed = val end
+            end
+        end,
+    })
+
+    TabMain:CreateDivider()
+
+    TabMain:CreateToggle({
+        Name = "NoClip",
+        CurrentValue = false,
+        Flag = "NoClip",
+        Callback = function(state)
+            noclipEnabled = state
+            if state then startNoclip() else stopNoclip() end
+        end,
+    })
+
+    TabMain:CreateToggle({
+        Name = "Infinity Jump",
+        CurrentValue = false,
+        Flag = "InfJump",
+        Callback = function(state)
+            infinityJumpEnabled = state
+        end,
+    })
+
+    TabMain:CreateToggle({
+        Name = "God Mode",
+        CurrentValue = false,
+        Flag = "GodMode",
+        Callback = function(state)
+            toggleGodMode(state)
+        end,
+    })
+
+    TabMain:CreateDivider()
+
+    TabMain:CreateToggle({
+        Name = "Spin Muter",
+        CurrentValue = false,
+        Flag = "Spin",
+        Callback = function(state)
+            toggleSpin(state)
+        end,
+    })
+
+    TabMain:CreateSlider({
+        Name = "Spin Speed",
+        Range = {1, 200},
+        Increment = 1,
+        Suffix = "",
+        CurrentValue = spinSpeed,
+        Flag = "SpinSpeed",
+        Callback = function(val)
+            spinSpeed = val
+        end,
+    })
+
+    TabMain:CreateToggle({
+        Name = "Invisible Mode",
+        CurrentValue = false,
+        Flag = "Invisible",
+        Callback = function(state)
+            toggleInvisible(state)
+        end,
+    })
+
+    -- ================== TAB ESP ==================
+    local TabESP = Window:CreateTab("ESP", "eye")
+
+    TabESP:CreateToggle({
+        Name = "ESP Box",
+        CurrentValue = false,
+        Flag = "ESPBox",
+        Callback = function(state)
+            espEnabled = state
+        end,
+    })
+
+    TabESP:CreateToggle({
+        Name = "ESP Name",
+        CurrentValue = false,
+        Flag = "ESPName",
+        Callback = function(state)
+            espNameEnabled = state
+        end,
+    })
+
+    TabESP:CreateToggle({
+        Name = "ESP Health",
+        CurrentValue = false,
+        Flag = "ESPHealth",
+        Callback = function(state)
+            espHealthEnabled = state
+        end,
+    })
+
+    TabESP:CreateToggle({
+        Name = "ESP Line",
+        CurrentValue = false,
+        Flag = "ESPLine",
+        Callback = function(state)
+            lineEnabled = state
+        end,
+    })
+
+    TabESP:CreateToggle({
+        Name = "ESP Skeleton",
+        CurrentValue = false,
+        Flag = "ESPSkeleton",
+        Callback = function(state)
+            skeletonEnabled = state
+        end,
+    })
+
+    TabESP:CreateToggle({
+        Name = "Player Counter",
+        CurrentValue = false,
+        Flag = "PlayerCounter",
+        Callback = function(state)
+            playerCounterEnabled = state
+        end,
+    })
+
+    TabESP:CreateToggle({
+        Name = "HOLOGRAM",
+        CurrentValue = false,
+        Flag = "Hologram",
+        Callback = function(state)
+            toggleChams(state)
+            if Rayfield then
+                Rayfield:Notify({
+                    Title = "Hologram",
+                    Content = state and "Hologram DI-AKTIFKAN" or "Hologram Dinonaktifkan",
+                    Duration = 2,
+                    Image = 4483362458
+                })
+            end
+        end,
+    })
+
+    -- ================== TAB SETTINGS ==================
+    local TabSettings = Window:CreateTab("Settings", "settings")
+
+    -- ================== AIMLOCK / AIMBOT ==================
+    TabSettings:CreateSection("🎯 Aimlock / Aimbot")
+
+    local aimlockEnabled  = false
+    local aimlockTarget   = "Player"
+    local aimlockFOV      = 100
+    local aimlockConn     = nil
+    local aimlockSmooth   = 0.1
+
+    local function getNearestTarget()
+        local myChar = LocalPlayer.Character
+        local myHRP  = myChar and myChar:FindFirstChild("HumanoidRootPart")
+        if not myHRP then return nil end
+
+        local nearest, nearestDist = nil, math.huge
+        local vp = Camera.ViewportSize
+        local centerX, centerY = vp.X/2, vp.Y/2
+
+        if aimlockTarget == "Player" or aimlockTarget == "Both" then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p == LocalPlayer then continue end
+                local char = p.Character
+                local head = char and char:FindFirstChild("Head")
+                if not head then continue end
+                local sp, vis = Camera:WorldToViewportPoint(head.Position)
+                if not vis then continue end
+                local screenDist = math.sqrt((sp.X-centerX)^2 + (sp.Y-centerY)^2)
+                if screenDist < aimlockFOV and screenDist < nearestDist then
+                    nearestDist = screenDist
+                    nearest = head
+                end
+            end
+        end
+
+        if aimlockTarget == "NPC" or aimlockTarget == "Both" then
+            local playerChars = {}
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Character then playerChars[p.Character] = true end
+            end
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Model") and not playerChars[obj] then
+                    local hum = obj:FindFirstChildOfClass("Humanoid")
+                    local head = obj:FindFirstChild("Head")
+                    if hum and head and hum.Health > 0 then
+                        local sp, vis = Camera:WorldToViewportPoint(head.Position)
+                        if not vis then continue end
+                        local screenDist = math.sqrt((sp.X-centerX)^2 + (sp.Y-centerY)^2)
+                        if screenDist < aimlockFOV and screenDist < nearestDist then
+                            nearestDist = screenDist
+                            nearest = head
+                        end
+                    end
+                end
+            end
+        end
+
+        return nearest
+    end
+
+    local function startAimlock()
+        if aimlockConn then aimlockConn:Disconnect() end
+        aimlockConn = RunService.RenderStepped:Connect(function()
+            if not aimlockEnabled then return end
+            local target = getNearestTarget()
+            if not target then return end
+            local targetCF = CFrame.new(Camera.CFrame.Position, target.Position)
+            Camera.CFrame = Camera.CFrame:Lerp(targetCF, math.clamp(1 - aimlockSmooth, 0.01, 1))
+        end)
+    end
+
+    TabSettings:CreateToggle({
+        Name = "Aimlock Aktif",
+        CurrentValue = false,
+        Flag = "AimlockToggle",
+        Callback = function(state)
+            aimlockEnabled = state
+            if state then
+                startAimlock()
+                Rayfield:Notify({Title="Aimlock", Content="Aktif! Target: "..aimlockTarget, Duration=2, Image=4483362458})
+            else
+                if aimlockConn then aimlockConn:Disconnect(); aimlockConn=nil end
+                Rayfield:Notify({Title="Aimlock", Content="Dinonaktifkan.", Duration=2, Image=4483362458})
+            end
+        end,
+    })
+
+    TabSettings:CreateDropdown({
+        Name = "Target Aimlock",
+        Options = {"Player", "NPC", "Both"},
+        CurrentOption = {"Player"},
+        Flag = "AimlockTarget",
+        Callback = function(selected)
+            aimlockTarget = type(selected)=="table" and selected[1] or selected
+        end,
+    })
+
+    TabSettings:CreateSlider({
+        Name = "FOV Radius (pixel)",
+        Range = {20, 400},
+        Increment = 10,
+        Suffix = "px",
+        CurrentValue = 100,
+        Flag = "AimlockFOV",
+        Callback = function(v) aimlockFOV = v end,
+    })
+
+    TabSettings:CreateSlider({
+        Name = "Smooth (0=Instant)",
+        Range = {0, 90},
+        Increment = 5,
+        Suffix = "%",
+        CurrentValue = 10,
+        Flag = "AimlockSmooth",
+        Callback = function(v) aimlockSmooth = v/100 end,
+    })
+
+    -- ================== ESP COLOR PICKER ==================
+    TabSettings:CreateDivider()
+    TabSettings:CreateSection("🎨 ESP Color (Line + Box)")
+
+    TabSettings:CreateColorPicker({
+        Name = "ESP Line & Box Color",
+        Color = Color3.fromRGB(255, 255, 255),
+        Flag = "ESPColorPicker",
+        Callback = function(color)
+            lineColor = color
+            boxColor = color
+        end,
+    })
+
+    -- ================== FULL BRIGHT ==================
+    TabSettings:CreateDivider()
+    TabSettings:CreateSection("🔆 Full Bright")
+
+    TabSettings:CreateToggle({
+        Name = "Full Bright",
+        CurrentValue = false,
+        Flag = "FullBright",
+        Callback = function(state)
+            toggleFullBright(state)
+            if Rayfield then
+                Rayfield:Notify({
+                    Title = "Full Bright",
+                    Content = state and "Full Bright diaktifkan" or "Full Bright dinonaktifkan",
+                    Duration = 2,
+                    Image = 4483362458
+                })
+            end
+        end,
+    })
+
+    -- ================== NO FOG ==================
+    TabSettings:CreateDivider()
+    TabSettings:CreateSection("🌫️ No Fog")
+
+    TabSettings:CreateToggle({
+        Name = "No Fog",
+        CurrentValue = false,
+        Flag = "NoFog",
+        Callback = function(state)
+            toggleNoFog(state)
+            if Rayfield then
+                Rayfield:Notify({
+                    Title = "No Fog",
+                    Content = state and "No Fog diaktifkan" or "No Fog dinonaktifkan",
+                    Duration = 2,
+                    Image = 4483362458
+                })
+            end
+        end,
+    })
+
+    -- ================== SERVER CONTROL ==================
+    TabSettings:CreateDivider()
+    TabSettings:CreateSection("🔄 Server Control")
+
+    TabSettings:CreateButton({
+        Name = "🔄 Rejoin Server",
+        Callback = function()
+            rejoinServer()
+        end,
+    })
+
+    TabSettings:CreateButton({
+        Name = "🚀 Server Hop",
+        Callback = function()
+            serverHop()
+        end,
+    })
+
+    TabSettings:CreateDivider()
+    TabSettings:CreateSection("⚠️ Informasi")
+    TabSettings:CreateLabel("Bypass direkomendasikan diaktifkan")
+
+    -- ================== TAB INFO ==================
+    local TabInfo = Window:CreateTab("Info", "info")
+
+    TabInfo:CreateSection("👤 Profil Akun")
+    TabInfo:CreateLabel("Nama: " .. LocalPlayer.Name)
+    TabInfo:CreateLabel("Display Name: " .. LocalPlayer.DisplayName)
+    TabInfo:CreateLabel("User ID: " .. tostring(LocalPlayer.UserId))
+
+    TabInfo:CreateDivider()
+
+    TabInfo:CreateSection("Informasi Lisensi")
+    TabInfo:CreateLabel("Executor: " .. userExecutor)
+    local keyPaketStr = keyJenis ~= "" and keyJenis or "Tidak diketahui"
+    TabInfo:CreateLabel("Paket: " .. keyPaketStr)
+
+    local countdownElement = TabInfo:CreateLabel("Memuat waktu...")
+    infoKeyCountdownLabel = countdownElement
+
+    task.spawn(function()
+        while true do
+            task.wait(1)
+            if keyValidGlobal and keyExpiryTime > 0 then
+                local _, _, _, _, timeStr = getTimeRemaining(keyExpiryTime)
+                local txt = os.time() > keyExpiryTime and "⛔ Key EXPIRED!" or ("⏳ Sisa: " .. timeStr)
+                pcall(function()
+                    if countdownElement and countdownElement.Set then
+                        countdownElement:Set(txt)
+                    end
+                end)
+            end
+        end
+    end)
+
+    TabInfo:CreateDivider()
+    TabInfo:CreateSection("Developer")
+    TabInfo:CreateLabel("Developer: Putzzdev")
+    TabInfo:CreateLabel("WhatsApp: 088976255131")
+
+    TabInfo:CreateButton({
+        Name = "Salin Link Get Key",
+        Callback = function()
+            if setclipboard then
+                setclipboard(WEBSITE_URL)
+                if Rayfield then
+                    Rayfield:Notify({Title = "Berhasil", Content = "Link key berhasil disalin!", Duration = 3, Image = 4483362458})
+                end
+            else
+                if Rayfield then
+                    Rayfield:Notify({Title = "Info", Content = WEBSITE_URL, Duration = 5, Image = 4483362458})
+                end
+            end
+        end,
+    })
+
+    TabInfo:CreateDivider()
+    TabInfo:CreateParagraph({
+        Title = "💜 Terima Kasih",
+        Content = "Terima kasih telah menggunakan script Drip Client, jangan lupa support developer!",
+    })
+end
+
+-- ================== KEY SYSTEM RAYFIELD ==================
+local function startKeySystem()
+    local TempRayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+    keyWindowRef = TempRayfield:CreateWindow({
+        Name = "Drip Client - Verifikasi",
+        LoadingTitle = "Drip Client",
+        LoadingSubtitle = "Masukkan Key Anda",
+        Theme = "Amethyst",
+        DisableRayfieldPrompts = true,
+        DisableBuildWarnings = true,
+        ConfigurationSaving = { Enabled = false },
+        KeySystem = false,
+    })
+
+    local KeyTab = keyWindowRef:CreateTab("Key System", "key-round")
+    KeyTab:CreateSection("Autentikasi Key Server")
+
+    local statusLabel = KeyTab:CreateLabel("Menunggu verifikasi lisensi...")
+    local inputKeyValue = ""
+
+    KeyTab:CreateInput({
+        Name = "Masukkan Key Premium",
+        PlaceholderText = "Input key server di sini...",
+        RemoveTextAfterFocusLost = false,
+        Flag = "KeyInput",
+        Callback = function(text)
+            inputKeyValue = text
+        end,
+    })
+
+    KeyTab:CreateButton({
+        Name = "AUTENTIKASI KEY",
+        Callback = function()
+            local inputKey = inputKeyValue
+            inputKey = tostring(inputKey):gsub("%s+", "")
+
+            if inputKey == "" then
+                pcall(function() statusLabel:Set("❌ Key tidak boleh kosong!") end)
+                TempRayfield:Notify({Title = "Error", Content = "Key tidak boleh kosong!", Duration = 3, Image = 4483362458})
+                return
+            end
+
+            pcall(function() statusLabel:Set("🔄 Sedang verifikasi ke database server...") end)
+            TempRayfield:Notify({Title = "Verifikasi", Content = "Mengecek key ke server...", Duration = 2, Image = 4483362458})
+
+            local isValid, message = checkKeyExpiry(inputKey)
+
+            if isValid then
+                pcall(function() statusLabel:Set("✅ Key Valid! Memuat interface...") end)
+                TempRayfield:Notify({Title = "Sukses!", Content = "Key valid! Interface sedang dimuat.", Duration = 3, Image = 4483362458})
+                task.wait(1.5)
+                pcall(function()
+                    if keyWindowRef then
+                        keyWindowRef:Destroy()
+                        keyWindowRef = nil
+                    end
+                end)
+                task.wait(0.3)
+                loadMainScript()
+            else
+                pcall(function() statusLabel:Set("❌ " .. message) end)
+                TempRayfield:Notify({Title = "Gagal", Content = message, Duration = 4, Image = 4483362458})
+            end
+        end,
+    })
+
+    KeyTab:CreateButton({
+        Name = "Ambil Key (Salin Link)",
+        Callback = function()
+            if setclipboard then
+                setclipboard(WEBSITE_URL)
+                TempRayfield:Notify({Title = "Link Disalin", Content = "Buka browser dan paste link untuk mendapatkan key.", Duration = 4, Image = 4483362458})
+            else
+                TempRayfield:Notify({Title = "Link Key", Content = WEBSITE_URL, Duration = 6, Image = 4483362458})
+            end
+        end,
+    })
+end
+
+-- ================== ESP PLAYER INIT ==================
+for _, p in pairs(Players:GetPlayers()) do
+    createESP(p)
+    createSkeleton(p)
+end
+
+Players.PlayerAdded:Connect(function(p)
+    createESP(p)
+    createSkeleton(p)
+    if chamsEnabled then
+        task.wait(0.5)
+        applyChams(p)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(p)
+    if ESPTable[p] then
+        for _, d in pairs(ESPTable[p]) do
+            pcall(function() d:Remove() end)
+        end
+        ESPTable[p] = nil
+    end
+    if SkeletonESP[p] then
+        for _, ld in pairs(SkeletonESP[p]) do
+            pcall(function() ld[1]:Remove() end)
+        end
+        SkeletonESP[p] = nil
+    end
+    removeChams(p)
+end)
+
+-- ================== START ==================
+startKeySystem()
